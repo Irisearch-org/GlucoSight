@@ -1,0 +1,69 @@
+# ── Python ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ── Virtual environments ────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Jupyter ─────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Raw data — NEVER commit (see CLAUDE.md, DVC is in the stack) ──
+# Third-party datasets and participant data are distributed
+# out-of-band (DVC / shared drive), not through git.
+#
+#   rppg/PPG_Dataset/RawData  — PPG glucose set, 23 subjects, licence unconfirmed
+#   rppg/PPG_Dataset/Labels   — glucometer ground truth
+#   rppg/PPG_Dataset/Figures  — waveform plots
+#   rppg/PPG_Dataset/brno     — BUT PPG (CC-BY 4.0)
+#
+# This repo is PUBLIC. Human-subjects physiological data does not go in it.
+rppg/PPG_Dataset/RawData/
+rppg/PPG_Dataset/Labels/
+rppg/PPG_Dataset/Figures/
+rppg/PPG_Dataset/brno/
+
+# Participant data collected in Surabaya — never commit
+data/
+**/participant_data/
+*.mat
+*.dat
+*.hea
+
+# Model weights and checkpoints
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.onnx
+checkpoints/
+runs/
+wandb/
+
+# Results that can be regenerated
+results/
+*.png
+*.jpg
+*.jpeg
+!docs/**/*.png
+
+# ── DVC ─────────────────────────────────────────────────
+/.dvc/cache
+/.dvc/tmp
+
+# ── OS / editor ─────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

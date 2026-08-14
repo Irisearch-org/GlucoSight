@@ -1,0 +1,44 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(pip:*)",
+      "Bash(pip3:*)",
+      "Bash(git:*)",
+      "Bash(dvc:*)",
+      "Bash(pytest:*)",
+      "Bash(jupyter:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(mkdir:*)",
+      "Bash(echo:*)",
+      "Read(*)",
+      "Write(rppg/**)",
+      "Write(cv/**)",
+      "Write(nlp/**)",
+      "Write(forecasting/**)",
+      "Write(integration/**)",
+      "Write(utils/**)",
+      "Write(docs/**)",
+      "Write(data/**)",
+      "Write(setup/**)",
+      "Write(experiments/**)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(sudo:*)",
+      "Write(agents/**)",
+      "Write(CLAUDE.md)",
+      "Write(AGENTS.md)",
+      "Write(.claude/**)"
+    ]
+  },
+  "model": "claude-sonnet-4-6",
+  "context": {
+    "auto_read_claude_md": true,
+    "max_context_files": 10
+  }
+}
