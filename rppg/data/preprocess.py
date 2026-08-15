@@ -8,15 +8,17 @@ Naive slicing (signal[::73]) would alias high-frequency content back into the
 pulse band and is exactly what this function exists to avoid.
 """
 import numpy as np
-from scipy.signal import butter, decimate, filtfilt
+from scipy.signal import butter, decimate, sosfiltfilt
 
 FS_DEPLOY = 30
 
 
 def bandpass_filter(signal, fs, low_hz=0.5, high_hz=8.0, order=3):
+    # SOS (not b/a) for numerical stability — see rppg/features/extractor.py's
+    # _bandpass docstring for why b/a can blow up on narrow relative bands.
     nyq = fs / 2.0
-    b, a = butter(order, [low_hz / nyq, high_hz / nyq], btype='band')
-    return filtfilt(b, a, signal)
+    sos = butter(order, [low_hz / nyq, high_hz / nyq], btype='band', output='sos')
+    return sosfiltfilt(sos, signal)
 
 
 def decimate_to_30hz(signal, fs_in, fs_out=FS_DEPLOY):
