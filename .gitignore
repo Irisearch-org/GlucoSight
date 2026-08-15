@@ -34,7 +34,11 @@ rppg/PPG_Dataset/Figures/
 rppg/PPG_Dataset/brno/
 
 # Participant data collected in Surabaya — never commit
-data/
+# Anchored to repo root: this is the top-level data/{track}/ raw-data
+# directory from CLAUDE.md's repo layout, NOT track-internal dirs like
+# rppg/data/ (that one holds pipeline code + derived labels.csv, which
+# IS committed — see rppg/data/convert_labels.py).
+/data/
 **/participant_data/
 *.mat
 *.dat
