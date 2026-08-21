@@ -1,9 +1,10 @@
-# GlucoSight Interface Contract v1.1
+# GlucoSight Interface Contract v1.2
 
-**Status:** DRAFT — to be finalized at Sprint 2 Interface Meeting
+**Status:** DRAFT — sign-off deliberately deferred until after the
+independent-model week. See `docs/DATA_STRATEGY.md` §7.
 **Owner:** Project Manager
-**Last updated:** Sprint 1 (post architecture review)
-**Supersedes:** v1.0 draft
+**Last updated:** 2026-08-20 (post data-strategy change)
+**Supersedes:** v1.1 draft
 
 All tracks must comply with this contract from Sprint 3 onwards.
 No track may change output variables without PM approval and
@@ -12,10 +13,38 @@ a new version of this document.
 > **Read this with `docs/REVIEW_FINDINGS.md`.** Every change in v1.1
 > traces to a numbered finding there. If you disagree with a change,
 > argue against the finding, not the table.
+>
+> **v1.2 changes trace to `docs/DATA_STRATEGY.md` instead** — they follow
+> from the cancellation of primary data collection, not from a review
+> finding. Argue against the strategy, not the table.
 
 ---
 
-## What changed in v1.1 (read this first)
+## What changed in v1.2 (read this first)
+
+v1.2 follows the data-strategy change of 2026-08-20: primary data
+collection is cancelled and the Forecasting and NLP tracks run on public
+datasets. **Read `docs/DATA_STRATEGY.md` before this table.**
+
+| # | Change | Rationale |
+|---|--------|-----------|
+| 1 | Added `source_dataset` to the meal envelope | Inputs now originate from different cohorts; the model must be able to tell which, and results must be stratifiable by it |
+| 2 | `is_stressed`, `is_poor_sleep`, `is_high_activity` **removed** from the NLP schema | No producer exists on the fusion path. A track must not emit a field it cannot populate |
+| 3 | Sleep and activity reassigned to **Fitbit-derived features** (CGMacros), produced on the Forecasting side | A measured signal replacing an inferred one |
+| 4 | Added `nlp_feature_source` | Direct analogue of `carbs_source` — Forecasting must know whether it consumed a model output or a dictionary hit |
+| 5 | `nlp_embedding` **dropped** | Optional, never requested by Forecasting, and would dominate the gradient by dimensionality (H7) |
+| 6 | `carbs_source` gains the value `weighed` as the expected case on CGMacros | Breakfast and lunch macronutrients are weighed, so finding C5 does not bite on the anchor dataset |
+| 7 | Threshold-calibration rule reworded — no patient distribution exists | The rule was written against a cohort that will not be recruited |
+| 8 | `schema_version` → `"1.2"` | — |
+
+**Unchanged and non-negotiable:** the `*_present` masks, down-weight-never-
+exclude, grouped splits, the mandatory baselines, and the Clarke reporting
+discipline. The pivot changed where the numbers come from. It relaxed no
+standard for how they are reported.
+
+---
+
+## What changed in v1.1
 
 | # | Change | Finding |
 |---|--------|---------|
@@ -63,7 +92,8 @@ nothing downstream can be aligned or audited.
 | photo_timestamp | ISO8601 | — | NO | May differ from t0 |
 | ppg_timestamp | ISO8601 | — | NO | May differ from t0 |
 | note_timestamp | ISO8601 | — | NO | May differ from t0 |
-| schema_version | str | — | YES | "1.1" |
+| **source_dataset** | str | — | YES | NEW in v1.2 — `cgmacros`, `shanghai_t2dm`, `big_ideas`, `ppg_dataset` |
+| schema_version | str | — | YES | "1.2" |
 
 **T=0 is the first bite, not the photo.** See
 `docs/protocol/DATA_COLLECTION_PROTOCOL.md` §1. The photo is typically
@@ -128,34 +158,52 @@ anything beyond the lookup. Not committed for this cycle.
 
 **Producer:** NLP Sub-Team
 **Consumer:** Forecasting Sub-Team
-**Produced at:** Per meal (once per text note)
+**Produced at:** Per meal (once per dietary record)
+
+> **Substantially reduced in v1.2.** The original five-label schema assumed
+> a free-text note written by the participant. No such text exists in any
+> available dataset, and no public Bahasa Indonesia corpus carries these
+> labels. Fields without a producer are removed rather than shipped as
+> constant zeros. See `agents/nlp/CLAUDE.md` and `docs/DATA_STRATEGY.md`.
 
 | Variable | Type | Range | Required | Fallback if missing |
 |----------|------|-------|----------|---------------------|
-| is_stressed | int | 0,1 | YES | 0 |
-| is_poor_sleep | int | 0,1 | YES | 0 |
-| is_high_activity | int | 0,1 | YES | 0 |
 | is_fried_cooking | int | 0,1 | YES | 0 |
 | is_large_portion | int | 0,1 | YES | 0 |
 | nlp_confidence | float32 | 0.0–1.0 | YES | 0.0 |
-| nlp_embedding | np.array(128,) | — | NO | np.zeros(128) |
 | **nlp_present** | int | 0,1 | YES | 0 |
+| **nlp_feature_source** | str | — | YES | `unavailable` |
 | **nlp_model_version** | str | — | YES | — |
 
+**Removed in v1.2:** `is_stressed`, `is_poor_sleep`, `is_high_activity`,
+`nlp_embedding`.
+
 **Notes:**
-- **`nlp_present=0` means "no text was written."** All-zeros labels with
-  `nlp_present=1` means "text was written and reported no stress, no poor
-  sleep, etc." These are different states and must never share an encoding.
-  `nlp_confidence` alone cannot carry this distinction (finding H1).
+- **`nlp_present=0` means "no dietary record for this meal."** All-zero
+  labels with `nlp_present=1` means "a record exists and reports none of
+  these attributes." These are different states and must never share an
+  encoding. `nlp_confidence` alone cannot carry the distinction (H1).
+- **`nlp_feature_source`** ∈ {`extracted`, `lookup`, `rule_based`,
+  `unavailable`}. If the dietary records turn out to be too thin to model,
+  the honest outcome is `lookup` — and that fact must travel downstream
+  rather than disappear into a number. Same discipline as `carbs_source`.
 - `nlp_confidence` must be a **calibrated** probability (isotonic or Platt),
   not a raw sigmoid output. Forecasting uses it as a gating weight; an
   uncalibrated score makes that gate meaningless.
-- Decision thresholds are calibrated on the **realistic (patient) label
-  distribution**, not on the balanced 40%-positive annotation set.
-- Label correlations to note: is_stressed and is_poor_sleep often co-occur.
+- **Calibration set (reworded in v1.2):** the v1.1 rule said to calibrate
+  thresholds on "the realistic patient label distribution". No patient
+  distribution exists. Calibrate on a held-out split of whichever corpus is
+  live, and state which corpus in the experiment log.
+- **Sleep and activity are no longer NLP outputs.** They are derived from
+  CGMacros Fitbit data on the Forecasting side. Stress has no producer on
+  the fusion path at all.
 - **`is_large_portion` and `is_fried_cooking` overlap with CV outputs**
-  (`carbs_g`/`portion_reported` and `fat_g`). Forecasting must report the
-  feature correlation matrix before interpreting ablation results (H2).
+  (`portion_reported`/`carbs_g` and `fat_g`). The overlap now **differs by
+  dataset**: on CGMacros the macros are weighed, so CV carries real portion
+  information and NLP-derived portion is largely redundant; on
+  ShanghaiT2DM there is no photo, so the record weight is the only portion
+  signal. Forecasting must report the feature correlation matrix
+  **per dataset** before interpreting ablation results (H2).
 
 ---
 
@@ -305,9 +353,10 @@ Serialization format for saving: JSON (for logs), NumPy .npy (for embeddings).
 # Example full input to Forecasting at meal time
 meal_input = {
     # Envelope
-    "schema_version": "1.1",
+    "schema_version": "1.2",
     "meal_id": "a3f9…",
     "participant_id": "P042",
+    "source_dataset": "cgmacros",
     "t0_timestamp": "2025-01-15 19:30:00",   # FIRST BITE
     "delta_t_minutes": 62.0,                 # actual horizon to the label
 
@@ -318,17 +367,15 @@ meal_input = {
     "fiber_g": 2.1,
     "gi_category": 2,
     "portion_reported": 2,
-    "carbs_source": "class_lookup",
+    "carbs_source": "weighed",
     "cv_confidence": 0.87,
     "cv_present": 1,
 
-    # From NLP
-    "is_stressed": 1,
-    "is_poor_sleep": 1,
-    "is_high_activity": 0,
+    # From NLP  (reduced in v1.2 — see NLP schema section)
     "is_fried_cooking": 1,
     "is_large_portion": 0,
     "nlp_confidence": 0.91,
+    "nlp_feature_source": "extracted",
     "nlp_present": 1,
 
     # From contact PPG
@@ -366,7 +413,8 @@ that are the prediction targets.
 | v0.1 | Sprint 1 | Draft — proposals only | PM |
 | v1.0 | Sprint 1 | Initial full schema | PM (draft) |
 | v1.1 | Sprint 1 | Post-review: contact PPG rename, missingness masks, meal envelope, causality rule, normalization spec, capture protocol | PM (draft) |
-| v2.0 | Sprint 2 | TBD after Interface Contract meeting | All tracks |
+| v1.2 | 2026-08-20 | Post data-strategy change: `source_dataset` added; NLP schema reduced to producible fields; sleep/activity reassigned to Fitbit; `nlp_feature_source` added; `nlp_embedding` dropped | PM (draft) |
+| v2.0 | After the independent-model week | TBD at the Interface Contract meeting | All tracks |
 
 ---
 
@@ -383,7 +431,16 @@ that are the prediction targets.
 **Open items requiring a decision at the Sprint 2 meeting:**
 1. Primary endpoint and paper claim wording — deferred by PM, must be
    settled before fine-tuning begins.
-2. Whether `ppg_embedding` / `nlp_embedding` are requested by Forecasting
-   at all.
-3. Capture window: 30 s is contracted. The PPG track may propose 60 s after
-   the pilot if compliance data supports it.
+2. Whether `ppg_embedding` is requested by Forecasting at all.
+   (`nlp_embedding` was dropped in v1.2.)
+3. Capture window: 30 s is contracted. The PPG track may propose 60 s if
+   evidence supports it. **Note this item now has no pilot to settle it** —
+   the capture protocol describes a collection that is not scheduled.
+4. **NEW in v1.2 — the root `CLAUDE.md` still states the tri-modal research
+   question and an Indonesian target population.** `docs/DATA_STRATEGY.md`
+   §3–4 supersede it in practice. The PM must decide whether to amend the
+   root document or record the divergence deliberately.
+5. **NEW in v1.2 — `agents/cv/CLAUDE.md` has not been updated.** It targets
+   the Indonesian food dataset and expects `carbs_source = class_lookup`.
+   On CGMacros the macros are weighed, which is a *better* situation than
+   that doc describes. CV should be told.
