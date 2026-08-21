@@ -1,0 +1,7 @@
+# inti pipeline (predict, schema, macro lookup)
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# hanya dibutuhkan untuk inference model sungguhan
+torch>=2.0.0
+torchvision>=0.15.0

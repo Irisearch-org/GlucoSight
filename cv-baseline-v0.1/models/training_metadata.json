@@ -1,0 +1,107 @@
+{
+  "model_version": "cv-baseline-v0.1",
+  "arch": "mobilenet_v2 (pretrained ImageNet)",
+  "classes": [
+    "bakso",
+    "bebek_betutu",
+    "gado_gado",
+    "gudeg",
+    "nasi_goreng",
+    "pempek",
+    "rawon",
+    "rendang",
+    "sate",
+    "soto"
+  ],
+  "n_train": 2293,
+  "n_val": 573,
+  "n_test": 1193,
+  "best_val_acc": 0.8673647469458988,
+  "test_acc": 0.8801341156747695,
+  "config": {
+    "DATA_ROOT": "/kaggle/input/datasets/iwayansatya/food-datasett",
+    "OUTPUT_DIR": "/kaggle/working",
+    "IMAGE_SIZE": 224,
+    "BATCH_SIZE": 32,
+    "VAL_SPLIT": 0.2,
+    "SEED": 42,
+    "EPOCHS": 10,
+    "LR": 0.0001,
+    "FREEZE_BACKBONE": false,
+    "NUM_WORKERS": 2,
+    "MODEL_NAME": "mobilenetv2_food10"
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 1.3570352234904859,
+      "train_acc": 0.5822067160924553,
+      "val_loss": 0.7396179955667226,
+      "val_acc": 0.7905759162303665
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.5528327685565965,
+      "train_acc": 0.8517226341037941,
+      "val_loss": 0.5341248799368973,
+      "val_acc": 0.8324607329842932
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.3446374024645085,
+      "train_acc": 0.9014391626689926,
+      "val_loss": 0.4952166606826516,
+      "val_acc": 0.8464223385689355
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.22607138763334989,
+      "train_acc": 0.9406890536415177,
+      "val_loss": 0.46790424337769887,
+      "val_acc": 0.8586387434554974
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.15338978983016707,
+      "train_acc": 0.963802878325338,
+      "val_loss": 0.476183814840167,
+      "val_acc": 0.849912739965096
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.11312430612239263,
+      "train_acc": 0.9703445268207588,
+      "val_loss": 0.472848429417735,
+      "val_acc": 0.8621291448516579
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.08939092210869679,
+      "train_acc": 0.9764500654164849,
+      "val_loss": 0.5115834788710243,
+      "val_acc": 0.8551483420593369
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.08284642378569325,
+      "train_acc": 0.9812472743131269,
+      "val_loss": 0.5697063922257948,
+      "val_acc": 0.8307155322862129
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.0546538199525939,
+      "train_acc": 0.9890972525076319,
+      "val_loss": 0.491745018990252,
+      "val_acc": 0.8534031413612565
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.043971960621691404,
+      "train_acc": 0.9921500218054949,
+      "val_loss": 0.48990547438566595,
+      "val_acc": 0.8673647469458988
+    }
+  ],
+  "trained_at": "2026-08-01T11:16:23.468616"
+}
