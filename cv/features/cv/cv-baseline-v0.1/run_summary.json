@@ -1,0 +1,11 @@
+{
+  "model_version": "cv-baseline-v0.1",
+  "total_samples": 10,
+  "schema_valid": 10,
+  "schema_invalid": 0,
+  "feature_status_counts": {
+    "ok": 10
+  },
+  "invalid_records": [],
+  "output_file": "D:\\Project\\Glucosight Long Term Project IRIS\\cv-baseline-v0.1\\cv-baseline-v0.1\\features\\cv\\cv-baseline-v0.1\\features.jsonl"
+}

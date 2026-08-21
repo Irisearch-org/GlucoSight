@@ -1,0 +1,401 @@
+﻿sample_id,context_sentence
+S0001,Aku tadi aku baru makan jam sebelas malam dan makan ayam goreng.
+S0002,Aku tadi aku baru makan setelah jam sepuluh malam lalu minum boba.
+S0003,Aku lagi cemas karena besok ada ujian.
+S0004,Aku tadi aku makan nasi goreng dalam porsi besar.
+S0005,Aku makan mie lalu minum boba.
+S0006,Tadi aku baru makan nasi dua porsi jam sebelas malam.
+S0007,Hari ini habis lari lima kilometer aku makan nasi dua porsi dan minum es teh manis.
+S0008,"Karena banyak tugas, aku baru makan malam jam sebelas sambil minum es teh manis."
+S0009,Aku makan ayam bakar dengan sayuran.
+S0010,"Hari ini karena begadang, pagi ini aku minum kopi manis."
+S0011,Aku baru makan malam jam sebelas.
+S0012,Barusan aku lagi kepikiran tugas yang belum selesai.
+S0013,"Karena kurang tidur, tadi makan siangku ayam goreng."
+S0014,Aku tadi aku minum es teh manis.
+S0015,Hari ini aku baru tidur sekitar jam tiga pagi.
+S0016,Barusan tadi makan nasi goreng dan minum kopi susu.
+S0017,Hari ini aku makan porsi jumbo dan minum es teh manis.
+S0018,Aku tadi tadi makan nasi satu porsi dengan lauk biasa.
+S0019,Tadi hari ini cukup bikin stres karena kerjaan numpuk.
+S0020,Hari ini aku makan nasi goreng dalam porsi besar.
+S0021,Barusan aku lagi cemas karena besok ada ujian.
+S0022,"Hari ini karena deadline numpuk, tadi malam aku tidur sangat sedikit."
+S0023,Tadi tadi malam cuma tidur sebentar lalu pagi ini minum kopi susu.
+S0024,Tadi tadi makan nasi goreng dan minum kopi susu.
+S0025,Tadi habis olahraga aku makan ayam goreng.
+S0026,Barusan hari ini cukup bikin stres karena kerjaan numpuk.
+S0027,"Aku tadi habis gym satu jam, aku makan nasi dua porsi."
+S0028,Aku tadi aku kurang tidur semalam.
+S0029,Tadi aku minum boba setelah makan.
+S0030,Tadi tadi habis olahraga cukup berat lalu makan dua porsi.
+S0031,Aku tadi aku makan ayam goreng.
+S0032,Tadi tadi makan malam larut dengan ayam goreng.
+S0033,"Semalam begadang karena deadline, lalu siang makan ayam goreng dua porsi."
+S0034,Tadi tadi makan malam hampir tengah malam.
+S0035,Hari ini lagi banyak pikiran gara-gara deadline.
+S0036,Hari ini aku makan mie dan nasi setelah jam sepuluh malam.
+S0037,Tadi aku makan porsi jumbo dan minum es teh manis.
+S0038,Hari ini aku baru makan jam sebelas malam dan makan ayam goreng.
+S0039,"Karena deadline numpuk, tadi malam aku tidur sangat sedikit."
+S0040,Tadi aku makan sup ayam.
+S0041,"Hari ini karena kerjaan numpuk, makan malamku jadi hampir tengah malam."
+S0042,Aku tadi aku habis gym sekitar satu jam.
+S0043,"Barusan karena kerjaan numpuk, makan malamku jadi hampir tengah malam."
+S0044,"Hari ini setelah gym, aku makan nasi dan mie."
+S0045,"Aku tadi semalam kurang tidur, jadi tadi pagi aku minum kopi susu."
+S0046,Aku makan ayam goreng sampai dua porsi.
+S0047,Aku kurang tidur semalam.
+S0048,"Barusan semalam kurang tidur, siang makan nasi goreng porsi jumbo dan minum kopi susu."
+S0049,Tadi tadi makan mie dan nasi bersamaan.
+S0050,Tidurku semalam kurang dari lima jam.
+S0051,Aku makan dalam porsi yang cukup besar.
+S0052,Semalam begadang dan siang ini aku makan ayam goreng.
+S0053,Banyak tugas bikin aku stres dan akhirnya tidur larut.
+S0054,Barusan tadi makan nasi goreng cukup larut.
+S0055,Hari ini tadi aku makan sup ayam.
+S0056,Hari ini aku baru makan nasi dua porsi jam sebelas malam.
+S0057,Aku lagi stres karena deadline dan baru makan malam larut.
+S0058,Barusan aku makan nasi dua porsi.
+S0059,Tadi aku baru makan jam sebelas malam dan makan ayam goreng.
+S0060,Barusan tadi minum kopi susu.
+S0061,Hari ini aku makan nasi goreng dan ayam goreng.
+S0062,Tadi aku baru tidur sekitar jam tiga pagi.
+S0063,"Aku tadi setelah jogging, aku makan dalam porsi besar."
+S0064,"Hari ini semalam kurang tidur, siang makan nasi goreng porsi jumbo dan minum kopi susu."
+S0065,"Tadi setelah jogging, aku makan dalam porsi besar."
+S0066,Barusan aku makan dalam porsi yang cukup besar.
+S0067,Tadi tadi makan dua porsi lalu minum kopi susu.
+S0068,Hari ini tadi makan tempe goreng.
+S0069,Aku tadi aku baru makan nasi dua porsi jam sebelas malam.
+S0070,Hari ini aku makan nasi dua porsi.
+S0071,"Semalam kurang tidur, siang makan nasi goreng porsi jumbo dan minum kopi susu."
+S0072,Aku tadi habis gym aku makan ayam goreng.
+S0073,Aku tadi tadi siang aku makan nasi dan sayur.
+S0074,Semalam aku cuma tidur empat jam.
+S0075,Aku tadi aku minum boba setelah makan.
+S0076,Aku tadi tadi makannya porsi jumbo.
+S0077,Tadi siang minum thai tea.
+S0078,Hari ini aku lagi stres karena banyak tugas.
+S0079,Hari ini aku kepikiran pekerjaan sampai begadang semalam.
+S0080,"Aku tadi semalam aku begadang karena banyak tugas, jadi tidur cuma empat jam."
+S0081,Tadi siang aku makan nasi dan sayur.
+S0082,Tadi habis gym aku makan nasi dua porsi dengan ayam goreng.
+S0083,Aku tadi tadi makan mie goreng dengan ayam goreng.
+S0084,Aku tadi aku baru makan setelah jam sepuluh dan pilih tempe goreng.
+S0085,Hari ini tadi aku nambah nasi sampai dua kali.
+S0086,"Karena banyak kerjaan, aku baru makan malam jam sebelas."
+S0087,Aku habis olahraga cukup berat.
+S0088,"Tadi semalam kurang tidur, siang makan nasi goreng porsi jumbo dan minum kopi susu."
+S0089,Hari ini aku lagi cemas karena besok ada ujian.
+S0090,Aku tadi tadi makan nasi dengan mie sekaligus.
+S0091,Barusan aku makan nasi dua porsi dengan ayam goreng.
+S0092,Aku tadi semalam begadang dan siang ini aku makan ayam goreng.
+S0093,Tadi aku minum es kopi gula aren.
+S0094,Tadi aku makan sayur dan telur.
+S0095,Barusan aku makan ayam bakar dengan sayuran.
+S0096,Aku tadi aku lagi stres karena deadline dan baru makan malam larut.
+S0097,"Barusan karena banyak kerjaan, aku baru makan malam jam sebelas."
+S0098,Aku baru makan setelah jam sebelas malam.
+S0099,Hari ini habis workout aku makan nasi goreng.
+S0100,"Aku tadi karena begadang, pagi ini aku minum kopi manis."
+S0101,Hari ini tadi minum kopi susu.
+S0102,Tadi aku baru makan setelah jam sepuluh malam lalu minum boba.
+S0103,Aku makan nasi dengan lauk sederhana.
+S0104,"Hari ini tadi makan sayur, tahu, dan nasi secukupnya."
+S0105,Aku tadi aku makan nasi dengan telur rebus.
+S0106,"Tadi karena begadang, pagi ini aku minum kopi manis."
+S0107,"Aku tadi tadi makan sayur, tahu, dan nasi secukupnya."
+S0108,Aku makan nasi dan minum es teh manis.
+S0109,Barusan tadi malam tidur sedikit lalu siang makan tempe goreng.
+S0110,Tadi makan nasi satu porsi dengan lauk biasa.
+S0111,Aku lagi banyak pikiran dan semalam cuma tidur beberapa jam.
+S0112,Aku makan sayur dan telur.
+S0113,Tadi tadi makan nasi dengan mie sekaligus.
+S0114,"Karena kerjaan numpuk, makan malamku jadi hampir tengah malam."
+S0115,Barusan habis gym aku makan nasi dua porsi dengan ayam goreng.
+S0116,Aku kepikiran pekerjaan sampai begadang semalam.
+S0117,Tadi porsinya tadi besar banget.
+S0118,Tadi malam tidur sedikit lalu siang makan tempe goreng.
+S0119,"Semalam kurang tidur, jadi tadi pagi aku minum kopi susu."
+S0120,Hari ini aku baru makan setelah jam sebelas malam.
+S0121,Aku tadi barusan selesai jogging cukup lama.
+S0122,Barusan tadi makan tempe goreng.
+S0123,Barusan aku minum es teh manis.
+S0124,Aku baru tidur sekitar jam tiga pagi.
+S0125,Aku makan mie dan nasi setelah jam sepuluh malam.
+S0126,Hari ini tadi makan malam larut dan minum kopi susu.
+S0127,Aku tadi aku makan mie lalu minum boba.
+S0128,Hari ini hari ini cukup bikin stres karena kerjaan numpuk.
+S0129,Hari ini tadi habis olahraga aku makan ayam goreng.
+S0130,Aku makan nasi goreng dalam porsi besar.
+S0131,"Barusan karena deadline numpuk, tadi malam aku tidur sangat sedikit."
+S0132,Aku tadi tadi makan malam larut dengan ayam goreng.
+S0133,Hari ini semalam begadang dan siang ini aku makan ayam goreng.
+S0134,Hari ini tadi siang aku makan nasi dan sayur.
+S0135,Hari ini aku makan nasi dengan lauk sederhana.
+S0136,Barusan tadi habis olahraga aku makan ayam goreng.
+S0137,Aku tadi tadi malam tidur sedikit lalu siang makan tempe goreng.
+S0138,Barusan siang ini makan ikan goreng.
+S0139,Tadi makan malam larut dan minum kopi susu.
+S0140,Lagi banyak pikiran gara-gara deadline.
+S0141,Hari ini aku makan nasi dua porsi dengan ayam goreng.
+S0142,Barusan tadi makan dua porsi lalu minum kopi susu.
+S0143,Hari ini aku makan nasi dan minum es teh manis.
+S0144,Hari ini habis gym aku makan ayam goreng.
+S0145,Aku makan ikan bakar dengan sayur.
+S0146,Aku tadi hari ini cukup bikin stres karena kerjaan numpuk.
+S0147,Hari ini aku makan dua porsi nasi.
+S0148,Aku tadi aku kepikiran pekerjaan sampai begadang semalam.
+S0149,"Setelah latihan, aku makan lebih banyak dari biasanya."
+S0150,Tadi tadi pagi aku lari selama satu jam.
+S0151,Hari ini tidurku semalam kurang dari lima jam.
+S0152,"Habis gym satu jam, aku makan nasi dua porsi."
+S0153,Tadi tadi banyak tugas jadi aku baru sempat makan malam jam sepuluh.
+S0154,Tadi tadi siang minum thai tea.
+S0155,Barusan porsinya tadi besar banget.
+S0156,Hari ini tadi makan nasi goreng cukup larut.
+S0157,Hari ini aku minum boba setelah makan.
+S0158,Barusan aku makan nasi dan minum es teh manis.
+S0159,Aku makan nasi goreng dan ayam goreng.
+S0160,Aku tadi tadi habis olahraga aku makan ayam goreng.
+S0161,"Barusan semalam kurang tidur, jadi tadi pagi aku minum kopi susu."
+S0162,Aku makan nasi dengan telur rebus.
+S0163,Tadi hari ini aku banyak jalan kaki.
+S0164,Tadi aku lagi banyak pikiran dan semalam cuma tidur beberapa jam.
+S0165,Barusan aku makan nasi dengan telur rebus.
+S0166,Barusan tadi makannya porsi jumbo.
+S0167,Barusan aku makan mie dan nasi setelah jam sepuluh malam.
+S0168,Tadi tadi makan nasi goreng cukup larut.
+S0169,Hari ini hari ini aku lagi stres karena banyak tugas.
+S0170,Tadi aku makan tahu goreng.
+S0171,Makan malamku tadi cukup larut.
+S0172,Aku tadi aku lagi cemas karena besok ada ujian.
+S0173,Hari ini aku baru sempat makan jam sepuluh malam.
+S0174,Tadi aku baru makan setelah jam sebelas malam.
+S0175,Aku tadi tadi habis olahraga cukup berat lalu makan dua porsi.
+S0176,Tadi makannya porsi jumbo.
+S0177,Barusan aku makan ikan bakar dengan sayur.
+S0178,Aku makan tahu goreng.
+S0179,"Barusan setelah jogging, aku makan tempe goreng."
+S0180,Barusan aku habis gym sekitar satu jam.
+S0181,"Semalam aku begadang karena banyak tugas, jadi tidur cuma empat jam."
+S0182,Tadi aku makan sup sayuran.
+S0183,Tadi makan dua porsi lalu minum kopi susu.
+S0184,"Hari ini karena kurang tidur, tadi makan siangku ayam goreng."
+S0185,"Hari ini setelah jogging, aku makan tempe goreng."
+S0186,Hari ini semalam aku cuma tidur empat jam.
+S0187,Tadi makan nasi goreng cukup larut.
+S0188,Porsinya tadi besar banget.
+S0189,Tadi tadi habis olahraga aku makan ayam goreng.
+S0190,Barusan aku habis olahraga cukup berat.
+S0191,Barusan aku baru makan jam sebelas malam dan makan ayam goreng.
+S0192,Barusan tadi makan mie goreng dengan ayam goreng.
+S0193,Habis gym aku makan nasi dua porsi dengan ayam goreng.
+S0194,Barusan aku minum es kopi gula aren.
+S0195,Barusan tadi banyak tugas jadi aku baru sempat makan malam jam sepuluh.
+S0196,Aku tadi aku makan dalam porsi yang cukup besar.
+S0197,Aku tadi aku lagi kepikiran tugas yang belum selesai.
+S0198,Aku tadi hari ini aku banyak jalan kaki.
+S0199,Aku tadi tadi makan tempe goreng.
+S0200,"Aku tadi semalam begadang karena deadline, lalu siang makan ayam goreng dua porsi."
+S0201,Barusan aku makan tahu goreng.
+S0202,Hari ini tadi banyak tugas jadi aku baru sempat makan malam jam sepuluh.
+S0203,Tadi aku lagi cemas karena besok ada ujian.
+S0204,Aku minum es kopi gula aren.
+S0205,Tadi aku makan nasi dua porsi dengan ayam goreng.
+S0206,Hari ini makan malamku tadi cukup larut.
+S0207,Barusan aku baru makan setelah jam sepuluh malam lalu minum boba.
+S0208,Aku tadi aku makan ayam bakar dengan sayuran.
+S0209,Tadi habis lari lima kilometer aku makan nasi dua porsi dan minum es teh manis.
+S0210,"Hari ini semalam begadang karena deadline, lalu siang makan ayam goreng dua porsi."
+S0211,Hari ini tadi makan nasi goreng dan minum kopi susu.
+S0212,"Tadi setelah latihan, aku makan lebih banyak dari biasanya."
+S0213,Barusan aku makan dua porsi nasi.
+S0214,"Barusan karena begadang, pagi ini aku minum kopi manis."
+S0215,Barusan aku baru tidur sekitar jam tiga pagi.
+S0216,"Setelah gym, aku makan nasi dan mie."
+S0217,Hari ini aku makan tahu goreng.
+S0218,Barusan tadi malam cuma tidur sebentar lalu pagi ini minum kopi susu.
+S0219,Tadi aku habis olahraga cukup berat.
+S0220,Hari ini aku makan beberapa gorengan.
+S0221,Hari ini aku makan sayur dan telur.
+S0222,Aku baru makan jam sebelas malam dan makan ayam goreng.
+S0223,Hari ini porsinya tadi besar banget.
+S0224,Tadi habis lari lima kilometer aku makan nasi dua porsi.
+S0225,Tadi makan mie dan nasi bersamaan.
+S0226,Barusan aku baru sempat makan jam sepuluh malam.
+S0227,Habis lari lima kilometer aku makan nasi dua porsi.
+S0228,Aku makan nasi dua porsi.
+S0229,Siang ini makan ikan goreng.
+S0230,Barusan semalam begadang dan siang ini aku makan ayam goreng.
+S0231,Hari ini aku baru makan malam jam sebelas.
+S0232,Barusan tadi makan nasi dengan mie sekaligus.
+S0233,Aku minum boba setelah makan.
+S0234,Tadi aku makan nasi dengan lauk sederhana.
+S0235,"Aku tadi setelah latihan, aku makan lebih banyak dari biasanya."
+S0236,Barusan aku baru makan jam sebelas malam sambil minum es teh manis.
+S0237,Aku tadi habis workout aku makan nasi goreng.
+S0238,Hari ini aku makan ayam bakar dengan sayuran.
+S0239,Aku makan ayam goreng.
+S0240,Tadi aku makan ikan bakar dengan sayur.
+S0241,Aku tadi semalam aku cuma tidur empat jam.
+S0242,Barusan hari ini aku lagi stres karena banyak tugas.
+S0243,Tadi makan nasi goreng dan minum kopi susu.
+S0244,"Hari ini semalam kurang tidur, jadi tadi pagi aku minum kopi susu."
+S0245,Barusan tadi aku makan sup sayuran.
+S0246,Barusan tadi malam aku begadang sampai jam tiga.
+S0247,Barusan aku baru makan setelah jam sebelas malam.
+S0248,Aku tadi lagi banyak pikiran gara-gara deadline.
+S0249,Aku tadi tidurku semalam kurang dari lima jam.
+S0250,Aku habis gym sekitar satu jam.
+S0251,Hari ini aku habis olahraga cukup berat.
+S0252,Tadi tadi aku makan sup sayuran.
+S0253,Barusan habis gym aku makan ayam goreng.
+S0254,Tadi tidurku semalam kurang dari lima jam.
+S0255,"Barusan semalam aku begadang karena banyak tugas, jadi tidur cuma empat jam."
+S0256,Barusan semalam aku cuma tidur empat jam.
+S0257,Tadi tadi makan nasi satu porsi dengan lauk biasa.
+S0258,Aku tadi tadi malam aku begadang sampai jam tiga.
+S0259,Tadi aku baru makan malam jam sebelas.
+S0260,Hari ini tadi habis olahraga cukup berat lalu makan dua porsi.
+S0261,Aku tadi porsinya tadi besar banget.
+S0262,Barusan tadi pagi aku lari selama satu jam.
+S0263,Tadi aku makan nasi dengan telur rebus.
+S0264,Tadi minum kopi susu.
+S0265,Aku tadi aku minum es kopi gula aren.
+S0266,Aku tadi aku baru makan setelah jam sebelas malam.
+S0267,Hari ini cukup bikin stres karena kerjaan numpuk.
+S0268,Barusan aku lagi banyak pikiran dan semalam cuma tidur beberapa jam.
+S0269,Tadi hari ini aku lagi stres karena banyak tugas.
+S0270,Barusan aku kepikiran pekerjaan sampai begadang semalam.
+S0271,"Barusan setelah gym, aku makan nasi dan mie."
+S0272,Tadi siang ini makan ikan goreng.
+S0273,Hari ini aku banyak jalan kaki.
+S0274,Tadi habis olahraga cukup berat lalu makan dua porsi.
+S0275,Tadi tadi makannya porsi jumbo.
+S0276,Tadi aku lagi stres karena deadline dan baru makan malam larut.
+S0277,Tadi aku makan banyak banget dengan minuman manis.
+S0278,Aku makan banyak banget dengan minuman manis.
+S0279,Tadi makan mie goreng dengan ayam goreng.
+S0280,Tadi habis workout aku makan nasi goreng.
+S0281,Tadi malam aku begadang sampai jam tiga.
+S0282,Aku makan nasi dua porsi dengan ayam goreng.
+S0283,Barusan tadi siang aku makan nasi dan sayur.
+S0284,Tadi aku makan nasi dua porsi.
+S0285,"Tadi tadi makan sayur, tahu, dan nasi secukupnya."
+S0286,Aku tadi aku baru tidur sekitar jam tiga pagi.
+S0287,"Hari ini setelah latihan, aku makan lebih banyak dari biasanya."
+S0288,Tadi makan nasi dengan mie sekaligus.
+S0289,Aku tadi aku makan porsi jumbo dan minum es teh manis.
+S0290,Aku makan porsi jumbo dan minum es teh manis.
+S0291,Barusan barusan selesai jogging cukup lama.
+S0292,Tadi aku makan ayam bakar dengan sayuran.
+S0293,Aku minum es teh manis.
+S0294,Tadi pagi aku lari selama satu jam.
+S0295,Tadi tadi malam tidur sedikit lalu siang makan tempe goreng.
+S0296,Barusan tidurku semalam kurang dari lima jam.
+S0297,Aku tadi tadi makan ayam goreng dengan porsi jumbo.
+S0298,Tadi makan ayam goreng dengan porsi jumbo.
+S0299,"Tadi makan sayur, tahu, dan nasi secukupnya."
+S0300,Hari ini siang ini makan ikan goreng.
+S0301,Barusan aku baru makan nasi dua porsi jam sebelas malam.
+S0302,Tadi makan malam hampir tengah malam.
+S0303,"Barusan semalam begadang karena deadline, lalu siang makan ayam goreng dua porsi."
+S0304,Barusan aku makan ayam goreng.
+S0305,Aku tadi aku makan nasi dan minum es teh manis.
+S0306,Hari ini aku makan banyak gorengan karena lagi lapar.
+S0307,Barusan aku makan nasi goreng dan ayam goreng.
+S0308,Barusan tadi siang minum thai tea.
+S0309,Hari ini hari ini aku banyak jalan kaki.
+S0310,Hari ini aku baru makan setelah jam sepuluh malam lalu minum boba.
+S0311,Barusan habis lari lima kilometer aku makan nasi dua porsi dan minum es teh manis.
+S0312,Barusan aku makan sayur dan telur.
+S0313,Tadi makan tempe goreng.
+S0314,Aku tadi tadi aku makan sup sayuran.
+S0315,Aku tadi aku makan ikan bakar dengan sayur.
+S0316,"Hari ini karena banyak kerjaan, aku baru makan malam jam sebelas."
+S0317,Tadi malam cuma tidur sebentar lalu pagi ini minum kopi susu.
+S0318,Aku tadi tadi pagi aku lari selama satu jam.
+S0319,Aku baru makan nasi dua porsi jam sebelas malam.
+S0320,Barusan makan malamku tadi cukup larut.
+S0321,Aku tadi hari ini aku lagi stres karena banyak tugas.
+S0322,Hari ini tadi makan mie dan nasi bersamaan.
+S0323,Barusan aku lagi stres karena deadline dan baru makan malam larut.
+S0324,Barusan aku makan nasi goreng dalam porsi besar.
+S0325,"Tadi setelah jogging, aku makan tempe goreng."
+S0326,Aku baru makan setelah jam sepuluh malam lalu minum boba.
+S0327,Barusan tadi makan nasi satu porsi dengan lauk biasa.
+S0328,Aku tadi tadi banyak tugas jadi aku baru sempat makan malam jam sepuluh.
+S0329,"Karena begadang, pagi ini aku minum kopi manis."
+S0330,Tadi barusan selesai jogging cukup lama.
+S0331,"Aku tadi karena banyak kerjaan, aku baru makan malam jam sebelas."
+S0332,"Aku tadi karena banyak tugas, aku baru makan malam jam sebelas sambil minum es teh manis."
+S0333,Aku makan beberapa gorengan.
+S0334,Tadi aku nambah nasi sampai dua kali.
+S0335,Tadi makan malam larut dengan ayam goreng.
+S0336,"Setelah jogging, aku makan tempe goreng."
+S0337,Hari ini aku lagi kepikiran tugas yang belum selesai.
+S0338,Tadi aku makan ayam goreng.
+S0339,Hari ini aku baru makan jam sebelas malam sambil minum es teh manis.
+S0340,"Aku tadi karena kerjaan numpuk, makan malamku jadi hampir tengah malam."
+S0341,Barusan habis lari lima kilometer aku makan nasi dua porsi.
+S0342,Aku baru sempat makan jam sepuluh malam.
+S0343,Tadi aku baru sempat makan jam sepuluh malam.
+S0344,Tadi aku makan beberapa gorengan.
+S0345,Hari ini habis lari lima kilometer aku makan nasi dua porsi.
+S0346,Aku tadi aku makan banyak gorengan karena lagi lapar.
+S0347,Hari ini banyak tugas bikin aku stres dan akhirnya tidur larut.
+S0348,Barusan tadi aku nambah nasi sampai dua kali.
+S0349,Barusan selesai jogging cukup lama.
+S0350,"Aku tadi karena kurang tidur, tadi makan siangku ayam goreng."
+S0351,Aku tadi tadi makan nasi goreng cukup larut.
+S0352,Hari ini aku makan banyak banget dengan minuman manis.
+S0353,"Setelah jogging, aku makan dalam porsi besar."
+S0354,"Barusan karena kurang tidur, tadi makan siangku ayam goreng."
+S0355,Hari ini aku habis gym sekitar satu jam.
+S0356,Barusan tadi makan malam larut dan minum kopi susu.
+S0357,Aku tadi aku makan nasi dua porsi dengan ayam goreng.
+S0358,Aku tadi aku makan mie dan nasi setelah jam sepuluh malam.
+S0359,Hari ini tadi makannya porsi jumbo.
+S0360,Hari ini aku baru makan setelah jam sepuluh dan pilih tempe goreng.
+S0361,Barusan habis workout aku makan nasi goreng.
+S0362,Barusan aku makan porsi jumbo dan minum es teh manis.
+S0363,Aku makan banyak gorengan karena lagi lapar.
+S0364,Barusan aku makan banyak gorengan karena lagi lapar.
+S0365,Hari ini tadi siang minum thai tea.
+S0366,Aku lagi kepikiran tugas yang belum selesai.
+S0367,Barusan tadi makan ayam goreng dengan porsi jumbo.
+S0368,Barusan aku kurang tidur semalam.
+S0369,Aku tadi banyak tugas bikin aku stres dan akhirnya tidur larut.
+S0370,Tadi tadi makan ayam goreng dengan porsi jumbo.
+S0371,Tadi aku lagi kepikiran tugas yang belum selesai.
+S0372,"Barusan tadi makan sayur, tahu, dan nasi secukupnya."
+S0373,Tadi lagi banyak pikiran gara-gara deadline.
+S0374,Aku tadi tadi makan nasi goreng dan minum kopi susu.
+S0375,Hari ini aku lagi stres karena deadline dan baru makan malam larut.
+S0376,Aku baru makan setelah jam sepuluh dan pilih tempe goreng.
+S0377,Aku makan dua porsi nasi.
+S0378,"Tadi karena banyak tugas, aku baru makan malam jam sebelas sambil minum es teh manis."
+S0379,Habis gym aku makan ayam goreng.
+S0380,Aku tadi makan malamku tadi cukup larut.
+S0381,Barusan aku baru makan malam jam sebelas.
+S0382,Hari ini aku makan ikan bakar dengan sayur.
+S0383,Tadi tadi makan malam larut dan minum kopi susu.
+S0384,Habis workout aku makan nasi goreng.
+S0385,Barusan aku minum boba setelah makan.
+S0386,"Hari ini setelah jogging, aku makan dalam porsi besar."
+S0387,Hari ini habis gym aku makan nasi dua porsi dengan ayam goreng.
+S0388,"Tadi karena kurang tidur, tadi makan siangku ayam goreng."
+S0389,Aku tadi habis lari lima kilometer aku makan nasi dua porsi dan minum es teh manis.
+S0390,Tadi aku makan nasi goreng dalam porsi besar.
+S0391,Aku tadi habis gym aku makan nasi dua porsi dengan ayam goreng.
+S0392,Habis lari lima kilometer aku makan nasi dua porsi dan minum es teh manis.
+S0393,Tadi aku baru makan setelah jam sepuluh dan pilih tempe goreng.
+S0394,Barusan aku makan beberapa gorengan.
+S0395,Aku tadi aku baru makan malam jam sebelas.
+S0396,"Barusan karena banyak tugas, aku baru makan malam jam sebelas sambil minum es teh manis."
+S0397,Tadi banyak tugas jadi aku baru sempat makan malam jam sepuluh.
+S0398,Aku baru makan jam sebelas malam sambil minum es teh manis.
+S0399,Hari ini tadi makan dua porsi lalu minum kopi susu.
+S0400,Barusan tadi makan malam hampir tengah malam.

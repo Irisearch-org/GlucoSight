@@ -1,0 +1,61 @@
+﻿sample_id,context_sentence,stress,poor_sleep,high_activity,fried_food,large_portion,sweet_drink,late_meal,high_carb_hint
+S0005,Aku makan mie lalu minum boba.,0,0,0,0,0,1,0,1
+S0009,Aku makan ayam bakar dengan sayuran.,0,0,0,0,0,0,0,0
+S0014,Aku tadi aku minum es teh manis.,0,0,0,0,0,1,0,0
+S0022,"Hari ini karena deadline numpuk, tadi malam aku tidur sangat sedikit.",1,0,0,0,0,0,0,0
+S0033,"Semalam begadang karena deadline, lalu siang makan ayam goreng dua porsi.",1,1,0,1,1,0,0,0
+S0049,Tadi tadi makan mie dan nasi bersamaan.,0,0,0,0,0,0,0,1
+S0050,Tidurku semalam kurang dari lima jam.,0,0,0,0,0,0,0,0
+S0054,Barusan tadi makan nasi goreng cukup larut.,0,0,0,1,0,0,0,1
+S0059,Tadi aku baru makan jam sebelas malam dan makan ayam goreng.,0,0,0,1,0,0,1,0
+S0062,Tadi aku baru tidur sekitar jam tiga pagi.,0,1,0,0,0,0,0,0
+S0063,"Aku tadi setelah jogging, aku makan dalam porsi besar.",0,0,1,0,1,0,0,0
+S0072,Aku tadi habis gym aku makan ayam goreng.,0,0,1,1,0,0,0,0
+S0092,Aku tadi semalam begadang dan siang ini aku makan ayam goreng.,0,1,0,1,0,0,0,0
+S0100,"Aku tadi karena begadang, pagi ini aku minum kopi manis.",0,1,0,0,0,0,0,0
+S0106,"Tadi karena begadang, pagi ini aku minum kopi manis.",0,1,0,0,0,0,0,0
+S0135,Hari ini aku makan nasi dengan lauk sederhana.,0,0,0,0,0,0,0,1
+S0136,Barusan tadi habis olahraga aku makan ayam goreng.,0,0,1,1,0,0,0,0
+S0152,"Habis gym satu jam, aku makan nasi dua porsi.",0,0,1,0,1,0,0,1
+S0167,Barusan aku makan mie dan nasi setelah jam sepuluh malam.,0,0,0,0,0,0,1,1
+S0172,Aku tadi aku lagi cemas karena besok ada ujian.,1,0,0,0,0,0,0,0
+S0188,Porsinya tadi besar banget.,0,0,0,0,0,0,0,0
+S0189,Tadi tadi habis olahraga aku makan ayam goreng.,0,0,1,1,0,0,0,0
+S0190,Barusan aku habis olahraga cukup berat.,0,0,1,0,0,0,0,0
+S0192,Barusan tadi makan mie goreng dengan ayam goreng.,0,0,0,1,0,0,0,1
+S0206,Hari ini makan malamku tadi cukup larut.,0,0,0,0,0,0,0,0
+S0208,Aku tadi aku makan ayam bakar dengan sayuran.,0,0,0,0,0,0,0,0
+S0213,Barusan aku makan dua porsi nasi.,0,0,0,0,1,0,0,1
+S0214,"Barusan karena begadang, pagi ini aku minum kopi manis.",0,1,0,0,0,0,0,0
+S0215,Barusan aku baru tidur sekitar jam tiga pagi.,0,1,0,0,0,0,0,0
+S0217,Hari ini aku makan tahu goreng.,0,0,0,1,0,0,0,0
+S0252,Tadi tadi aku makan sup sayuran.,0,0,0,0,0,0,0,0
+S0258,Aku tadi tadi malam aku begadang sampai jam tiga.,0,1,0,0,0,0,0,0
+S0260,Hari ini tadi habis olahraga cukup berat lalu makan dua porsi.,0,0,1,0,1,0,0,0
+S0264,Tadi minum kopi susu.,0,0,0,0,0,1,0,0
+S0268,Barusan aku lagi banyak pikiran dan semalam cuma tidur beberapa jam.,1,0,0,0,0,0,0,0
+S0270,Barusan aku kepikiran pekerjaan sampai begadang semalam.,1,1,0,0,0,0,0,0
+S0271,"Barusan setelah gym, aku makan nasi dan mie.",0,0,1,0,0,0,0,1
+S0274,Tadi habis olahraga cukup berat lalu makan dua porsi.,0,0,1,0,1,0,0,0
+S0277,Tadi aku makan banyak banget dengan minuman manis.,0,0,0,0,1,1,0,0
+S0280,Tadi habis workout aku makan nasi goreng.,0,0,1,1,0,0,0,1
+S0294,Tadi pagi aku lari selama satu jam.,0,0,1,0,0,0,0,0
+S0296,Barusan tidurku semalam kurang dari lima jam.,0,0,0,0,0,0,0,0
+S0310,Hari ini aku baru makan setelah jam sepuluh malam lalu minum boba.,0,0,0,0,0,1,1,0
+S0313,Tadi makan tempe goreng.,0,0,0,1,0,0,0,0
+S0314,Aku tadi tadi aku makan sup sayuran.,0,0,0,0,0,0,0,0
+S0316,"Hari ini karena banyak kerjaan, aku baru makan malam jam sebelas.",0,0,0,0,0,0,1,0
+S0331,"Aku tadi karena banyak kerjaan, aku baru makan malam jam sebelas.",0,0,0,0,0,0,1,0
+S0340,"Aku tadi karena kerjaan numpuk, makan malamku jadi hampir tengah malam.",0,0,0,0,0,0,1,0
+S0342,Aku baru sempat makan jam sepuluh malam.,0,0,0,0,0,0,1,0
+S0344,Tadi aku makan beberapa gorengan.,0,0,0,1,0,0,0,0
+S0345,Hari ini habis lari lima kilometer aku makan nasi dua porsi.,0,0,1,0,1,0,0,1
+S0347,Hari ini banyak tugas bikin aku stres dan akhirnya tidur larut.,1,1,0,0,0,0,0,0
+S0349,Barusan selesai jogging cukup lama.,0,0,1,0,0,0,0,0
+S0359,Hari ini tadi makannya porsi jumbo.,0,0,0,0,1,0,0,0
+S0366,Aku lagi kepikiran tugas yang belum selesai.,1,0,0,0,0,0,0,0
+S0367,Barusan tadi makan ayam goreng dengan porsi jumbo.,0,0,0,1,1,0,0,0
+S0384,Habis workout aku makan nasi goreng.,0,0,1,1,0,0,0,1
+S0391,Aku tadi habis gym aku makan nasi dua porsi dengan ayam goreng.,0,0,1,1,1,0,0,1
+S0394,Barusan aku makan beberapa gorengan.,0,0,0,1,0,0,0,0
+S0400,Barusan tadi makan malam hampir tengah malam.,0,0,0,0,0,0,1,0
