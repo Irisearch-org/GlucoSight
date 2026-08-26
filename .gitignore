@@ -44,6 +44,11 @@ rppg/PPG_Dataset/brno/
 *.dat
 *.hea
 
+# ── ShanghaiT2DM raw Excel — never commit (109 files, ~9 MB) ──
+# Derived features ARE committed for review.
+nlp/data/Shanghai_T2DM/
+!nlp/features/shanghai_nlp_features.csv
+
 # Model weights and checkpoints
 *.pt
 *.pth
