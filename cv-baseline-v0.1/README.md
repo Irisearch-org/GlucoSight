@@ -62,7 +62,38 @@ MODEL_CARD.md       metrik + keterbatasan (baca ini sebelum pakai angkanya)
 
 ```bash
 python tests/test_contract.py
+python tests/test_mean_baseline.py
 ```
+
+## B0 population-mean pada CGMacros
+
+Baseline B0 adalah referensi non-informatif yang sengaja tidak membaca gambar.
+Untuk setiap meal dengan foto awal yang valid, outputnya selalu
+`carbs_g=45.0`, `protein_g=18.0`, `fat_g=12.0`, `fiber_g=4.0`, dan
+`gi_category=1`.
+
+Raw CGMacros disimpan di `data/cgmacros/raw/` pada root repo agar tidak pernah
+masuk Git. Jalankan evaluator dengan menunjuk direktori yang langsung berisi
+folder peserta `CGMacros-001`, `CGMacros-002`, dan seterusnya:
+
+```powershell
+$cgRoot = "D:\Project\GlucoSight\data\cgmacros\raw\cgmacros-a-scientific-dataset-for-personalized-nutrition-and-diet-monitoring-1.0.0\cgmacros-a-scientific-dataset-for-personalized-nutrition-and-diet-monitoring-1.0.0\CGMacros_dateshifted365\CGMacros"
+python scripts/evaluate_mean_baseline.py --dataset-root $cgRoot
+```
+
+Output per-meal (`meal_manifest.jsonl`, `predictions.jsonl`, exclusion, dan
+warning) berada di `data/cgmacros/results/b0_population_mean/` dan diabaikan
+Git. Ringkasan yang boleh dilacak berada di
+`reports/b0_population_mean/{metrics.json,report.md}`.
+
+Parser hanya menjadikan baris dengan `Meal Type` sebagai awal meal. Foto pada
+baris itu adalah `before_image`; foto sesudahnya disimpan sebagai metadata
+`after_image_paths` dan tidak pernah menjadi input B0. Makro CSV tidak dikali
+lagi dengan `Amount Consumed`, dan provenance dicatat sebagai
+`cgmacros_reported_estimate` karena data dictionary lokal menyebutnya sebagai
+estimasi, bukan secara eksplisit weighed ground truth. Nilai makro di luar
+rentang 0–176 g yang didokumentasikan CGMacros dikeluarkan sebagai error data
+dan dilaporkan dalam audit; nilainya tidak diperbaiki atau dihapus diam-diam.
 
 ## Penting
 
