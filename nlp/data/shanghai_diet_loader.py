@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -76,9 +75,8 @@ def _parse_timestamp(value, datemode: Optional[int] = None) -> Optional[datetime
         return None
 
 
-def _meal_id(participant_id: str, t0: datetime, diet_text: str) -> str:
-    base = f"{participant_id}|{t0.isoformat()}|{diet_text.strip()}"
-    return str(uuid.uuid5(uuid.NAMESPACE_DNS, base))
+def _meal_id(participant_id: str, file_name: str, row_index: int, t0: datetime) -> str:
+    return f"SH-{str(participant_id).zfill(4)}-{t0.strftime('%Y%m%d%H%M')}-{row_index:04d}"
 
 
 def _read_excel(path: Path) -> Tuple[List[str], List[Tuple], Optional[int]]:
@@ -115,8 +113,8 @@ def load_shanghai_diet_records(data_dir: Optional[Path] = None, *, generate_meal
 
     records: List[Dict] = []
     for path in files:
-        parts = path.stem.split("_")
-        participant_id = parts[0] if parts else path.stem
+        participant_id = path.stem
+        parts = participant_id.split("_")
         visit_id = parts[1] if len(parts) > 1 else ""
         header, data_rows, datemode = _read_excel(path)
         if not header:
@@ -162,7 +160,7 @@ def load_shanghai_diet_records(data_dir: Optional[Path] = None, *, generate_meal
                         pass
 
             records.append({
-                "meal_id": _meal_id(participant_id, t0, diet_en) if generate_meal_ids else "",
+                "meal_id": _meal_id(participant_id, path.name, r_idx, t0) if generate_meal_ids else "",
                 "participant_id": str(participant_id),
                 "visit_id": str(visit_id),
                 "file_name": path.name,

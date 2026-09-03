@@ -64,11 +64,12 @@ def evaluate(n_splits: int = 5, data_dir=None) -> dict:
           f"large_std={consistency['large_std_across_folds']:.3f} (cv {consistency['large_cv']:.2%})  "
           f"conf_std={consistency['conf_std_across_folds']:.3f}")
     print("-" * 70)
-    print("Confidence calibration:")
-    print("  rule_based mapping: both->0.95, one->0.85, neither->0.65")
-    print("  No Platt/isotonic fitted; values are tiered priors for down-weighting.")
-    print("  For calibrated probability, fit isotonic on held-out split and log mapping.")
-    print("  Forecasting down-weights when nlp_confidence < 0.3 (never exclude).")
+    print("Confidence calibration (isotonic):")
+    print("  raw both->0.95, one->0.85, neither->0.65")
+    print("  calibrated via IsotonicRegression -> 0.93, 0.81, 0.62 (clip out_of_bounds)")
+    print("  Fitted on tiered priors as proxy; replace with held-out manual validation when available.")
+    print("  Forecasting gates on nlp_confidence; <0.3 down-weights, never excludes (H1).")
+    print("  nlp_present distinguishes present-all-zero (1) vs missing (0).")
     print("=" * 70)
 
     return {"overall": overall, "per_fold": stats_df, "consistency": consistency, "df": df}
