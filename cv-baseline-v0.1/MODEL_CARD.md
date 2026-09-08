@@ -91,6 +91,49 @@ turun — menambah epoch tanpa regularisasi tambahan kemungkinan tidak menolong.
 
 ---
 
+## Evaluasi out-of-domain: CGMacros — Sprint 2 Task 2
+
+Full run 8 September 2026 mengevaluasi 1.616 meal dari 45 peserta, dengan
+coverage 100% dan tanpa kegagalan inference. Semua prediksi low-confidence
+tetap dinilai, dan B0 memakai meal yang persis sama. B0 adalah konstanta
+karbohidrat/protein/lemak/serat 45/18/12/4 g.
+
+| Makro | MAE classifier (g) | MAE B0 (g) | Selisih classifier − B0 (g) |
+|---|---:|---:|---:|
+| Karbohidrat | 35.019 | 27.342 | +7.677 |
+| Protein | 20.696 | 19.699 | +0.997 |
+| Lemak | 13.099 | 12.509 | +0.590 |
+| Serat | 4.277 | 4.178 | +0.098 |
+
+Classifier tidak mengalahkan B0 pada MAE agregat keempat makro; selisih
+terbesar terdapat pada karbohidrat. Median confidence adalah 0.622;
+758 meal (46.9%) berstatus low-confidence dan 282 meal (17.5%) memiliki
+confidence ≥0.9. Confidence ini berupa softmax mentah, belum dikalibrasi.
+
+**Perbedaan dataset dan ruang label:** model dilatih pada 10 kelas makanan
+Indonesia dari Mendeley, sedangkan evaluasi menggunakan foto makanan CGMacros
+(domain Amerika). Untuk makanan di luar 10 kelas tersebut, model tetap
+memilih salah satu label Indonesia yang tersedia sehingga label prediksi
+dapat berbeda dari identitas makanan aslinya; misalnya, 531/1.616 foto
+(32.9%) diprediksi sebagai `pempek`. Angka ini adalah distribusi prediksi,
+bukan jumlah salah klasifikasi yang sudah diverifikasi: evaluasi ini tidak
+memiliki anotasi kelas CGMacros yang sepadan untuk menghitung accuracy.
+
+Estimasi makro berasal dari label prediksi melalui lookup TKPI dengan porsi
+tetap (`carbs_source=class_lookup`), termasuk serat heuristik. Error mencakup
+ketidakcocokan kelas/domain, lookup, dan asumsi porsi; selisih terhadap B0
+tidak mengisolasi efek domain shift dan tidak menilai akurasi model pada
+test set makanan Indonesia. Label acuan memakai provenance
+`cgmacros_reported_estimate` sesuai data dictionary lokal, sehingga tidak
+diklaim sebagai weighed ground truth. Hasil OOD ini dilaporkan terpisah
+dari tabel utama evaluasi fusion.
+
+[Laporan lengkap dan distribusi confidence](../cv/reports/indonesian_classifier_ood/20260908T053051_450315Z/report.md)
+memuat hash manifest, checkpoint, dan tabel lookup, serta median/IQR MAE
+antar peserta. Run terbaru ini menjadi acuan hasil Sprint 2 Task 2.
+
+---
+
 ## Keterbatasan
 
 Bagian ini sengaja ditulis eksplisit. Angka makro dari model ini **tidak boleh

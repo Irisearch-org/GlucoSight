@@ -95,6 +95,42 @@ estimasi, bukan secara eksplisit weighed ground truth. Nilai makro di luar
 rentang 0–176 g yang didokumentasikan CGMacros dikeluarkan sebagai error data
 dan dilaporkan dalam audit; nilainya tidak diperbaiki atau dihapus diam-diam.
 
+## Notebook evaluasi OOD pada CGMacros
+
+Buka `notebooks/cgmacros_ood_evaluation.ipynb` di VS Code/Jupyter dengan
+kernel Python 3.10–3.12. Jalankan sel dari atas; notebook mencari checkout repo
+dan raw CGMacros secara otomatis, atau gunakan override path pada konfigurasi.
+
+```powershell
+Set-Location D:\Project\GlucoSight
+py -3.11 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r cv-baseline-v0.1/requirements-notebook.txt
+.\.venv\Scripts\python.exe -m ipykernel install --user --name glucosight-cv --display-name "GlucoSight CV (NumPy 1.26)"
+.\.venv\Scripts\python.exe -m jupyter lab cv-baseline-v0.1/notebooks/cgmacros_ood_evaluation.ipynb
+```
+
+Default `MAX_MEALS=32` adalah uji pipeline dengan subset deterministik.
+Untuk hasil penuh, ubah menjadi `None`, restart kernel, lalu **Run All**.
+Notebook memakai model sungguhan, menyertakan prediksi low-confidence,
+mengaudit error, dan menghitung ulang B0 pada meal valid yang persis sama.
+Output meliputi MAE/RMSE per makro, median/IQR per peserta, histogram
+confidence, laporan Markdown, dan draft bagian model card.
+
+Prediksi/detail peserta disimpan di `data/cgmacros/results/` pada root repo
+(gitignored). Ringkasan full run disimpan di `cv/reports/indonesian_classifier_ood/`
+pada root repo; hasil trial tetap di direktori data. Model card tidak diubah
+otomatis. Bersihkan output notebook sebelum commit.
+
+Jika audit berisi `inference gagal: Numpy is not available`, periksa pasangan
+versi NumPy/PyTorch. Untuk PyTorch 2.2.x yang dipakai baseline, jalankan
+`%pip install "numpy>=1.26.4,<2"` di sel notebook pada kernel environment CV,
+lalu **Restart Kernel** dan
+**Run All**. Kernel yang masih hidup dapat tetap memakai NumPy versi lama
+walaupun pip sudah selesai. Notebook mengecek konversi NumPy ↔ tensor sebelum
+menjalankan batch agar error kompatibilitas ini terlihat lebih awal.
+Pilih kernel **GlucoSight CV (NumPy 1.26)**; jangan memasang NumPy 1.x ke
+Python global yang juga dipakai paket lain yang membutuhkan NumPy 2.
+
 ## Penting
 
 `MODEL_CARD.md` memuat keterbatasan yang harus dibaca sebelum angka makro
