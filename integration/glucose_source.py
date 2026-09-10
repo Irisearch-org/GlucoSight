@@ -131,6 +131,28 @@ def registered_ppg_g0_estimator() -> Optional[G0Estimator]:
     return _REGISTERED_ESTIMATOR
 
 
+def autoload_ppg_g0_estimator() -> Optional[G0Estimator]:
+    """Register the trained PPG estimator if one has been persisted.
+
+    `rppg/models/glucose_estimator.py` writes its artifact only when the
+    evidence gate passed — the model beat the mean baseline on held-out
+    subjects, in at least 4 of 5 folds, with a bootstrap CI excluding zero
+    and a label-permutation p <= 0.05. So the presence of the file is itself
+    the evidence, and `provides_information` is read from it rather than
+    assumed.
+
+    Returns the estimator, or None when no artifact exists. Absence is the
+    expected state: it means nobody has trained a model that earned it.
+    """
+    try:
+        from rppg.models.glucose_estimator import PPGGlucoseEstimator
+        estimator = PPGGlucoseEstimator.load()
+    except (ImportError, FileNotFoundError, KeyError, ValueError):
+        return None
+    register_ppg_g0_estimator(estimator)
+    return estimator
+
+
 @dataclass(frozen=True)
 class G0Resolution:
     """The resolved pre-meal glucose value and everything about its origin."""

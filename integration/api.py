@@ -50,6 +50,11 @@ app = FastAPI(
 )
 
 _predictor = predictor.default_predictor()
+
+# Pick up a trained PPG glucose estimator if one has been persisted. No
+# artifact exists unless `rppg.models.glucose_estimator`'s evidence gate
+# passed, so this is a no-op until a model has earned the finger-scan path.
+_ppg_g0 = gsrc.autoload_ppg_g0_estimator()
 _WEB = Path(__file__).parent / "web"
 
 

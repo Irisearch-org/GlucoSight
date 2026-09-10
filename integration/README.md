@@ -10,7 +10,7 @@ you are about to quote a number from Sprint 2.
 
 ```bash
 pip install -r integration/requirements.txt
-python -m pytest utils/tests integration/tests -q     # 150 tests
+python -m pytest utils/tests integration/tests rppg/tests/test_glucose_estimator.py -q     # 165 tests
 python -m uvicorn integration.api:app --reload        # http://127.0.0.1:8000
 ```
 
@@ -89,6 +89,27 @@ beats a CGM reading from an hour ago, and vice versa. A PPG estimate is
 used only when no direct measurement is available *and* the path is
 explicitly enabled *and* an informative estimator is registered.
 
+### The finger scan cannot be validated on the current dataset
+
+Before training anything, know this: **predicting one constant for every
+subject already reaches Clarke Zone A 85.1%** on the PPG glucose dataset
+(n=67 recordings, 23 subjects, GroupKFold by subject), against a project
+target of 70%. Zone A is ±20%, which at this cohort's median glucose of 110
+mg/dL is ±22 mg/dL — wider than the label SD of 18.6.
+
+A Zone A number here cannot separate a working model from a constant. So
+`rppg/models/glucose_estimator.py` reports Zone A but gates on MAE against
+the mean baseline, and requires **all four**: positive improvement, wins in
+≥4 of 5 folds, a subject-level bootstrap 95% CI excluding zero, and a
+label-permutation p ≤ 0.05.
+
+```bash
+python -m rppg.models.glucose_estimator --train
+```
+
+Gate fails → no artifact written → the finger-scan path stays off. That is
+the intended behaviour, not an error. See `docs/INTEGRATION_AUDIT.md` F15.
+
 ### Why the PPG path is off by default
 
 **Ring-fence E1.2** says `ppg_glucose_estimate` is "never used as a sole
@@ -103,7 +124,9 @@ so it carries no more information than the population fallback.
 to prefer a constant predictor over the fallback — so the seam cannot be
 lit up by accident with a model that does not deserve it.
 
-When the PPG track beats its own mean baseline on held-out subjects:
+A trained artifact is picked up automatically —
+`glucose_source.autoload_ppg_g0_estimator()` runs at API startup and is a
+no-op when no artifact exists. To register an estimator by hand:
 
 ```python
 from integration import glucose_source as gsrc

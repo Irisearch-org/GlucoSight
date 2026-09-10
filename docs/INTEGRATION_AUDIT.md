@@ -4,7 +4,7 @@
 **Author:** Integration layer (PM-owned)
 **Scope:** the Sprint 2 forecasting notebook, the three track outputs on
 `main`, and the fusion spine built to join them.
-**Reproduce:** `python -m pytest utils/tests integration/tests -q` (150 tests)
+**Reproduce:** `python -m pytest utils/tests integration/tests rppg/tests/test_glucose_estimator.py -q` (165 tests)
 
 ---
 
@@ -341,6 +341,61 @@ this cannot be lost by accident. When the PPG track has an estimator that
 beats its own mean baseline on held-out subjects, registering it lights the
 path up.
 
+### F15 — This dataset cannot demonstrate that the finger scan works
+
+Attempting to fix the finger-scan path surfaced a blocker that no amount of
+modelling clears.
+
+**Predicting a single constant for every subject achieves Clarke Zone A
+85.1% on the PPG glucose dataset.** Computed with the corrected
+`utils.clarke_grid` from the committed
+`rppg/models/reports/baseline_mean_predictions.csv` — the mean baseline,
+GroupKFold by subject, n=67 recordings, 23 subjects. Zone A+B is 100.0%,
+with zero points in C, D or E.
+
+The project target is Zone A > 70%.
+
+So on this dataset, **a Zone A figure cannot distinguish a working
+PPG-glucose model from a constant.** Anyone who trains a model here and
+reports "Zone A 85%, exceeds the 70% clinical target" will have reported the
+baseline. This is finding C3 in its purest form.
+
+The cause is the cohort, not the metric:
+
+| | |
+|---|---|
+| glucose range | 88–183 mg/dL |
+| median | 110 mg/dL |
+| SD | 18.6 mg/dL |
+| Zone A band at the median | **±22 mg/dL — wider than the label SD** |
+| between-subject share of variance | 40.8% |
+| within-subject SD | 15.4 mg/dL (larger than the 13.4 between-subject SD) |
+| recordings per subject | median 2, min 1 |
+
+Two further consequences worth stating:
+
+- An **oracle that knew each subject's own mean** would reach MAE 10.89
+  against the constant predictor's 14.41 — a 24% improvement, and that is
+  the ceiling for anything that merely identifies the subject. Under
+  GroupKFold by subject that path is closed anyway, which is correct.
+- Most of the variance a model would have to explain (59%) is *within*
+  subject: the same person at different times, from a 10-second waveform.
+
+**Action taken:** `rppg/models/glucose_estimator.py` reports Zone A but does
+not gate on it. The gate is MAE against the mean baseline on held-out
+subjects, and it requires all four of: a positive improvement, wins in at
+least 4 of 5 folds, a subject-level bootstrap 95% CI excluding zero, and a
+label-permutation p ≤ 0.05. If the gate fails, no artifact is written and
+the finger-scan path stays off. `integration/glucose_source.py` autoloads
+the artifact only if it exists, so `provides_information` is set by
+evidence, never by hand.
+
+**Action still needed:** the honest conclusion may be that this dataset
+cannot support the claim at all. If so, that is a publishable negative
+result bounded by n=23 subjects, and BIG IDEAs (raw 64 Hz PPG + CGM, 16
+pre-diabetic subjects, listed in `DATA_STRATEGY.md` §2) is the only public
+data that could test it properly.
+
 ---
 
 ## 4. Is the result credible?
@@ -408,6 +463,8 @@ integration/features.py         three feature tiers + train-only normalization
 integration/fusion.py           assemble one validated meal from three tracks
 integration/adapters/{cv,nlp,ppg}.py   track-native -> contract
 integration/glucose_source.py   pluggable g0: fingerstick / CGM / PPG / fallback
+rppg/models/glucose_estimator.py  PPG->glucose training + evidence gate
+rppg/tests/test_glucose_estimator.py  15 tests: the gate must reject noise
 integration/predictor.py        B2 baseline, labelled as a baseline
 integration/report.py           results tables that refuse to omit baselines
 integration/api.py              FastAPI /predict /contract /health
@@ -417,7 +474,7 @@ integration/tests/              103 tests
 forecasting/notebooks/          Sprint 2 notebook, committed with audit header
 ```
 
-Run: `python -m pytest utils/tests integration/tests -q` → **150 passed**
+Run: `python -m pytest utils/tests integration/tests rppg/tests/test_glucose_estimator.py -q` → **165 passed**
 Serve: `python -m uvicorn integration.api:app --reload` → http://127.0.0.1:8000
 
 ### What the MVP does and does not do
@@ -510,7 +567,7 @@ Ordered. The first three are cheap and unblock the rest.
 14. **Calibrate `nlp_confidence`** (isotonic or Platt) on a held-out split.
     Forecasting uses it as a gating weight; uncalibrated, that gate is
     meaningless.
-15. **Route CV through the adapter** and retire `cv/cv_baseline/schema.py`,
+16. **Route CV through the adapter** and retire `cv/cv_baseline/schema.py`,
     as its own docstring asks. Give `gi_category` a real owner — the table
     in `integration/adapters/cv.py` is an integration-layer assignment from
     published GI values, not a CV-track measurement, and it should not stay
