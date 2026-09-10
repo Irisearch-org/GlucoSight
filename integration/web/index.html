@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GlucoSight — MVP Demo</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#12161c; --muted:#5c6775;
+    --line:#dfe3e8; --accent:#2f6feb;
+    --ok:#1f7a3d; --warn:#a86400; --bad:#b3261e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+       padding:24px 16px 64px}
+  .wrap{max-width:940px;margin:0 auto}
+  h1{font-size:20px;margin:0 0 2px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .banner{border:1px solid #f0c36d;background:#fdf6e3;color:#6b4e00;
+          padding:12px 14px;border-radius:8px;margin-bottom:18px;font-size:13px}
+  .banner b{color:#4a3600}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;
+           color:var(--muted);margin:0 0 12px}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  input,textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);
+    border-radius:6px;font:inherit;background:#fff;color:var(--ink)}
+  textarea{min-height:70px;resize:vertical}
+  button{background:var(--accent);color:#fff;border:0;border-radius:6px;
+         padding:11px 18px;font:inherit;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.55;cursor:default}
+  button.ghost{background:#eef1f5;color:var(--ink);font-weight:500;padding:7px 12px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;
+        font-weight:600;border:1px solid var(--line)}
+  .pill.on{background:#e7f3ec;color:var(--ok);border-color:#bfe0cc}
+  .pill.off{background:#f2f3f5;color:var(--muted)}
+  .num{font-size:30px;font-weight:700;letter-spacing:-.02em}
+  .unit{font-size:13px;color:var(--muted);font-weight:500}
+  .range-normal{color:var(--ok)} .range-borderline{color:var(--warn)} .range-high{color:var(--bad)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase}
+  .bar{height:6px;background:#eceff3;border-radius:99px;overflow:hidden;min-width:60px}
+  .bar span{display:block;height:100%;background:var(--accent)}
+  pre{background:#12161c;color:#dfe5ec;padding:12px;border-radius:8px;
+      overflow-x:auto;font-size:12px;margin:0}
+  .muted{color:var(--muted);font-size:12px}
+  .err{border:1px solid #f2b8b5;background:#fceeed;color:var(--bad);
+       padding:12px;border-radius:8px;font-size:13px}
+  details{margin-top:14px} summary{cursor:pointer;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>GlucoSight — MVP Demo</h1>
+  <p class="sub">Meal photo + Bahasa note + contact-PPG capture &rarr; postprandial glucose forecast</p>
+
+  <div class="banner" id="banner">Checking what the service is serving&hellip;</div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Input</h2>
+      <label>Participant ID</label>
+      <input id="pid" value="P042">
+
+      <label>T=0 — first bite (not the photo)</label>
+      <input id="t0" type="datetime-local">
+
+      <label>&Delta;t to the label (minutes) — never assumed to be 60</label>
+      <input id="dt" type="number" value="60" min="0" max="240">
+
+      <label>Meal photo path (server-side)</label>
+      <input id="img" placeholder="leave empty to simulate a missing photo">
+
+      <label>Catatan makan (Bahasa Indonesia)</label>
+      <textarea id="note" placeholder="mis. nasi goreng porsi besar, digoreng"></textarea>
+
+      <label>Porsi dilaporkan (in-app question, not a CV output)</label>
+      <select id="portion">
+        <option value="0">0 — kecil</option>
+        <option value="1" selected>1 — sedang</option>
+        <option value="2">2 — besar</option>
+      </select>
+
+      <label>Contact PPG capture</label>
+      <div class="row">
+        <button class="ghost" id="synth">Simulate a 30 s capture</button>
+        <button class="ghost" id="clearppg">No capture</button>
+        <span class="muted" id="ppgstate">no capture</span>
+      </div>
+
+      <label>Glucose history (JSON) — readings at or after T=0 are dropped</label>
+      <textarea id="hist">[{"timestamp":"2026-01-15T12:00:00","value":142},
+ {"timestamp":"2026-01-15T18:45:00","value":118}]</textarea>
+
+      <div class="row" style="margin-top:16px">
+        <button id="go">Predict</button>
+        <span class="muted" id="status"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Result</h2>
+      <div id="out"><p class="muted">No prediction yet.</p></div>
+    </div>
+  </div>
+
+  <details>
+    <summary>Raw response</summary>
+    <pre id="raw">—</pre>
+  </details>
+  <p class="muted" style="margin-top:20px" id="disclaimer"></p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let ppgSignal = null;
+
+(function initTime(){
+  const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  $('t0').value = d.toISOString().slice(0,16);
+})();
+
+fetch('/health').then(r=>r.json()).then(h=>{
+  const trained = h.is_trained_model;
+  $('banner').innerHTML = trained
+    ? `<b>Serving a trained model:</b> ${h.model_version}. Contract v${h.schema_version}.`
+    : `<b>This is not a model.</b> The service is serving <code>${h.model_version}</code> —
+       ${h.serving}. Every number below is a baseline that a real model must be
+       reported <em>against</em>, not a model output. Contract v${h.schema_version}.`;
+  $('disclaimer').textContent = h.disclaimer;
+}).catch(()=>{ $('banner').textContent = 'Service unreachable.'; });
+
+$('synth').onclick = e => {
+  e.preventDefault();
+  // A synthetic pulsatile trace so the capture path can be demonstrated
+  // without a phone. Clearly labelled as simulated in the result panel.
+  const fs = 30, secs = 30, bpm = 78, n = fs*secs;
+  ppgSignal = Array.from({length:n}, (_,i) => {
+    const t = i/fs;
+    return 1.0 + 0.05*Math.sin(2*Math.PI*(bpm/60)*t)
+               + 0.015*Math.sin(4*Math.PI*(bpm/60)*t)
+               + (Math.random()-0.5)*0.004;
+  });
+  $('ppgstate').textContent = `simulated ${secs}s @ ${fs} Hz (${n} samples)`;
+};
+$('clearppg').onclick = e => {
+  e.preventDefault(); ppgSignal = null; $('ppgstate').textContent = 'no capture';
+};
+
+function pill(on, label){
+  return `<span class="pill ${on?'on':'off'}">${label}: ${on?'present':'absent'}</span>`;
+}
+function bar(w){
+  return `<div class="bar"><span style="width:${Math.round(w*100)}%"></span></div>`;
+}
+
+$('go').onclick = async () => {
+  $('go').disabled = true; $('status').textContent = 'running…';
+  let history = [];
+  try { history = JSON.parse($('hist').value || '[]'); }
+  catch { $('out').innerHTML = `<div class="err">Glucose history is not valid JSON.</div>`;
+          $('go').disabled = false; $('status').textContent=''; return; }
+
+  const payload = {
+    participant_id: $('pid').value,
+    t0_timestamp: $('t0').value + ':00',
+    delta_t_minutes: parseFloat($('dt').value),
+    meal_image_path: $('img').value || null,
+    note_text: $('note').value || null,
+    ppg_signal: ppgSignal,
+    ppg_sampling_rate: 30.0,
+    portion_reported: parseInt($('portion').value, 10),
+    glucose_history: history,
+    source_dataset: 'live_capture'
+  };
+
+  try {
+    const r = await fetch('/predict', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const j = await r.json();
+    $('raw').textContent = JSON.stringify(j, null, 2);
+    if (!r.ok){
+      $('out').innerHTML = `<div class="err"><b>${r.status}</b><br>${
+        (j.detail||'').toString().replace(/\n/g,'<br>')}</div>`;
+      return;
+    }
+    const f = j.forecast, m = j.modalities, h = j.glucose_history_used;
+    $('out').innerHTML = `
+      <div class="row" style="gap:28px;margin-bottom:14px">
+        <div><div class="muted">T+60</div>
+          <div class="num range-${f.glucose_range}">${f.glucose_t60}<span class="unit"> mg/dL</span></div></div>
+        <div><div class="muted">T+120</div>
+          <div class="num">${f.glucose_t120}<span class="unit"> mg/dL</span></div></div>
+        <div><div class="muted">Range</div>
+          <div class="num range-${f.glucose_range}" style="font-size:19px">${f.glucose_range}</div></div>
+      </div>
+      ${f.is_trained_model ? '' :
+        `<div class="banner" style="margin:0 0 14px">
+           <b>Baseline output, not a model.</b> ${f.basis}
+         </div>`}
+      ${f.used_fallback_g0 ? `<div class="err" style="margin-bottom:12px">
+        ${h.g0_rejected_as_stale
+          ? `The most recent causal reading is ${Math.round(h.g0_age_minutes)} min
+             (${(h.g0_age_minutes/1440).toFixed(1)} days) before first bite, past the
+             ${h.max_g0_age_minutes} min staleness limit, so it was rejected.`
+          : 'No causal pre-meal reading was available.'}
+        A cohort fallback of 120 mg/dL was used, so this prediction is a
+        population constant.</div>` : ''}
+      <div class="row" style="margin-bottom:12px">
+        ${pill(m.cv.present, 'CV')} ${pill(m.nlp.present, 'NLP')} ${pill(m.ppg.present, 'PPG')}
+        <span class="pill off">confidence ${f.prediction_confidence}</span>
+      </div>
+      <table>
+        <tr><th>Modality</th><th>Weight</th><th>Detail</th></tr>
+        <tr><td>CV</td><td>${bar(m.cv.weight)}${m.cv.weight}</td>
+            <td>${m.cv.food_class ?? '—'} · ${m.cv.carbs_g.toFixed(0)} g carb ·
+                <span class="muted">${m.cv.carbs_source}</span></td></tr>
+        <tr><td>NLP</td><td>${bar(m.nlp.weight)}${m.nlp.weight}</td>
+            <td>fried ${m.nlp.is_fried_cooking} · large ${m.nlp.is_large_portion} ·
+                <span class="muted">${m.nlp.feature_source}${
+                  m.nlp.present && m.nlp.calibrated===false ? ', UNCALIBRATED' : ''}</span></td></tr>
+        <tr><td>PPG</td><td>${bar(m.ppg.weight)}${m.ppg.weight}</td>
+            <td>${m.ppg.pulse_rate_bpm.toFixed(1)} bpm · quality ${m.ppg.signal_quality.toFixed(2)} ·
+                <span class="muted">${m.ppg.n_windows} window(s)${
+                  ppgSignal ? ', SIMULATED SIGNAL' : ''}</span></td></tr>
+      </table>
+      <p class="muted" style="margin-top:12px">
+        Glucose history: ${h.n_causal_readings} causal reading(s) used,
+        ${h.n_dropped_as_noncausal} dropped as at-or-after T=0 (rule C2).
+        g0 = ${h.g0 ?? 'none'}${h.g0_age_minutes!=null ?
+          ` (${Math.round(h.g0_age_minutes)} min before first bite${
+            h.g0_rejected_as_stale ? ', REJECTED AS STALE' : ''})` : ''}.
+      </p>`;
+  } catch (err) {
+    $('out').innerHTML = `<div class="err">${err}</div>`;
+  } finally {
+    $('go').disabled = false; $('status').textContent = '';
+  }
+};
+</script>
+</body>
+</html>

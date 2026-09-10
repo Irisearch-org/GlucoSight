@@ -1,0 +1,473 @@
+# Integration Audit — Sprint 2 Forecasting Result and Cross-Track Pipeline
+
+**Date:** 2026-09-10
+**Author:** Integration layer (PM-owned)
+**Scope:** the Sprint 2 forecasting notebook, the three track outputs on
+`main`, and the fusion spine built to join them.
+**Reproduce:** `python -m pytest utils/tests integration/tests -q` (122 tests)
+
+---
+
+## 1. Verdict in one paragraph
+
+The Sprint 2 forecasting result is **methodologically sound in its
+skeleton and not yet credible in its claim**. The grouped split is real and
+asserted, the causal filter is real and asserted, the three trivial
+baselines are present, and the per-participant median and IQR are reported.
+That is more discipline than most of this literature shows and it should be
+said plainly. But the headline is labelled "Multimodal" when no modality
+track contributed to it, the best model clears the best baseline by about
+4 points of Zone A, the Clarke implementation used is wrong outside Zone A,
+the calibration gain is measured against the wrong denominator, and the
+figure that makes the result look convincing is an in-sample fit with no
+split at all. **Zone A 62.5% is also below the project's own 70% floor**,
+and the honest reading is that the pipeline is nearly trustworthy while the
+result is not yet a finding.
+
+---
+
+## 2. What the notebook got right
+
+Worth recording, because the next sprint should not regress on any of it.
+
+| Rule | Status | Evidence |
+|---|---|---|
+| **C4 grouped splits** | Correct | `GroupKFold(n_splits=5)` on `participant_id`, with `assert len(set(trn) & set(val)) == 0` inside the fold loop |
+| **C2 causality** | Correct for the input history | `history = df_dexcom[df_dexcom['Timestamp'] < t0]`, then `assert history['Timestamp'].max() < t0` |
+| **C3 baselines** | Present | B0 population mean, B1 persistence, B2 persistence + train-split mean excursion, all in the same table |
+| **C3 per-participant reporting** | Present | Median and IQR of Zone A per participant, not only the pooled figure |
+| **C3 stratification** | Present | Zone A by reference range, and it is the most informative output in the notebook |
+| **Leakage in preprocessing** | Correct | `SimpleImputer` and `StandardScaler` are fitted on the training fold only, inside the loop |
+| **Delta formulation** | Good judgement | Predicting the excursion and adding `g0` back is the right target for this problem |
+
+The stratification table is the single most valuable thing in the notebook:
+
+```
+Range < 100      (N = 110 ): Zone A = 36.4%
+Range 100 - 140  (N = 594 ): Zone A = 57.1%
+Range 140 - 180  (N = 452 ): Zone A = 76.8%
+Range 180 - 250  (N = 305 ): Zone A = 65.9%
+Range > 250      (N = 73  ): Zone A = 43.8%
+```
+
+Zone A is a ±20% band, so it is ±18 mg/dL at 90 and ±50 mg/dL at 250. The
+36.4% at the bottom of the range is largely the metric's geometry, not the
+model failing there specifically. Any Zone A headline that does not carry
+this table beside it is misleading, and the notebook is to its credit for
+producing it.
+
+---
+
+## 3. Findings, most severe first
+
+### F1 — The showcase figure is an in-sample fit (blocking)
+
+Cell 6 builds a 24-horizon trajectory model and plots four "real cases":
+
+```python
+X_all_imp = imputer.fit_transform(df_multi[features_to_use])   # all rows
+X_all     = scaler.fit_transform(X_all_imp)                    # all rows
+model.fit(X_all, y_h)                                          # all rows
+predicted_trajectories[:, i] = df_multi['g0'].values + model.predict(X_all)
+```
+
+There is no split. The model is fitted on every row and then predicts the
+rows it was fitted on. The figure showing "GlucoSight Forecast (Multimodal)"
+tracking the Dexcom trace inside the Clarke Zone A band is showing a GBDT
+memorising 24 targets on ~1600 rows.
+
+This is the most damaging item in the notebook because it is the most
+persuasive. It is exactly the artefact that survives into a slide deck.
+
+**Action:** delete the figure, or regenerate it with the fold's held-out
+participants only. Never show it as-is.
+
+### F2 — "Multimodal" describes a feature set with no modality in it
+
+The column labelled `GBDT (Delta + Multimodal)` uses:
+
+- CGMacros' own **weighed** macros — read from the dataset, not predicted by
+  the CV track;
+- clinical labs — HbA1c, insulin, triglycerides, HDL, cholesterol, fasting
+  glucose;
+- a commercial **gut-microbiome panel** — butyrate production pathways,
+  digestive efficiency, gut lining health, inflammatory activity;
+- age, BMI, sex.
+
+No CV model output. No NLP. No PPG. Nothing from any of the three tracks
+this project is organised around.
+
+Worse for the prototype: nothing after the macros can be obtained from a
+phone. A user cannot photograph their butyrate production pathways. So the
+number is not reproducible by the thing being built.
+
+This does not make it worthless — it bounds what meal-composition modelling
+could achieve on this cohort, which is genuinely useful. It makes it an
+**oracle upper bound**, and it has to be labelled as one.
+
+**Action:** `integration/features.py` now defines three tiers —
+`deployable` (contract fields a phone produces), `deployable_plus_askable`
+(adds age/BMI/sex, which the app *could* ask for), and `oracle` (the
+notebook's current set). Report all three. The gap between tier 1 and tier 3
+is itself a result: it separates what CV can approximate from what
+participant physiology contributes.
+
+### F3 — The calibration gain is measured against the wrong denominator
+
+The table reports:
+
+| Row | n | Zone A (T+60) |
+|---|---|---|
+| GBDT (Delta + Multimodal) | 1669 | 57.5% |
+| ★ GBDT Calibrated (H9) | 1534 | 62.5% |
+
+These are different sample sets. The 1534 excludes each participant's first
+3 meals and drops participants with ≤3 meals entirely — which removes the
+sparsest, and plausibly the hardest, participants.
+
+The like-for-like number **was computed and never printed**:
+`calibrated_eval[h]['cold']` in cell 4 holds the uncalibrated predictions on
+exactly those 1534 meals. It is populated and then never used.
+
+**Action:** print it. Until then the +5.0 pt gain from per-participant
+intercept calibration is not established. `integration/report.py` now
+raises `ValueError` on any table whose rows cover different sample counts,
+so this cannot recur silently.
+
+### F4 — Clarke Error Grid: two wrong implementations, now one right one
+
+This is finding M7, carried as a blocker since Sprint 1 and still open in
+ClickUp. Both implementations in the repo were wrong. Measured by sweeping a
+1 mg/dL grid over [20, 400]² (144,400 cells):
+
+| Implementation | Cells wrong | Nature |
+|---|---|---|
+| `utils/clarke_grid.py` (old) | 1,734 (1.20%) | Lower Zone C coded as a rectangle instead of the (130,0)–(180,70) line, over-claiming C from B on 1,664 cells; Zone A's `ref >= 70` guard sent 70 A cells to D |
+| notebook `evaluate_clarke` | 15,899 (11.01%) | Calls any `70 ≤ ref ≤ 180, pred > 180` Zone C (9,904 cells B→C); has no `pred ≥ ref + 110` rule at all (5,995 cells C→B) |
+
+**Zone A membership is identical in all three implementations on all
+144,400 cells.** The ±20% band is the one boundary the notebook got right.
+
+So: **the notebook's Zone A column stands. Every A+B, C, D and E figure it
+reports must be recomputed.** The old `__main__` "sanity check" generated
+`y_pred = y_true * U(0.85, 1.15)` — inside the Zone A band by construction,
+a test that could not fail.
+
+`utils/clarke_grid.py` is rewritten against the published 1987 boundaries
+and pinned by 47 tests including the two grid sweeps above.
+
+### F5 — The participant ID join is positional and can silently misalign
+
+```python
+df_bio['participant_id'] = [f"CGMacros-{i+1:03d}" for i in range(len(df_bio))]
+df_gut['participant_id'] = [f"CGMacros-{i+1:03d}" for i in range(len(df_gut))]
+```
+
+Both clinical files are keyed by **row position**, not by the subject ID in
+the file. If `bio.csv` or `gut_health_test.csv` is not in exact 1..45 order
+with no gaps — a missing participant, a different sort, a header row — every
+clinical and gut feature is attached to the wrong person.
+
+Nothing errors. The model still trains, the loss still falls, and the
+result is scrambled physiology. This is precisely the class of failure
+CLAUDE.md's four rules exist to catch, and it is not one of the four.
+
+**Action:** join on the file's own subject-ID column and assert the join is
+total before proceeding. Because these are participant-level features under
+a participant-level split, a misalignment would not even show up as
+leakage — it would just quietly destroy signal.
+
+### F6 — Missing macros are encoded as zero
+
+```python
+carbs = float(row['Carbs']) if pd.notna(row.get('Carbs')) else 0.0
+```
+
+A meal with an unrecorded macro becomes a meal with 0 g of it. That is not
+missingness, it is a strong and wrong assertion — a zero-carbohydrate meal
+is a real and very informative thing.
+
+CLAUDE.md rule 8 is explicit: missing ≠ negative. Contract v1.2 gives the
+fallbacks (45/18/12/4 g) and requires `cv_present=0` alongside. The CV
+track's own code already gets this right — its `_error_record` comment says
+a 0 "akan terbaca downstream sebagai 'makanan tanpa kalori'". The
+forecasting loader undoes that care.
+
+### F7 — Δt is computed, used as a filter, and then discarded
+
+The loader accepts a target within ±7.5 min of exactly 60 or 120 minutes,
+then stores neither the actual offset nor the exclusion count. Every meal is
+subsequently treated as if it were at exactly T+60 or T+120.
+
+Finding C1 and the contract both require `delta_t_minutes` as a carried
+feature. Glucose moves 1–3 mg/dL per minute during the rise, so ±7.5 min is
+±8–23 mg/dL of label noise being thrown into the residual rather than
+modelled. `dt_last_reading` is a different quantity — the age of the last
+CGM reading — and does not substitute.
+
+### F8 — No overlapping-meal guard
+
+Meals less than 120 minutes apart contaminate each other's T+120 target:
+the T+120 reading after meal A may be the T+30 reading after meal B. Snacks
+make this common. Nothing excludes or flags it, and
+`time_since_last_meal_hours` — a contract field — is never computed.
+
+This is the most likely single explanation for T+120 being no better than
+T+60 despite the extra hour of information.
+
+### F9 — Ridge blows up and nobody looked
+
+T+60: **RMSE 218.36, MAE 62.00.** An RMSE 3.5× the MAE means a handful of
+catastrophic predictions. A ridge regression with `alpha=20` on standardised,
+median-imputed features should not do this. Something in the feature matrix
+is pathological — most likely an extreme value surviving in
+`carb_to_fiber_ratio` or `Cho/HDL Ratio`, or a fold where an imputed
+constant column gives the solver nothing to work with.
+
+Leaving an unexplained 218 in a results table costs more credibility than
+the row is worth. Either explain it or drop the model.
+
+### F10 — The NLP track cannot process Bahasa Indonesia
+
+Found by running the MVP demo. Entering `nasi goreng porsi besar, digoreng`
+returns `is_fried_cooking=0, is_large_portion=0`.
+
+- `_is_fried()` in `nlp/data/derive_labels.py` checks `FRIED_EN` and
+  `FRIED_CN` only. There is no Bahasa lexicon. "digoreng" is not matched.
+- `_is_large()` works purely by parsing gram amounts out of the text. Bahasa
+  portion language ("porsi besar") carries no grams, so `is_large_portion`
+  is **structurally impossible** to detect from an Indonesian note.
+
+This is defensible for ShanghaiT2DM, which is what the track was pivoted to
+under `DATA_STRATEGY.md`. It is not defensible for the MVP, whose entire
+premise is an Indonesian user typing a note. **The demo's NLP path has no
+working producer for its target language**, and until it does, the note
+input is decorative.
+
+### F11 — Three tracks, three schemas, no shared validator
+
+Not the notebook's fault, but the reason nothing was integrated:
+
+| Track | Emits | Contract v1.2? |
+|---|---|---|
+| CV | `sample_id`, `confidence`, `feature_status`, `calories_kcal` | **No** — missing `cv_present`, `carbs_source`, `portion_reported`, `gi_category`, `cv_model_version` |
+| NLP | contract field names directly | Close |
+| PPG | `to_contract_dict()` + `validate_contract_output()` | Yes — the most mature |
+
+`cv/cv_baseline/schema.py` says in its own docstring that it should be
+*replaced* by the shared validator when one exists, "bukan dipertahankan
+berdampingan". `integration/contract.py` is that validator.
+
+Four contract fields have **no producer anywhere in the CV track**:
+`gi_category`, `carbs_source`, `portion_reported`, `cv_present`. The adapter
+derives the first two, takes `portion_reported` as an argument (it is the
+in-app question, not a CV output), and sets the mask from `feature_status`.
+
+### F12 — Staleness: the mirror image of C2 (found by running the demo)
+
+C2 stops glucose readings that are too **new** from entering the history.
+Nothing stopped readings that are too **old**.
+
+With a history from January and a first bite in September, the causality
+filter passed every reading happily — they are all before t0 — and handed
+the predictor a **238-day-old reading as the pre-meal glucose value**. B1
+persistence and B2 persistence-plus-excursion are both meaningless on a
+reading that old. Nothing errored; the prediction looked entirely
+reasonable.
+
+**Action:** `MAX_G0_AGE_MINUTES = 360` added to
+`integration/contract.py`, rejected values reported explicitly rather than
+silently substituted. **Proposed as a contract v2.0 amendment** — it is not
+in v1.2.
+
+---
+
+## 4. Is the result credible?
+
+### The claim as it stands
+
+> GBDT Calibrated reaches Zone A 62.5% at T+60 and 61.5% at T+120,
+> against B2 at 54.7% / 56.3%.
+
+### What survives scrutiny
+
+- The Zone A figures themselves are correctly computed (F4).
+- The split is grouped by participant and asserted (C4).
+- The input history is causally filtered and asserted (C2).
+- The baselines are real and in the same table (C3).
+
+### What does not
+
+1. **The margin is small.** Best cold model over best baseline is **+4.0 pts
+   Zone A at T+60** (RF 58.7 vs B2 54.7) and **+5.1 at T+120** (GBDT 61.4 vs
+   B2 56.3). With ~9 held-out participants per fold and no confidence
+   interval or repeated-seed variance reported, a 4-point gap is not
+   distinguishable from fold noise. **No error bars anywhere** is the single
+   biggest gap between this and a publishable result.
+2. **The calibration gain is not established** (F3).
+3. **62.5% is below the project's own 70% floor**, and the floor is
+   explicitly described in CLAUDE.md as "a floor, not the research claim".
+4. **It is not a fusion result** (F2). No modality track contributed.
+5. **The persuasive figure is invalid** (F1).
+6. **A silent join bug could have scrambled the clinical features** (F5) —
+   until that join is fixed and asserted, the contribution attributed to
+   physiology is unverified.
+
+### Verdict
+
+**The pipeline is close to trustworthy. The result is not yet a finding.**
+
+The right way to state it today:
+
+> On CGMacros (n=1669 meals, 45 participants, 5-fold GroupKFold by
+> participant), gradient boosting on weighed meal macronutrients plus
+> participant clinical and gut-panel features reached Zone A 58.7% at T+60
+> against a persistence-plus-mean-excursion baseline at 54.7%. The margin is
+> ~4 points with ~9 held-out participants per fold and no variance estimate,
+> so it should be treated as preliminary. The feature set includes venous
+> labs and a commercial microbiome panel and is therefore an upper bound on
+> what a phone-only pipeline could achieve, not a measurement of one.
+
+That is a defensible Sprint 2 outcome. It is a trustworthy pipeline
+producing one real number beside a baseline — which is exactly what
+`DATA_STRATEGY.md` §7 set as the success criterion for the week. It is not
+"multimodal fusion achieves clinical accuracy", and the gap between those
+two sentences is the entire risk to this paper.
+
+---
+
+## 5. What was built in this pass
+
+```
+utils/clarke_grid.py            rewritten against published boundaries (M7 closed)
+utils/tests/test_clarke_grid.py 47 tests incl. two 144,400-cell grid sweeps
+
+integration/contract.py         contract v1.2: the single validator
+integration/features.py         three feature tiers + train-only normalization
+integration/fusion.py           assemble one validated meal from three tracks
+integration/adapters/{cv,nlp,ppg}.py   track-native -> contract
+integration/predictor.py        B2 baseline, labelled as a baseline
+integration/report.py           results tables that refuse to omit baselines
+integration/api.py              FastAPI /predict /contract /health
+integration/web/index.html      demo page
+integration/tests/              75 tests
+
+forecasting/notebooks/          Sprint 2 notebook, committed with audit header
+```
+
+Run: `python -m pytest utils/tests integration/tests -q` → **122 passed**
+Serve: `python -m uvicorn integration.api:app --reload` → http://127.0.0.1:8000
+
+### What the MVP does and does not do
+
+It accepts a meal photo path, a Bahasa note, a PPG capture, the in-app
+portion answer and a glucose history; runs each track; degrades any missing
+or failing modality to contract fallbacks with `*_present=0`; applies
+down-weighting; filters the history causally; and returns a contract-valid
+forecast.
+
+**It serves baseline B2, not a model**, because no trained forecasting
+estimator is committed to this repository — the Sprint 2 estimators were
+never serialised. The response carries `is_trained_model: false` and a
+plain-language `basis` string, and the demo page leads with a banner saying
+so. When Forecasting commits a serialised estimator,
+`integration/predictor.py::default_predictor` is the only line that changes.
+
+A consequence worth stating: because B2 uses only `g0`, the prediction is
+currently **identical whether or not the modalities are present**. The
+plumbing carries, validates and weights them; the baseline does not consume
+them. That is the honest state of the system today and the demo shows it
+rather than hiding it.
+
+---
+
+## 6. ClickUp is stale — verified against the repo
+
+Not updated, per instruction. Recorded here so the board can be corrected.
+
+| Task | ClickUp | Actual |
+|---|---|---|
+| `[W1] BLOCKER clarke_grid.py` | to do | **Was genuinely not done.** Done now |
+| `[PPG] brno ECG validation` | in progress | **Done** — `rppg/brno_validation.py`, MAE 3.76 bpm pooled |
+| `[PPG] predict-the-mean baseline` | in progress | **Done** — MAE 14.51 ± 2.00, 5-fold by subject |
+| `[PM] Merge cv/nlp baselines into monorepo` | to do | **Done** |
+| `[CV] Indonesian classifier on CGMacros (OOD gap)` | complete | Done |
+| `[Forecasting] CGMacros loader (causal filter)` | to do | **Done in the notebook, never committed** |
+| `[Forecasting] B0/B1/B2 baselines` | to do | **Done in the notebook, never committed** |
+| `[Forecasting] Ridge/RF vs baselines` | to do | **Done in the notebook** (see F9) |
+| `[Forecasting] shared contract validator` | to do | **Done now** — `integration/contract.py` |
+| `[PM] Scaffold integration layer` | to do | **Done now** |
+| `[PM] MVP website` | to do | **Done now**, serving a baseline |
+| `[Forecasting] fusion ablation harness` | to do | **Partial** — tiers and reporting exist; the CGMacros runner does not |
+| `[NLP] Calibrate nlp_confidence` | to do | Not done — confirmed uncalibrated (F10) |
+
+---
+
+## 7. Recommendations for Sprint 3
+
+Ordered. The first three are cheap and unblock the rest.
+
+### Must (week 1)
+
+1. **Fix the participant join and re-run** (F5). Join on the subject-ID
+   column, assert the join is total. Half a day. Until this is done, no
+   number involving clinical or gut features means anything.
+2. **Print the like-for-like calibrated comparison** (F3). One line — the
+   array already exists. It either confirms or kills the +5 pt claim.
+3. **Delete or re-generate the trajectory figure** (F1). It cannot appear
+   anywhere.
+4. **Recompute every A+B / C / D / E figure** with `utils.clarke_grid` (F4).
+5. **Add error bars.** Repeat the 5-fold `GroupKFold` over 5–10 seeds and
+   report Zone A mean ± SD across seeds, plus a per-participant bootstrap CI.
+   Without this the +4 pt margin is not a claim. **This is the single
+   highest-value item in the sprint.**
+
+### Should (weeks 1–2)
+
+6. **Report the three feature tiers side by side** (F2), using
+   `integration.features`. Headline the deployable tier. The
+   tier-1-to-tier-3 gap is a publishable observation in its own right.
+7. **Carry Δt as a feature and report exclusions** (F7).
+8. **Flag or exclude overlapping meals** and compute
+   `time_since_last_meal_hours` (F8). Most likely fix for the flat T+120.
+9. **Population-mean fallbacks instead of zero-fill** (F6). Route the loader
+   through `integration.fusion.assemble` so the contract does this for free.
+10. **Explain or drop Ridge** (F9).
+11. **Serialise the fitted estimator** so the MVP can serve a model rather
+    than a baseline. Persist the scaler alongside it, per the contract's
+    normalization spec.
+
+### Should (the tracks)
+
+12. **Bahasa lexicon for NLP** (F10), or state plainly that the MVP's note
+    input is non-functional for the target language. `is_large_portion`
+    needs a portion-word lexicon (kecil/sedang/besar/porsi jumbo), not a
+    gram parser. This is a small, well-defined, high-visibility task.
+13. **Calibrate `nlp_confidence`** (isotonic or Platt) on a held-out split.
+    Forecasting uses it as a gating weight; uncalibrated, that gate is
+    meaningless.
+14. **Route CV through the adapter** and retire `cv/cv_baseline/schema.py`,
+    as its own docstring asks. Give `gi_category` a real owner — the table
+    in `integration/adapters/cv.py` is an integration-layer assignment from
+    published GI values, not a CV-track measurement, and it should not stay
+    that way.
+
+### Contract v2.0 agenda (the meeting is already scheduled)
+
+15. Add the **staleness rule** (F12) — `MAX_G0_AGE_MINUTES`, currently an
+    integration-layer constant.
+16. Decide whether **`ppg_embedding`** is requested at all — open item 2 in
+    the contract, still unanswered.
+17. Settle **open item 4**: the root `CLAUDE.md` still states the tri-modal
+    research question and an Indonesian target population, which
+    `DATA_STRATEGY.md` §3–4 supersede in practice. This audit's F2 and F10
+    are both downstream of that unresolved divergence. It should be decided,
+    not carried into Sprint 3 a third time.
+18. Tell CV that on CGMacros `carbs_source = weighed`, which is better than
+    `agents/cv/CLAUDE.md` currently assumes (open item 5).
+
+### One thing to stop doing
+
+Reporting a number before its baseline, its n, and its variance are in the
+same table. `integration/report.py` now refuses to build such a table, but
+the discipline matters more than the guard rail.

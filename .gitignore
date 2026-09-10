@@ -76,3 +76,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Integration layer scratch
+integration/web/*.png
