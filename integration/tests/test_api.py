@@ -203,3 +203,70 @@ def test_staleness_boundary_is_the_contract_constant():
     )).json()
     assert outside["glucose_history_used"]["g0"] is None
     assert c.MAX_G0_AGE_MINUTES == 360.0
+
+
+# ---------------------------------------------------------------------
+# Dual g0 path: fingerstick, or the finger scan
+# ---------------------------------------------------------------------
+
+def test_fingerstick_path_end_to_end():
+    r = client.post("/predict", json=_payload(
+        glucose_history=[],
+        fingerstick_mgdl=132.0,
+        fingerstick_timestamp="2026-01-15T19:10:00"))
+    assert r.status_code == 200, r.text
+    gs = r.json()["glucose_source"]
+    assert gs["source"] == "fingerstick"
+    assert gs["value_mgdl"] == 132.0
+    assert gs["is_direct_measurement"] is True
+    assert r.json()["forecast"]["used_fallback_g0"] is False
+
+
+def test_fingerstick_beats_the_population_fallback_in_confidence():
+    with_fs = client.post("/predict", json=_payload(
+        glucose_history=[], fingerstick_mgdl=132.0,
+        fingerstick_timestamp="2026-01-15T19:10:00")).json()
+    without = client.post("/predict", json=_payload(glucose_history=[])).json()
+    assert (with_fs["forecast"]["prediction_confidence"]
+            > without["forecast"]["prediction_confidence"])
+
+
+def test_bad_fingerstick_returns_a_readable_422():
+    r = client.post("/predict", json=_payload(
+        glucose_history=[], fingerstick_mgdl=7.4,
+        fingerstick_timestamp="2026-01-15T19:10:00"))
+    assert r.status_code == 422
+    assert "mmol/L" in r.json()["detail"]
+
+
+def test_ppg_g0_path_is_refused_and_explains_why():
+    """The user has no glucometer and opts for the scan. Today that falls
+    back, and the response says which rule and which evidence blocked it."""
+    r = client.post("/predict", json=_payload(
+        glucose_history=[], ppg_signal=_ppg(), allow_ppg_g0_estimate=True))
+    assert r.status_code == 200, r.text
+    gs = r.json()["glucose_source"]
+    assert gs["source"] == "population_fallback"
+    assert gs["is_direct_measurement"] is False
+    assert any("estimator" in m for m in gs["rejected_candidates"])
+
+
+def test_ppg_capture_without_opting_in_cites_the_ringfence():
+    r = client.post("/predict", json=_payload(
+        glucose_history=[], ppg_signal=_ppg()))
+    gs = r.json()["glucose_source"]
+    assert any("E1.2" in m for m in gs["rejected_candidates"])
+
+
+def test_health_declares_which_g0_sources_are_live():
+    body = client.get("/health").json()
+    assert body["g0_sources"]["fingerstick"].startswith("available")
+    assert body["g0_sources"]["ppg_estimate"].startswith("UNAVAILABLE")
+
+
+def test_forecast_carries_the_g0_source_for_stratified_reporting():
+    body = client.post("/predict", json=_payload(
+        glucose_history=[], fingerstick_mgdl=132.0,
+        fingerstick_timestamp="2026-01-15T19:10:00")).json()
+    assert body["forecast"]["g0_source"] == "fingerstick"
+    assert body["forecast"]["g0_is_direct_measurement"] is True

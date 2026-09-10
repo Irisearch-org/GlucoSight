@@ -33,7 +33,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field as PField
 
-from integration import contract, fusion, predictor
+from integration import contract, fusion, glucose_source as gsrc, predictor
 from integration.adapters.ppg import strip_ringfenced
 
 log = logging.getLogger("glucosight.api")
@@ -83,7 +83,27 @@ class PredictRequest(BaseModel):
     # In-app question, not a CV output.
     portion_reported: int = PField(1, ge=0, le=2, description="0=kecil 1=sedang 2=besar")
 
-    glucose_history: List[GlucoseReading] = PField(default_factory=list)
+    glucose_history: List[GlucoseReading] = PField(
+        default_factory=list,
+        description="CGM trace or prior readings, strictly before t0 (C2)",
+    )
+
+    # Option 1: the user owns a glucometer and types the reading in.
+    fingerstick_mgdl: Optional[float] = PField(
+        None, description="User-entered glucometer reading, mg/dL")
+    fingerstick_timestamp: Optional[str] = PField(
+        None, description="When the fingerstick was taken. Required with it.")
+
+    # Option 2: the user has no glucometer, so estimate g0 from the finger
+    # scan. Disabled by default — see integration/glucose_source.py. Using a
+    # PPG estimate as the sole driver of a user-visible number conflicts
+    # with ring-fence rule E1.2 until contract v2.0 resolves it.
+    allow_ppg_g0_estimate: bool = PField(
+        False,
+        description="Estimate pre-meal glucose from the PPG capture. "
+                    "Conflicts with ring-fence E1.2; off by default.",
+    )
+
     time_since_last_meal_hours: Optional[float] = None
 
 
@@ -145,6 +165,20 @@ def health() -> Dict[str, Any]:
             "forecasting model is committed to this repository"
             if not _predictor.is_trained_model else "trained model"
         ),
+        "g0_sources": {
+            "fingerstick": "available — user enters a glucometer reading",
+            "cgm": "available — supplied via glucose_history",
+            "ppg_estimate": (
+                "UNAVAILABLE — no informative estimator registered; the only "
+                "committed PPG-glucose model is a constant predictor "
+                "(MAE 14.51, n=23 subjects). Also conflicts with ring-fence "
+                "E1.2 until contract v2.0."
+                if (gsrc.registered_ppg_g0_estimator() is None
+                    or not gsrc.registered_ppg_g0_estimator().provides_information)
+                else f"available — {gsrc.registered_ppg_g0_estimator().model_version}"
+            ),
+            "population_fallback": "always available, not personalised",
+        },
         "disclaimer": DISCLAIMER,
     }
 
@@ -195,6 +229,9 @@ def predict(req: PredictRequest) -> JSONResponse:
             glucose_history=[g.model_dump() for g in req.glucose_history],
             portion_reported=req.portion_reported,
             time_since_last_meal_hours=req.time_since_last_meal_hours,
+            fingerstick_mgdl=req.fingerstick_mgdl,
+            fingerstick_timestamp=req.fingerstick_timestamp,
+            allow_ppg_g0_estimate=req.allow_ppg_g0_estimate,
         )
     except contract.ContractViolation as exc:
         # A contract violation is the caller's input being wrong, not a
@@ -248,6 +285,14 @@ def predict(req: PredictRequest) -> JSONResponse:
             "g0_age_minutes": meal.get("g0_age_minutes"),
             "g0_rejected_as_stale": meal.get("g0_rejected_as_stale", False),
             "max_g0_age_minutes": contract.MAX_G0_AGE_MINUTES,
+        },
+        "glucose_source": {
+            "value_mgdl": meal.get("g0_mgdl"),
+            "source": meal.get("g0_source"),
+            "is_direct_measurement": meal.get("g0_is_direct_measurement"),
+            "trust": meal.get("g0_trust"),
+            "detail": meal.get("g0_detail"),
+            "rejected_candidates": meal.get("g0_rejected_candidates", []),
         },
         "schema_version": contract.SCHEMA_VERSION,
         "disclaimer": DISCLAIMER,

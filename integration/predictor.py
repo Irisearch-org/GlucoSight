@@ -26,6 +26,7 @@ import math
 from typing import Any, Dict, Optional, Protocol
 
 from integration import contract
+from integration import glucose_source as gsrc
 
 # Cohort mean postprandial excursion, mg/dL above the pre-meal reading.
 #
@@ -96,6 +97,11 @@ class BaselineB2Predictor:
         if not has_g0:
             conf = min(conf, 0.15)
 
+        # Scale by how the pre-meal value was obtained. A fingerstick and a
+        # population constant must not produce the same confidence.
+        conf *= float(meal.get("g0_trust", gsrc.SOURCE_TRUST[
+            gsrc.SOURCE_POPULATION_FALLBACK]))
+
         weights = [
             contract.modality_weight(meal, m) for m in contract.MODALITY_FIELDS
         ]
@@ -114,7 +120,10 @@ class BaselineB2Predictor:
     def predict(self, meal: Dict[str, Any]) -> Dict[str, Any]:
         g0 = meal.get("g0")
         has_g0 = g0 is not None and math.isfinite(float(g0))
-        base = float(g0) if has_g0 else FALLBACK_G0
+        # `g0_mgdl` always carries a usable number — the resolved
+        # measurement, or the population fallback. `g0` is None precisely
+        # when no measurement was available, which is what has_g0 records.
+        base = float(meal.get("g0_mgdl", FALLBACK_G0)) if not has_g0 else float(g0)
 
         t60 = base + self.mean_excursion[60]
         t120 = base + self.mean_excursion[120]
@@ -140,13 +149,15 @@ class BaselineB2Predictor:
 
         out["is_trained_model"] = self.is_trained_model
         out["basis"] = (
-            f"B2 baseline: last causal reading ({base:.0f} mg/dL"
-            f"{'' if has_g0 else ', FALLBACK — no causal reading available'}) "
+            f"B2 baseline: pre-meal glucose {base:.0f} mg/dL "
+            f"({meal.get('g0_detail', 'source unrecorded')}) "
             f"+ cohort mean excursion. Provenance: {self.provenance}. "
             f"Cohort excursion SD ({COHORT_EXCURSION_SD[60]:.0f} mg/dL at T+60) "
             f"exceeds its mean, so this is a population constant, not a "
             f"meal-specific prediction."
         )
+        out["g0_source"] = meal.get("g0_source")
+        out["g0_is_direct_measurement"] = meal.get("g0_is_direct_measurement")
         out["used_fallback_g0"] = not has_g0
         out["modality_weights"] = {
             m: round(contract.modality_weight(meal, m), 3)

@@ -53,6 +53,13 @@
   .err{border:1px solid #f2b8b5;background:#fceeed;color:var(--bad);
        padding:12px;border-radius:8px;font-size:13px}
   details{margin-top:14px} summary{cursor:pointer;color:var(--muted);font-size:12px}
+  label.opt{display:inline-flex;align-items:center;gap:5px;margin:0;font-size:12px;
+            color:var(--ink);cursor:pointer;padding:5px 9px;border:1px solid var(--line);
+            border-radius:6px;background:#fff}
+  label.opt:has(input:checked){border-color:var(--accent);background:#eef3fd;
+            color:var(--accent);font-weight:600}
+  label.opt input{width:auto;margin:0}
+  ol{font-size:12px}
 </style>
 </head>
 <body>
@@ -94,9 +101,47 @@
         <span class="muted" id="ppgstate">no capture</span>
       </div>
 
-      <label>Glucose history (JSON) — readings at or after T=0 are dropped</label>
-      <textarea id="hist">[{"timestamp":"2026-01-15T12:00:00","value":142},
+      <label>Gula darah sebelum makan — pre-meal glucose</label>
+      <div class="row" style="margin-bottom:6px">
+        <label class="opt"><input type="radio" name="gsrc" value="fingerstick" checked>
+          Punya glukometer (fingerstick)</label>
+        <label class="opt"><input type="radio" name="gsrc" value="cgm">
+          Punya CGM / riwayat</label>
+        <label class="opt"><input type="radio" name="gsrc" value="ppg">
+          Tidak punya — pakai finger scan</label>
+      </div>
+
+      <div id="src-fingerstick">
+        <div class="row">
+          <div style="flex:1"><label>Hasil alat (mg/dL)</label>
+            <input id="fs_val" type="number" value="118" min="20" max="600"></div>
+          <div style="flex:1.4"><label>Waktu tes</label>
+            <input id="fs_ts" type="datetime-local"></div>
+        </div>
+      </div>
+
+      <div id="src-cgm" hidden>
+        <label>Glucose history (JSON) — readings at or after T=0 are dropped</label>
+        <textarea id="hist">[{"timestamp":"2026-01-15T12:00:00","value":142},
  {"timestamp":"2026-01-15T18:45:00","value":118}]</textarea>
+      </div>
+
+      <div id="src-ppg" hidden>
+        <div class="err" style="margin-top:6px">
+          <b>This path is disabled.</b> Two independent reasons, both in
+          <code>integration/glucose_source.py</code>:
+          <ol style="margin:6px 0 0 18px;padding:0">
+            <li>Ring-fence rule <b>E1.2</b> — <code>ppg_glucose_estimate</code> is
+                "never used as a sole prediction and never surfaced to a user".
+                Using it as pre-meal glucose makes it exactly that. Needs a
+                contract v2.0 amendment.</li>
+            <li>The only committed PPG-glucose model predicts one constant for
+                everyone (MAE 14.51 mg/dL, n=23 subjects), so it carries no more
+                information than the population fallback.</li>
+          </ol>
+          Selecting it shows what the request does today: falls back, and says why.
+        </div>
+      </div>
 
       <div class="row" style="margin-top:16px">
         <button id="go">Predict</button>
@@ -124,7 +169,22 @@ let ppgSignal = null;
 (function initTime(){
   const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
   $('t0').value = d.toISOString().slice(0,16);
+  const f = new Date(d.getTime() - 20*60000);
+  $('fs_ts').value = f.toISOString().slice(0,16);
 })();
+
+// Source picker
+function currentSource(){
+  return document.querySelector('input[name="gsrc"]:checked').value;
+}
+document.querySelectorAll('input[name="gsrc"]').forEach(r => {
+  r.onchange = () => {
+    const v = currentSource();
+    $('src-fingerstick').hidden = v !== 'fingerstick';
+    $('src-cgm').hidden         = v !== 'cgm';
+    $('src-ppg').hidden         = v !== 'ppg';
+  };
+});
 
 fetch('/health').then(r=>r.json()).then(h=>{
   const trained = h.is_trained_model;
@@ -162,10 +222,13 @@ function bar(w){
 
 $('go').onclick = async () => {
   $('go').disabled = true; $('status').textContent = 'running…';
+  const src = currentSource();
   let history = [];
-  try { history = JSON.parse($('hist').value || '[]'); }
-  catch { $('out').innerHTML = `<div class="err">Glucose history is not valid JSON.</div>`;
-          $('go').disabled = false; $('status').textContent=''; return; }
+  if (src === 'cgm') {
+    try { history = JSON.parse($('hist').value || '[]'); }
+    catch { $('out').innerHTML = `<div class="err">Glucose history is not valid JSON.</div>`;
+            $('go').disabled = false; $('status').textContent=''; return; }
+  }
 
   const payload = {
     participant_id: $('pid').value,
@@ -177,7 +240,10 @@ $('go').onclick = async () => {
     ppg_sampling_rate: 30.0,
     portion_reported: parseInt($('portion').value, 10),
     glucose_history: history,
-    source_dataset: 'live_capture'
+    source_dataset: 'live_capture',
+    fingerstick_mgdl: src === 'fingerstick' ? parseFloat($('fs_val').value) : null,
+    fingerstick_timestamp: src === 'fingerstick' ? $('fs_ts').value + ':00' : null,
+    allow_ppg_g0_estimate: src === 'ppg'
   };
 
   try {
@@ -193,6 +259,10 @@ $('go').onclick = async () => {
       return;
     }
     const f = j.forecast, m = j.modalities, h = j.glucose_history_used;
+    const gs = j.glucose_source || {};
+    const srcLabel = {fingerstick:'Fingerstick (measured)', cgm:'CGM (measured)',
+      ppg_estimate:'PPG estimate (inferred)',
+      population_fallback:'Population fallback (not personalised)'}[gs.source] || gs.source;
     $('out').innerHTML = `
       <div class="row" style="gap:28px;margin-bottom:14px">
         <div><div class="muted">T+60</div>
@@ -207,13 +277,21 @@ $('go').onclick = async () => {
            <b>Baseline output, not a model.</b> ${f.basis}
          </div>`}
       ${f.used_fallback_g0 ? `<div class="err" style="margin-bottom:12px">
-        ${h.g0_rejected_as_stale
-          ? `The most recent causal reading is ${Math.round(h.g0_age_minutes)} min
-             (${(h.g0_age_minutes/1440).toFixed(1)} days) before first bite, past the
-             ${h.max_g0_age_minutes} min staleness limit, so it was rejected.`
-          : 'No causal pre-meal reading was available.'}
-        A cohort fallback of 120 mg/dL was used, so this prediction is a
-        population constant.</div>` : ''}
+        No usable glucose measurement, so this prediction is a
+        <b>population constant</b> — it is not personalised to you.</div>` : ''}
+      <div class="card" style="padding:11px;margin-bottom:12px;background:#fafbfc">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+                    color:var(--muted);margin-bottom:5px">Pre-meal glucose</div>
+        <div class="row" style="gap:10px">
+          <b style="font-size:17px">${gs.value_mgdl} <span class="unit">mg/dL</span></b>
+          <span class="pill ${gs.is_direct_measurement?'on':'off'}">${srcLabel}</span>
+          <span class="pill off">trust ${gs.trust}</span>
+        </div>
+        <div class="muted" style="margin-top:5px">${gs.detail || ''}</div>
+        ${(gs.rejected_candidates||[]).length ? `<div class="muted"
+           style="margin-top:6px;color:var(--warn)">Not used: ${
+             gs.rejected_candidates.join('; ')}</div>` : ''}
+      </div>
       <div class="row" style="margin-bottom:12px">
         ${pill(m.cv.present, 'CV')} ${pill(m.nlp.present, 'NLP')} ${pill(m.ppg.present, 'PPG')}
         <span class="pill off">confidence ${f.prediction_confidence}</span>

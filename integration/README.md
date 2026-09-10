@@ -10,7 +10,7 @@ you are about to quote a number from Sprint 2.
 
 ```bash
 pip install -r integration/requirements.txt
-python -m pytest utils/tests integration/tests -q     # 122 tests
+python -m pytest utils/tests integration/tests -q     # 150 tests
 python -m uvicorn integration.api:app --reload        # http://127.0.0.1:8000
 ```
 
@@ -22,6 +22,7 @@ python -m uvicorn integration.api:app --reload        # http://127.0.0.1:8000
 | `adapters/` | Track-native output → contract records |
 | `fusion.py` | Assemble one validated meal record; causal history features |
 | `features.py` | Three feature tiers + train-only normalization |
+| `glucose_source.py` | Where `g0` comes from: fingerstick / CGM / PPG / fallback |
 | `predictor.py` | The prediction step — **currently a labelled baseline** |
 | `report.py` | Results tables that refuse to omit B0/B1/B2 |
 | `api.py` | `POST /predict`, `GET /contract`, `GET /health` |
@@ -69,6 +70,45 @@ worthless result. Each has a test that fails if it regresses.
   `transform` before `fit`.
 - **E1 ring-fence** — `ppg_glucose_estimate` is excluded from every default
   feature tier and stripped from every API response.
+
+## Where pre-meal glucose comes from
+
+A user with a glucometer types their reading in; a user with a CGM supplies
+a trace; a user with neither gets the population fallback. Each is a
+different epistemic situation and `glucose_source.py` keeps them distinct.
+
+| Source | Trust | Status |
+|---|---|---|
+| `fingerstick` | 1.00 | **Live.** User-entered, range-checked, C2-checked, staleness-checked |
+| `cgm` | 0.95 | **Live.** From `glucose_history` |
+| `ppg_estimate` | 0.30 | **Gated off** — see below |
+| `population_fallback` | 0.10 | Always available, not personalised |
+
+Direct measurements compete on recency: a fingerstick taken 5 minutes ago
+beats a CGM reading from an hour ago, and vice versa. A PPG estimate is
+used only when no direct measurement is available *and* the path is
+explicitly enabled *and* an informative estimator is registered.
+
+### Why the PPG path is off by default
+
+**Ring-fence E1.2** says `ppg_glucose_estimate` is "never used as a sole
+prediction and never surfaced to a user". In `forecast = g0 + excursion`, a
+PPG-derived `g0` *is* the sole driver of a user-visible number. Enabling it
+needs a contract v2.0 amendment, not a config change.
+
+**And there is nothing to enable yet.** The only committed PPG-glucose
+model predicts the training-fold mean for every subject (MAE 14.51, n=23),
+so it carries no more information than the population fallback.
+`G0Estimator.provides_information` records that, and `resolve_g0` refuses
+to prefer a constant predictor over the fallback — so the seam cannot be
+lit up by accident with a model that does not deserve it.
+
+When the PPG track beats its own mean baseline on held-out subjects:
+
+```python
+from integration import glucose_source as gsrc
+gsrc.register_ppg_g0_estimator(MyEstimator())   # provides_information=True
+```
 
 ## Feature tiers
 

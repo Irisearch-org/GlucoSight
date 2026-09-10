@@ -4,7 +4,7 @@
 **Author:** Integration layer (PM-owned)
 **Scope:** the Sprint 2 forecasting notebook, the three track outputs on
 `main`, and the fusion spine built to join them.
-**Reproduce:** `python -m pytest utils/tests integration/tests -q` (122 tests)
+**Reproduce:** `python -m pytest utils/tests integration/tests -q` (150 tests)
 
 ---
 
@@ -280,6 +280,67 @@ reasonable.
 silently substituted. **Proposed as a contract v2.0 amendment** — it is not
 in v1.2.
 
+### F13 — The "no CGM required" claim rests on a CGM reading
+
+The root `CLAUDE.md` states the research question as Zone A > 70%
+**"without continuous glucose monitoring"** and the project summary as
+prediction from a smartphone, **"no CGM required"**.
+
+The Sprint 2 result obtains its pre-meal glucose like this:
+
+```python
+df_dexcom = df.dropna(subset=['Dexcom GL'])
+history   = df_dexcom[df_dexcom['Timestamp'] < t0]
+g0        = history.iloc[-1]['Dexcom GL']
+```
+
+That is the Dexcom G6 trace, sampled every 5 minutes, so `g0` is a CGM
+reading taken at most about 5 minutes before the first bite. B1
+(persistence) scoring 51.0% Zone A and B2 scoring 54.7% is what a
+near-instantaneous CGM reading buys on its own — the baselines are strong
+*because* they stand on a CGM.
+
+**The headline result depends on precisely the instrument the project
+claims not to need.** The notebook does compute `dt_last_reading`, but
+never reports its distribution; that distribution is the most important
+unreported number in Sprint 2.
+
+**Action taken:** `integration/glucose_source.py` makes the origin of `g0`
+explicit and pluggable — `cgm`, `fingerstick`, `ppg_estimate`,
+`population_fallback` — with the source, its age and a trust weight
+travelling downstream, the same discipline the contract already applies to
+`carbs_source`. Accuracy can now be reported stratified by source.
+
+**Action still needed:** re-run Sprint 2 with `g0` artificially aged
+(5 / 30 / 60 / 120 minutes, and absent) and publish the decay curve. That
+single experiment decides whether the project's claim is
+"no CGM required" or "one cheap fingerstick required", and the second is
+still a good project.
+
+### F14 — The PPG fallback for `g0` is the population fallback in disguise
+
+Proposed product behaviour: a user with a glucometer types their reading;
+a user without one gets the finger scan instead. The seam is right and is
+now built. The PPG branch cannot ship yet, for two independent reasons:
+
+1. **Contract.** Ring-fence rule E1.2 says `ppg_glucose_estimate` is
+   "never used as a sole prediction and never surfaced to a user". In
+   `forecast = g0 + excursion`, a PPG-derived `g0` is the sole driver of a
+   user-visible number. This is a contract violation, and belongs on the
+   v2.0 agenda rather than in a code change.
+2. **Evidence.** The only committed PPG-glucose model
+   (`rppg/models/baseline_mean.py`) predicts the training-fold population
+   mean for every subject — MAE 14.51 +/- 2.00 mg/dL over 23 subjects.
+   Predicting one constant for everyone carries the same information as
+   the population fallback. Registering it would change the label on the
+   number, not the number.
+
+`G0Estimator.provides_information` encodes reason 2 in the type, and
+`resolve_g0` refuses to prefer a constant predictor over the fallback, so
+this cannot be lost by accident. When the PPG track has an estimator that
+beats its own mean baseline on held-out subjects, registering it lights the
+path up.
+
 ---
 
 ## 4. Is the result credible?
@@ -346,16 +407,17 @@ integration/contract.py         contract v1.2: the single validator
 integration/features.py         three feature tiers + train-only normalization
 integration/fusion.py           assemble one validated meal from three tracks
 integration/adapters/{cv,nlp,ppg}.py   track-native -> contract
+integration/glucose_source.py   pluggable g0: fingerstick / CGM / PPG / fallback
 integration/predictor.py        B2 baseline, labelled as a baseline
 integration/report.py           results tables that refuse to omit baselines
 integration/api.py              FastAPI /predict /contract /health
 integration/web/index.html      demo page
-integration/tests/              75 tests
+integration/tests/              103 tests
 
 forecasting/notebooks/          Sprint 2 notebook, committed with audit header
 ```
 
-Run: `python -m pytest utils/tests integration/tests -q` → **122 passed**
+Run: `python -m pytest utils/tests integration/tests -q` → **150 passed**
 Serve: `python -m uvicorn integration.api:app --reload` → http://127.0.0.1:8000
 
 ### What the MVP does and does not do
@@ -417,36 +479,38 @@ Ordered. The first three are cheap and unblock the rest.
 3. **Delete or re-generate the trajectory figure** (F1). It cannot appear
    anywhere.
 4. **Recompute every A+B / C / D / E figure** with `utils.clarke_grid` (F4).
-5. **Add error bars.** Repeat the 5-fold `GroupKFold` over 5–10 seeds and
+5. **Publish the g0-ageing decay curve** (F13). Re-run with `g0` aged
+   5/30/60/120 min and absent. This decides the project's central claim.
+6. **Add error bars.** Repeat the 5-fold `GroupKFold` over 5–10 seeds and
    report Zone A mean ± SD across seeds, plus a per-participant bootstrap CI.
    Without this the +4 pt margin is not a claim. **This is the single
    highest-value item in the sprint.**
 
 ### Should (weeks 1–2)
 
-6. **Report the three feature tiers side by side** (F2), using
+7. **Report the three feature tiers side by side** (F2), using
    `integration.features`. Headline the deployable tier. The
    tier-1-to-tier-3 gap is a publishable observation in its own right.
-7. **Carry Δt as a feature and report exclusions** (F7).
-8. **Flag or exclude overlapping meals** and compute
+8. **Carry Δt as a feature and report exclusions** (F7).
+9. **Flag or exclude overlapping meals** and compute
    `time_since_last_meal_hours` (F8). Most likely fix for the flat T+120.
-9. **Population-mean fallbacks instead of zero-fill** (F6). Route the loader
+10. **Population-mean fallbacks instead of zero-fill** (F6). Route the loader
    through `integration.fusion.assemble` so the contract does this for free.
-10. **Explain or drop Ridge** (F9).
-11. **Serialise the fitted estimator** so the MVP can serve a model rather
+11. **Explain or drop Ridge** (F9).
+12. **Serialise the fitted estimator** so the MVP can serve a model rather
     than a baseline. Persist the scaler alongside it, per the contract's
     normalization spec.
 
 ### Should (the tracks)
 
-12. **Bahasa lexicon for NLP** (F10), or state plainly that the MVP's note
+13. **Bahasa lexicon for NLP** (F10), or state plainly that the MVP's note
     input is non-functional for the target language. `is_large_portion`
     needs a portion-word lexicon (kecil/sedang/besar/porsi jumbo), not a
     gram parser. This is a small, well-defined, high-visibility task.
-13. **Calibrate `nlp_confidence`** (isotonic or Platt) on a held-out split.
+14. **Calibrate `nlp_confidence`** (isotonic or Platt) on a held-out split.
     Forecasting uses it as a gating weight; uncalibrated, that gate is
     meaningless.
-14. **Route CV through the adapter** and retire `cv/cv_baseline/schema.py`,
+15. **Route CV through the adapter** and retire `cv/cv_baseline/schema.py`,
     as its own docstring asks. Give `gi_category` a real owner — the table
     in `integration/adapters/cv.py` is an integration-layer assignment from
     published GI values, not a CV-track measurement, and it should not stay
@@ -454,16 +518,25 @@ Ordered. The first three are cheap and unblock the rest.
 
 ### Contract v2.0 agenda (the meeting is already scheduled)
 
-15. Add the **staleness rule** (F12) — `MAX_G0_AGE_MINUTES`, currently an
+16. **Decide E1.2 vs the fingerstick-or-scan product design** (F14). If the
+    app is to offer the finger scan to users without a glucometer, the
+    ring-fence must be amended to permit a PPG-derived `g0` under stated
+    conditions — at minimum a signal-quality floor, a confidence ceiling,
+    and a user-visible label distinguishing an inference from a
+    measurement. The code is built and gated; only the decision is missing.
+17. Promote **`g0_source`** into the contract proper (F13), alongside
+    `carbs_source` and `nlp_feature_source`. Results should be reportable
+    stratified by it.
+18. Add the **staleness rule** (F12) — `MAX_G0_AGE_MINUTES`, currently an
     integration-layer constant.
-16. Decide whether **`ppg_embedding`** is requested at all — open item 2 in
+19. Decide whether **`ppg_embedding`** is requested at all — open item 2 in
     the contract, still unanswered.
-17. Settle **open item 4**: the root `CLAUDE.md` still states the tri-modal
+20. Settle **open item 4**: the root `CLAUDE.md` still states the tri-modal
     research question and an Indonesian target population, which
     `DATA_STRATEGY.md` §3–4 supersede in practice. This audit's F2 and F10
     are both downstream of that unresolved divergence. It should be decided,
     not carried into Sprint 3 a third time.
-18. Tell CV that on CGMacros `carbs_source = weighed`, which is better than
+21. Tell CV that on CGMacros `carbs_source = weighed`, which is better than
     `agents/cv/CLAUDE.md` currently assumes (open item 5).
 
 ### One thing to stop doing

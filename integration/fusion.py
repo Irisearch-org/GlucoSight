@@ -23,6 +23,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Sequence
 
 from integration import contract
+from integration import glucose_source as gsrc
 from integration.adapters import cv_to_contract, nlp_to_contract, ppg_to_contract
 
 # Provenance fields the adapters attach for the audit trail. They are not
@@ -112,6 +113,9 @@ def assemble(
     portion_reported: int = 1,
     carbs_source_override: Optional[str] = None,
     time_since_last_meal_hours: Optional[float] = None,
+    fingerstick_mgdl: Optional[float] = None,
+    fingerstick_timestamp: Optional[Any] = None,
+    allow_ppg_g0_estimate: bool = False,
     validate: bool = True,
 ) -> Dict[str, Any]:
     """Build one validated contract v1.2 meal record.
@@ -173,9 +177,41 @@ def assemble(
 
     derived = derive_history_features(causal_history, t0)
 
+    # Where does the pre-meal glucose value come from? A CGM trace, a
+    # user-entered fingerstick, a PPG estimate, or nothing at all. The
+    # answer travels downstream rather than collapsing into a number.
+    resolution = gsrc.resolve_g0(
+        t0_timestamp=t0,
+        causal_history=causal_history,
+        fingerstick_mgdl=fingerstick_mgdl,
+        fingerstick_timestamp=fingerstick_timestamp,
+        ppg_block={k: record[k] for k in record if k.startswith("ppg_")},
+        allow_ppg_estimate=allow_ppg_g0_estimate,
+    )
+
+    # A fingerstick can be fresher than the newest CGM reading, in which
+    # case it becomes g0 and the history-derived features must follow it.
+    if resolution.is_direct_measurement:
+        derived["g0"] = resolution.value_mgdl
+        derived["g0_age_minutes"] = resolution.age_minutes
+        derived["g0_rejected_as_stale"] = False
+    else:
+        # No usable measurement: g0 stays None so the predictor knows it is
+        # extrapolating, and the resolution records why.
+        derived["g0"] = None
+        derived["g0_age_minutes"] = resolution.age_minutes
+        derived["g0_rejected_as_stale"] = bool(resolution.rejected)
+
+    # A single fingerstick gives one point, so no slope is defined. Not
+    # zero — undefined. Encoding it as 0 would assert a flat glucose trend.
+    if (resolution.source == gsrc.SOURCE_FINGERSTICK and not causal_history):
+        derived["glucose_slope_30min"] = None
+        derived["glucose_mean_6h"] = None
+
     return {
         **record,
         **derived,
+        **resolution.to_dict(),
         "hour_of_day_sin": math.sin(2 * math.pi * t0.hour / 24.0),
         "hour_of_day_cos": math.cos(2 * math.pi * t0.hour / 24.0),
         "_provenance": {
@@ -193,5 +229,6 @@ def strip_derived(record: Dict[str, Any]) -> Dict[str, Any]:
     """Return just the contract fields, for validation or serialisation."""
     derived = {"g0", "g0_age_minutes", "glucose_slope_30min", "glucose_mean_6h",
                "g0_rejected_as_stale", "hour_of_day_sin", "hour_of_day_cos",
-               "_provenance"}
+               "_provenance", "g0_mgdl", "g0_source", "g0_is_direct_measurement",
+               "g0_trust", "g0_detail", "g0_rejected_candidates"}
     return {k: v for k, v in record.items() if k not in derived}
