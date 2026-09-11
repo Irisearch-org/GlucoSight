@@ -64,6 +64,28 @@ FEATURE_NAMES: Tuple[str, ...] = (
     "n_beats_detected",
 )
 
+# Sample rate to extract features at.
+#
+# The raw recordings are 10 s at 2190 Hz. The phone camera the MVP will
+# actually use runs at ~30 Hz, and `rppg/data/preprocess.py` exists to
+# decimate to exactly that (2190 / 30 = 73, a clean integer factor).
+#
+# Training at 2190 Hz and deploying at 30 Hz would be a silent domain shift:
+# the morphology features are the ones that break. At 30 Hz one sample is
+# 33 ms, so `rise_time_ms` and `pulse_width_half_ms` are quantised to
+# multiples of 33 ms — and a pulse rise time is itself on the order of
+# 100-200 ms. A model fitted on 2190 Hz rise times would receive, at
+# deployment, a feature with a fraction of the resolution and a different
+# distribution, and would have no way to signal that anything was wrong.
+#
+# So features are extracted at the DEPLOYMENT rate by default. `--native`
+# trains at 2190 Hz instead, which is useful for exactly one thing:
+# measuring how much of any result is an artefact of sample rate. If the
+# native-rate model is much better, that gap is the price of the phone
+# camera and belongs in the paper.
+FS_NATIVE = 2190
+FS_DEPLOY = 30
+
 N_SPLITS = 5
 RANDOM_STATE = 42
 N_BOOTSTRAP = 2000
@@ -84,10 +106,19 @@ class DatasetUnavailable(RuntimeError):
 # Feature table
 # ---------------------------------------------------------------------
 
-def build_feature_table() -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
-    """Extract features for every recording. Returns (X, y, groups, dropped)."""
+def build_feature_table(
+    fs_target: int = FS_DEPLOY,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]]:
+    """Extract features for every recording. Returns (X, y, groups, dropped).
+
+    Args:
+        fs_target: sample rate to extract at. Defaults to the 30 Hz
+            deployment rate, NOT the 2190 Hz native rate — see the note on
+            FS_DEPLOY above. Pass FS_NATIVE to train at the native rate.
+    """
     try:
         from rppg.data.loader import load_all_recordings
+        from rppg.data.preprocess import decimate_to_30hz
         from rppg.features.extractor import extract_features
     except ImportError as exc:
         raise DatasetUnavailable(f"rppg package not importable: {exc}") from exc
@@ -109,7 +140,17 @@ def build_feature_table() -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str]
 
     rows, ys, groups, dropped = [], [], [], []
     for rec in records:
-        feats = extract_features(rec["signal"], rec["fs"])
+        # `load_all_recordings` returns no sample rate; the raw files are
+        # all 10 s at FS_NATIVE (rppg/data/loader.py).
+        signal, fs = rec["signal"], float(FS_NATIVE)
+        if fs_target != FS_NATIVE:
+            if FS_NATIVE % fs_target != 0:
+                raise ValueError(
+                    f"fs_target={fs_target} does not divide FS_NATIVE={FS_NATIVE}"
+                )
+            signal, fs = decimate_to_30hz(signal, FS_NATIVE, fs_target)
+            fs = float(fs)
+        feats = extract_features(signal, fs)
         vec = [feats.get(name, np.nan) for name in FEATURE_NAMES]
         if not np.isfinite(vec).all():
             # A recording whose features could not be computed is not a
@@ -386,15 +427,16 @@ class PPGGlucoseEstimator:
 # ---------------------------------------------------------------------
 
 def train_and_persist(alpha: float = 10.0, artifact_path: str = ARTIFACT_PATH,
-                      report_path: str = REPORT_PATH) -> Evaluation:
+                      report_path: str = REPORT_PATH,
+                      fs_target: int = FS_DEPLOY) -> Evaluation:
     from sklearn.linear_model import Ridge
     from sklearn.preprocessing import StandardScaler
 
-    X, y, groups, dropped = build_feature_table()
+    X, y, groups, dropped = build_feature_table(fs_target=fs_target)
     ev = evaluate(X, y, groups, alpha=alpha, dropped=dropped)
     passed, reasons = ev.passes_gate()
 
-    _write_report(ev, passed, reasons, report_path, alpha)
+    _write_report(ev, passed, reasons, report_path, alpha, fs_target)
 
     if not passed:
         if os.path.exists(artifact_path):
@@ -407,7 +449,8 @@ def train_and_persist(alpha: float = 10.0, artifact_path: str = ARTIFACT_PATH,
     scaler = StandardScaler().fit(X)
     model = Ridge(alpha=alpha).fit(scaler.transform(X), y)
     blob = {
-        "model_version": f"ppg-glucose-ridge-a{alpha:g}-v1",
+        "model_version": f"ppg-glucose-ridge-a{alpha:g}-fs{fs_target}-v1",
+        "fs_target": int(fs_target),
         "provides_information": True,
         "feature_names": list(FEATURE_NAMES),
         "scaler_mean": scaler.mean_.tolist(),
@@ -431,7 +474,7 @@ def train_and_persist(alpha: float = 10.0, artifact_path: str = ARTIFACT_PATH,
     return ev
 
 
-def _write_report(ev, passed, reasons, path, alpha):
+def _write_report(ev, passed, reasons, path, alpha, fs_target=FS_DEPLOY):
     import sys
     sys.path.insert(0, os.path.join(_HERE, "..", ".."))
     from utils.clarke_grid import clarke_error_grid
@@ -447,6 +490,15 @@ def _write_report(ev, passed, reasons, path, alpha):
         "",
         f"Ridge(alpha={alpha:g}) on {len(FEATURE_NAMES)} extracted features, "
         f"{N_SPLITS}-fold GroupKFold by subject.",
+        f"Features extracted at **{fs_target} Hz**"
+        + (" — the phone-camera deployment rate. Training at the 2190 Hz "
+           "native rate would not transfer: at 30 Hz one sample is 33 ms, so "
+           "the morphology features are quantised to a fraction of their "
+           "native resolution."
+           if fs_target != FS_NATIVE else
+           " — the NATIVE rate. A model trained here will NOT see these "
+           "feature distributions on a 30 Hz phone camera. Use this run only "
+           "to measure the sample-rate gap."),
         f"n = {len(ev.y_true)} recordings, {len(np.unique(ev.groups))} subjects.",
         "",
         "## Why Zone A is reported but is not the gate",
@@ -498,12 +550,18 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--train", action="store_true", help="train, gate, persist")
     ap.add_argument("--alpha", type=float, default=10.0)
+    ap.add_argument("--native", action="store_true",
+                    help=f"extract at the {FS_NATIVE} Hz native rate instead "
+                         f"of the {FS_DEPLOY} Hz deployment rate. For measuring "
+                         f"the sample-rate gap only — such a model will not "
+                         f"transfer to a phone camera.")
     args = ap.parse_args()
     if not args.train:
         ap.print_help()
         return
     try:
-        train_and_persist(alpha=args.alpha)
+        train_and_persist(alpha=args.alpha,
+                          fs_target=FS_NATIVE if args.native else FS_DEPLOY)
     except DatasetUnavailable as exc:
         raise SystemExit(f"cannot train: {exc}")
 

@@ -381,6 +381,15 @@ Two further consequences worth stating:
 - Most of the variance a model would have to explain (59%) is *within*
   subject: the same person at different times, from a 10-second waveform.
 
+**A second trap, found while building it:** the recordings are 10 s at
+**2190 Hz**; a phone camera runs at **~30 Hz**. Training at the native rate
+and deploying at 30 Hz is a silent domain shift — one sample at 30 Hz is
+33 ms, and a pulse rise time is 100-200 ms, so `rise_time_ms` and
+`pulse_width_half_ms` arrive at deployment with a fraction of their training
+resolution and no way to signal it. Features are therefore extracted at the
+**deployment rate by default**; `--native` exists only to measure the gap,
+which is itself a number worth publishing.
+
 **Action taken:** `rppg/models/glucose_estimator.py` reports Zone A but does
 not gate on it. The gate is MAE against the mean baseline on held-out
 subjects, and it requires all four of: a positive improvement, wins in at
@@ -389,6 +398,20 @@ label-permutation p ≤ 0.05. If the gate fails, no artifact is written and
 the finger-scan path stays off. `integration/glucose_source.py` autoloads
 the artifact only if it exists, so `provides_information` is set by
 evidence, never by hand.
+
+**Demonstrated, not argued.** Running the pipeline on synthetic signals
+with no relationship to the real glucose labels (a negative control, since
+the labels are real and the signals are noise) produced:
+
+| Predictor | MAE | Zone A |
+|---|---|---|
+| Mean baseline | 14.57 | 85.1% |
+| Ridge on **pure noise** | 14.78 | **88.1%** |
+
+The noise model is *worse* on MAE and *better* on Zone A, and would have
+been reported as "88.1% Zone A, exceeding the 70% clinical target". All four
+gate criteria correctly refused it (permutation p = 0.486). This is what a
+Zone A headline on this dataset actually buys.
 
 **Action still needed:** the honest conclusion may be that this dataset
 cannot support the claim at all. If so, that is a publishable negative
