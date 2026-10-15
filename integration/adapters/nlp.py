@@ -89,5 +89,6 @@ def nlp_to_contract(
         "nlp_feature_source": source,
         "nlp_model_version": record.get("nlp_model_version", "unknown"),
         # Provenance, stripped before validation.
-        "nlp_calibrated": source not in _UNCALIBRATED_SOURCES,
+        "nlp_calibrated": False,
+        "nlp_calibration_status": record.get("nlp_calibration_status", "unavailable"),
     }

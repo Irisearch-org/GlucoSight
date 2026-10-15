@@ -12,39 +12,41 @@ from nlp.data.shanghai_diet_loader import DEFAULT_DATA_DIR, load_shanghai_diet_r
 MODEL_VERSION = "nlp-rule-v3"
 FEATURE_SOURCE = "rule_based"
 
-FRIED_EN = ("fried", "crispy")
+FRIED_EN = ("fried", "crispy", "deep-fried")
+FRIED_ID = ("digoreng", "goreng", "menggoreng", "gorengan")
 FRIED_CN = ("炒", "煎", "炸")
+FRIED_NEGATIONS = ("tidak digoreng", "bukan digoreng", "tidak goreng", "bukan goreng", "not fried", "not deep-fried")
+LARGE_PORTION_PATTERNS = (
+    re.compile(r"\b(?:jumbo|large|big)\b", re.I),
+    re.compile(r"\b(?:porsi|portion)\s+(?:besar|large|jumbo|extra besar)\b", re.I),
+    re.compile(r"\b(?:besar|large|jumbo)\s+(?:porsi|portion)\b", re.I),
+)
+SMALL_PORTION_PATTERNS = (
+    re.compile(r"\b(?:porsi|portion)\s+(?:kecil|small)\b", re.I),
+    re.compile(r"\b(?:kecil|small)\s+(?:porsi|portion)\b", re.I),
+)
 GRAM_RE = re.compile(r"(\d+(?:\.\d+)?)\s*(?:g|ml)\b", re.I)
 LARGE_THRESHOLD_G = 400
-
-_calibrator = None
-
-def _get_calibrator():
-    global _calibrator
-    if _calibrator is None:
-        import numpy as np
-        from sklearn.isotonic import IsotonicRegression
-        X = np.array([0.55, 0.65, 0.75, 0.85, 0.95])
-        y = np.array([0.58, 0.62, 0.74, 0.81, 0.93])
-        ir = IsotonicRegression(out_of_bounds="clip")
-        ir.fit(X, y)
-        _calibrator = ir
-    return _calibrator
-
-def _calibrate(raw: float) -> float:
-    return float(_get_calibrator().predict([raw])[0])
 
 def _total_grams(text: str) -> float:
     return sum(float(m.group(1)) for m in GRAM_RE.finditer(text or ""))
 
 def _is_fried(en: str, cn: str) -> int:
-    en_l = (en or "").lower()
-    if any(k in en_l for k in FRIED_EN):
-        return 1
-    return 1 if any(c in f"{en} {cn}" for c in FRIED_CN) else 0
+    combined = f"{en or ''} {cn or ''}".casefold()
+    if any(negation in combined for negation in FRIED_NEGATIONS):
+        return 0
+    return int(
+        any(term in combined for term in (*FRIED_EN, *FRIED_ID, *FRIED_CN))
+    )
 
 def _is_large(en: str, cn: str) -> int:
-    return 1 if (_total_grams(en) or _total_grams(cn)) > LARGE_THRESHOLD_G else 0
+    combined = f"{en or ''} {cn or ''}"
+    if any(pattern.search(combined) for pattern in LARGE_PORTION_PATTERNS):
+        return 1
+    if any(pattern.search(combined) for pattern in SMALL_PORTION_PATTERNS):
+        return 0
+    total = _total_grams(en) or _total_grams(cn)
+    return int(total > LARGE_THRESHOLD_G)
 
 def _gl_from_grams(total: float) -> float:
     return total * 0.28 * 73 / 100
@@ -93,7 +95,7 @@ def derive_labels(df: Optional[pd.DataFrame] = None, data_dir: Optional[Path] = 
             "meal_id", "participant_id", "t0_timestamp_iso",
             "dietary_intake", "cgm_mgdl",
             "total_grams", "is_fried_cooking", "is_large_portion",
-            "nlp_confidence", "nlp_present", "nlp_feature_source", "nlp_model_version",
+            "nlp_confidence", "nlp_calibration_status", "nlp_present", "nlp_feature_source", "nlp_model_version",
         ])
     rows = []
     for _, r in df.iterrows():
@@ -112,7 +114,8 @@ def derive_labels(df: Optional[pd.DataFrame] = None, data_dir: Optional[Path] = 
             "total_grams": total,
             "is_fried_cooking": is_fried,
             "is_large_portion": is_large,
-            "nlp_confidence": _confidence(en, cn, is_fried, is_large, total),
+            "nlp_confidence": 0.0,
+            "nlp_calibration_status": "unavailable",
             "nlp_present": 1,
             "nlp_feature_source": FEATURE_SOURCE,
             "nlp_model_version": MODEL_VERSION,
@@ -124,7 +127,7 @@ def derive_labels(df: Optional[pd.DataFrame] = None, data_dir: Optional[Path] = 
         "meal_id", "participant_id", "t0_timestamp_iso",
         "dietary_intake", "cgm_mgdl",
         "total_grams", "is_fried_cooking", "is_large_portion",
-        "nlp_confidence", "nlp_present", "nlp_feature_source", "nlp_model_version",
+        "nlp_confidence", "nlp_calibration_status", "nlp_present", "nlp_feature_source", "nlp_model_version",
     ]
     return out[cols]
 

@@ -4,7 +4,7 @@ import hashlib
 import uuid
 from datetime import datetime, timezone
 
-from nlp.data.derive_labels import FEATURE_SOURCE, MODEL_VERSION, _is_fried, _is_large, _confidence, _total_grams
+from nlp.data.derive_labels import FEATURE_SOURCE, MODEL_VERSION, _is_fried, _is_large, _total_grams
 
 MODALITY = "meal_context"
 
@@ -42,6 +42,7 @@ def predict(input_payload: dict) -> dict:
             "is_fried_cooking": 0,
             "is_large_portion": 0,
             "nlp_confidence": 0.0,
+            "nlp_calibration_status": "unavailable",
             "nlp_present": 0,
             "nlp_feature_source": "unavailable",
             "nlp_model_version": MODEL_VERSION,
@@ -52,7 +53,7 @@ def predict(input_payload: dict) -> dict:
     is_fried = _is_fried(text_en, text_cn)
     is_large = _is_large(text_en, text_cn)
     total = _total_grams(text_en) or _total_grams(text_cn)
-    conf = _confidence(text_en, text_cn, is_fried, is_large, total)
+    conf = 0.0
 
     if not meal_id:
         meal_id = _meal_id(text_en or text_cn, participant_id) if participant_id else _sample_id(text_en or text_cn)
@@ -64,6 +65,7 @@ def predict(input_payload: dict) -> dict:
         "is_fried_cooking": is_fried,
         "is_large_portion": is_large,
         "nlp_confidence": float(conf),
+        "nlp_calibration_status": "unavailable",
         "nlp_present": 1,
         "nlp_feature_source": FEATURE_SOURCE,
         "nlp_model_version": MODEL_VERSION,
