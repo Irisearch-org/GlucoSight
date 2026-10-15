@@ -23,7 +23,10 @@ used to make a treatment decision.
 
 from __future__ import annotations
 
+import base64
+import binascii
 import logging
+import tempfile
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -68,22 +71,27 @@ class PredictRequest(BaseModel):
 
     participant_id: str
     t0_timestamp: str = PField(
-        ..., description="FIRST BITE, ISO8601, logged to the second (C1)"
+        ..., description="Event timestamp, ISO8601. First-bite semantics must be established by the source."
     )
     delta_t_minutes: float = PField(
-        60.0, ge=0, le=240,
-        description="Actual horizon to the label. Never assumed to be 60 (C1).",
+        60.0, ge=60, le=120,
+        description="B2 demo supports only fixed T+60 or T+120 horizons.",
+    )
+    prediction_mode: str = PField(
+        "baseline_demo", description="Currently only baseline_demo is available; it does not consume meal modalities."
     )
     meal_id: Optional[str] = None
     source_dataset: str = "live_capture"
 
-    # Track inputs, each optional.
-    meal_image_path: Optional[str] = None
-    note_text: Optional[str] = PField(None, description="Bahasa Indonesia meal note")
-    ppg_signal: Optional[List[float]] = PField(
-        None, description="Contact PPG samples from the finger capture"
+    # Demo inputs are optional; all are processed independently and their
+    # results are diagnostic only for the B2 baseline.
+    meal_image_data_url: Optional[str] = PField(
+        None, description="Base64 data URL for a supported meal image"
     )
-    ppg_sampling_rate: float = 30.0
+    note_text: Optional[str] = PField(None, description="Meal note; current rules are not clinically validated for Bahasa")
+    ppg_capture: Optional[Dict[str, Any]] = PField(
+        None, description="{samples, timestamps_seconds, sampling_rate_hz}; scalar array must be normalized to [0,1]"
+    )
 
     # In-app question, not a CV output.
     portion_reported: int = PField(1, ge=0, le=2, description="0=kecil 1=sedang 2=besar")
@@ -112,56 +120,150 @@ class PredictRequest(BaseModel):
     time_since_last_meal_hours: Optional[float] = None
 
 
-def _run_cv(image_path: Optional[str]) -> Optional[Dict[str, Any]]:
-    if not image_path:
-        return None
+def _decode_image_data_url(data_url: str) -> tuple[bytes, str]:
+    header, separator, encoded = data_url.partition(",")
+    mime_to_suffix = {
+        "data:image/jpeg;base64": ".jpg",
+        "data:image/png;base64": ".png",
+        "data:image/webp;base64": ".webp",
+    }
+    if not separator or header not in mime_to_suffix:
+        raise ValueError("meal image must be a base64 JPEG, PNG, or WebP data URL")
     try:
+        content = base64.b64decode(encoded, validate=True)
+    except (binascii.Error, ValueError) as exc:
+        raise ValueError("meal image data URL has invalid base64") from exc
+    if not content or len(content) > 10 * 1024 * 1024:
+        raise ValueError("decoded meal image must be between 1 byte and 10 MiB")
+    return content, mime_to_suffix[header]
+
+
+def _run_cv(data_url: Optional[str]) -> tuple[Optional[Dict[str, Any]], Dict[str, Any]]:
+    if not data_url:
+        return None, {"status": "absent", "detail": "no image supplied"}
+    temporary_path = None
+    try:
+        content, suffix = _decode_image_data_url(data_url)
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temporary:
+            temporary.write(content)
+            temporary_path = temporary.name
         from cv.cv_baseline.predict import predict as cv_predict
-        return cv_predict({"sample_id": "api", "meal_image_path": image_path})
+        record = cv_predict({"sample_id": "api", "meal_image_path": temporary_path})
+        status = str(record.get("feature_status", "unknown"))
+        return record, {"status": status, "detail": None}
     except Exception as exc:
-        # A track failing is a missing modality, not a 500. The contract has
-        # a fallback for exactly this; the mask records that it happened.
-        log.warning("CV track unavailable, treating photo as absent: %s", exc)
-        return None
+        log.exception("CV track failed")
+        return None, {"status": "invalid" if isinstance(exc, ValueError) else "error", "detail": str(exc)}
+    finally:
+        if temporary_path is not None:
+            Path(temporary_path).unlink(missing_ok=True)
 
 
-def _run_nlp(text: Optional[str], participant_id: str) -> Optional[Dict[str, Any]]:
+def _run_nlp(text: Optional[str], participant_id: str) -> tuple[Optional[Dict[str, Any]], Dict[str, Any]]:
     if not text or not text.strip():
-        return None
+        return None, {"status": "absent", "detail": "no text supplied"}
     try:
         from nlp.nlp_baseline.predict import predict as nlp_predict
-        return nlp_predict({"dietary_intake": text, "participant_id": participant_id})
+        record = nlp_predict({"dietary_intake": text, "participant_id": participant_id})
+        return record, {
+            "status": "processed",
+            "detail": None,
+            "feature_source": record.get("nlp_feature_source"),
+            "calibrated": False,
+            "limitation": "rule-based labels are not validated for Bahasa clinical use",
+        }
     except Exception as exc:
-        log.warning("NLP track unavailable, treating note as absent: %s", exc)
-        return None
+        log.exception("NLP track failed")
+        return None, {"status": "error", "detail": str(exc)}
 
 
-def _run_ppg(signal: Optional[List[float]], fs: float) -> Optional[Dict[str, Any]]:
-    if not signal:
-        return None
+def _run_ppg(capture: Optional[Dict[str, Any]]) -> tuple[Optional[Dict[str, Any]], Dict[str, Any]]:
+    if capture is None:
+        return None, {"status": "absent", "detail": "no PPG capture supplied"}
     try:
         import numpy as np
         from rppg.features.extractor import extract_features, to_contract_dict
-        arr = np.asarray(signal, dtype=float)
-        # The contract's capture protocol: discard the first 2-3 seconds
-        # (LED thermal settling) before any analysis.
-        skip = int(3 * fs)
-        if arr.size <= skip + int(fs):
-            log.warning("PPG capture too short after settling discard")
-            return None
-        feats = extract_features(arr[skip:], fs)
-        n_windows = min(3, max(1, int((arr.size - skip) / (10 * fs))))
-        return to_contract_dict(feats, glucose_estimate=None,
-                                present=1, n_windows=n_windows)
+        samples = np.asarray(capture.get("samples", []), dtype=float)
+        timestamps = np.asarray(capture.get("timestamps_seconds", []), dtype=float)
+        if samples.ndim != 1 or timestamps.ndim != 1 or samples.size != timestamps.size:
+            raise ValueError("PPG requires equal-length 1D samples and timestamps_seconds")
+        if samples.size < 2 or not np.isfinite(samples).all() or not np.isfinite(timestamps).all():
+            raise ValueError("PPG samples and timestamps must be finite with at least two observations")
+        if np.any(samples < 0.0) or np.any(samples > 1.0):
+            raise ValueError("PPG scalar samples must be normalized to [0, 1]")
+        if np.any(np.diff(timestamps) <= 0):
+            raise ValueError("PPG timestamps must be strictly increasing")
+        fs = float(capture.get("sampling_rate_hz", 0))
+        if not np.isfinite(fs) or fs < 10 or fs > 240:
+            raise ValueError("PPG sampling_rate_hz must be in [10, 240]")
+        intervals = np.diff(timestamps)
+        observed_fs = 1.0 / float(np.median(intervals))
+        if abs(observed_fs - fs) / fs > 0.10:
+            raise ValueError("timestamp-derived PPG frame rate disagrees with sampling_rate_hz by over 10%")
+        # The existing extractor assumes uniform samples. Reject high jitter
+        # rather than silently applying an FFT to nonuniform timestamps.
+        if float(np.std(intervals) / np.mean(intervals)) > 0.05:
+            raise ValueError("PPG timestamp jitter exceeds 5%; uniform resampling is not implemented")
+        start = float(timestamps[0])
+        capture_duration = float(timestamps[-1] - timestamps[0])
+        skip = 3.0
+        usable_start = start + skip
+        boundaries = []
+        cursor = usable_start
+        while cursor + 10.0 <= float(timestamps[-1]) + 1e-9 and len(boundaries) < 3:
+            boundaries.append((cursor, cursor + 10.0))
+            cursor += 10.0
+        if not boundaries:
+            return None, {"status": "invalid", "detail": "no valid 10-second PPG window after 3-second settling discard"}
+        features = []
+        clips = []
+        for window_start, window_end in boundaries:
+            mask = (timestamps >= window_start) & (timestamps < window_end)
+            window = samples[mask]
+            if len(window) < int(fs * 8):
+                continue
+            # A normalized signal is expected. Saturation proxy at either
+            # endpoint is reported; raw RGB-channel clipping needs a future
+            # camera-capture schema.
+            clips.append(float(np.mean((window <= 0.0) | (window >= 1.0))))
+            features.append(extract_features(window, fs))
+        if not features:
+            return None, {"status": "invalid", "detail": "all PPG windows were too short"}
+        keys = features[0].keys()
+        median_features = {
+            key: float(np.nanmedian([feature[key] for feature in features]))
+            for key in keys
+        }
+        # The extractor reports AC/DC as a percentage; contract v1.2 defines
+        # perfusion_index as a ratio. Convert units, never clamp the value.
+        median_features["perfusion_index"] /= 100.0
+        record = to_contract_dict(
+            median_features,
+            glucose_estimate=None,
+            present=1,
+            n_windows=len(features),
+            clip_fraction=float(np.median(clips)) if clips else 1.0,
+        )
+        return record, {
+            "status": "processed",
+            "detail": None,
+            "capture_duration_seconds": capture_duration,
+            "observed_sampling_rate_hz": observed_fs,
+            "timestamp_jitter_fraction": float(np.std(intervals) / np.mean(intervals)),
+            "n_valid_windows": len(features),
+            "clip_fraction_proxy": record["ppg_clip_fraction"],
+            "limitation": "clipping is a normalized-signal proxy; RGB camera channel clipping is not available",
+        }
     except Exception as exc:
-        log.warning("PPG track unavailable, treating capture as absent: %s", exc)
-        return None
+        log.exception("PPG track failed")
+        return None, {"status": "invalid", "detail": str(exc)}
 
 
 @app.get("/health")
 def health() -> Dict[str, Any]:
     return {
         "status": "ok",
+        "prediction_mode": "baseline_demo",
         "schema_version": contract.SCHEMA_VERSION,
         "model_version": _predictor.model_version,
         "is_trained_model": _predictor.is_trained_model,
@@ -215,11 +317,21 @@ def contract_spec() -> Dict[str, Any]:
 
 @app.post("/predict")
 def predict(req: PredictRequest) -> JSONResponse:
+    if req.prediction_mode != "baseline_demo":
+        raise HTTPException(
+            status_code=409,
+            detail="No trained forecasting artifact is configured; only baseline_demo is available.",
+        )
+    if req.delta_t_minutes not in (60.0, 120.0):
+        raise HTTPException(
+            status_code=422,
+            detail="baseline_demo supports only delta_t_minutes=60 or 120",
+        )
     meal_id = req.meal_id or str(uuid.uuid4())
 
-    cv_record = _run_cv(req.meal_image_path)
-    nlp_record = _run_nlp(req.note_text, req.participant_id)
-    ppg_record = _run_ppg(req.ppg_signal, req.ppg_sampling_rate)
+    cv_record, cv_status = _run_cv(req.meal_image_data_url)
+    nlp_record, nlp_status = _run_nlp(req.note_text, req.participant_id)
+    ppg_record, ppg_status = _run_ppg(req.ppg_capture)
 
     try:
         meal = fusion.assemble(
@@ -248,7 +360,14 @@ def predict(req: PredictRequest) -> JSONResponse:
 
     body = {
         "meal_id": meal_id,
+        "prediction_mode": "baseline_demo",
         "forecast": forecast,
+        "forecast_input_usage": {
+            "used_for_glucose_value": ["g0_mgdl", "versioned_B2_mean_excursion"],
+            "not_used_for_glucose_value": ["cv", "nlp", "ppg", "meal_context"],
+            "message": "CV/NLP/PPG outputs are diagnostics only; they do not affect this baseline glucose value.",
+        },
+        "modality_processing": {"cv": cv_status, "nlp": nlp_status, "ppg": ppg_status},
         "modalities": {
             "cv": {
                 "present": meal["cv_present"],
@@ -269,6 +388,7 @@ def predict(req: PredictRequest) -> JSONResponse:
                 "is_large_portion": meal["is_large_portion"],
                 "feature_source": meal["nlp_feature_source"],
                 "calibrated": provenance.get("nlp_calibrated"),
+                "calibration_status": provenance.get("nlp_calibration_status", "unavailable"),
                 "weight": forecast["modality_weights"]["nlp"],
             },
             "ppg": {

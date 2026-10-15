@@ -1,7 +1,6 @@
 # GlucoSight Integration Layer
 
-The PM-owned fusion spine. Joins the CV, NLP and contact-PPG tracks into one
-contract-compliant record and serves it through an MVP endpoint.
+The integration layer validates CV, NLP and contact-PPG diagnostic outputs and exposes a clearly labelled baseline demo endpoint. It does **not** currently serve a trained multimodal forecast.
 
 **Read [`docs/INTEGRATION_AUDIT.md`](../docs/INTEGRATION_AUDIT.md) first** if
 you are about to quote a number from Sprint 2.
@@ -10,7 +9,7 @@ you are about to quote a number from Sprint 2.
 
 ```bash
 pip install -r integration/requirements.txt
-python -m pytest utils/tests integration/tests rppg/tests/test_glucose_estimator.py -q     # 165 tests
+python -m pytest utils/tests integration/tests rppg/tests/test_glucose_estimator.py forecasting/tests nlp/tests -q
 python -m uvicorn integration.api:app --reload        # http://127.0.0.1:8000
 ```
 
@@ -28,22 +27,17 @@ python -m uvicorn integration.api:app --reload        # http://127.0.0.1:8000
 | `api.py` | `POST /predict`, `GET /contract`, `GET /health` |
 | `web/` | Demo page |
 
-## The one thing to understand before demoing
+## Current serving behavior
 
-**No trained forecasting model exists in this repository.** The Sprint 2
-estimators were fitted in a Kaggle notebook and never serialised. So
-`/predict` serves **baseline B2** — last causal reading plus the cohort mean
-excursion — the same B2 that any real model must be reported against.
+**No trained glucose forecaster exists in this repository.** `/predict` is an explicit `baseline_demo` mode that serves B2: the freshest eligible pre-event measurement plus fixed cohort mean excursions. It supports only T+60 and T+120. Unsupported horizons and any request for `trained_forecast` fail rather than silently receiving B2.
 
-Every response says so (`is_trained_model: false`, plus a `basis` string),
-and the demo page leads with a banner. Because B2 uses only `g0`, the
-prediction is currently **the same whether or not the modalities are
-present**: the spine carries, validates and weights them; the baseline does
-not consume them. That is the true state of the system and the demo shows
-it rather than hiding it.
+The response reports modality processing status, but CV/NLP/PPG do **not** affect the B2 glucose values. `forecast_input_usage` says exactly which inputs determine the numbers. The UI calls the output a baseline demo, not multimodal fusion.
 
-To serve a real model, implement the `Predictor` protocol and return it from
-`predictor.default_predictor()`. Nothing else changes.
+The API accepts an image data URL and a timestamped, normalized scalar PPG capture. Scalar PPG is a diagnostic approximation, not the contracted RGB-camera capture: it cannot measure per-channel clipping or validate phone-camera acquisition. NLP outputs are heuristic and currently report calibration unavailable with zero confidence. These inputs are shown as diagnostics only.
+
+The offline CGMacros evaluator is a separate research path. Meal-feature training remains blocked because source values violate published dataset dictionary ranges. The event timestamp is not established as first bite. No evaluated model artifact is loaded by the API.
+
+A trained mode must not be enabled until a serialized estimator, preprocessing state, schema/feature hashes, participant-held-out report and same-event paired training cohort are in place. PPG/NLP from unrelated datasets are never joined to CGMacros to simulate pairing.
 
 ## Rules enforced here rather than trusted
 

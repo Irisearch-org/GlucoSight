@@ -102,11 +102,6 @@ class BaselineB2Predictor:
         conf *= float(meal.get("g0_trust", gsrc.SOURCE_TRUST[
             gsrc.SOURCE_POPULATION_FALLBACK]))
 
-        weights = [
-            contract.modality_weight(meal, m) for m in contract.MODALITY_FIELDS
-        ]
-        conf *= sum(weights) / len(weights)
-
         delta_t = float(meal.get("delta_t_minutes") or 60.0)
         nearest = min(self.mean_excursion, key=lambda h: abs(h - delta_t))
         drift = abs(delta_t - nearest)
@@ -130,18 +125,31 @@ class BaselineB2Predictor:
         t60 = float(min(_MAX_MGDL, max(_MIN_MGDL, t60)))
         t120 = float(min(_MAX_MGDL, max(_MIN_MGDL, t120)))
 
-        delta_t = float(meal.get("delta_t_minutes") or 60.0)
+        requested_horizon = float(meal.get("delta_t_minutes") or 60.0)
+        if requested_horizon not in self.mean_excursion:
+            raise ValueError(
+                f"baseline B2 supports only fixed horizons {sorted(self.mean_excursion)} minutes"
+            )
 
+        selected_glucose = t60 if requested_horizon == 60.0 else t120
         out = {
             "glucose_t60": round(t60, 1),
             "glucose_t120": round(t120, 1),
-            "glucose_range": contract.glucose_range(t60),
+            "glucose_range": contract.glucose_range(selected_glucose),
+            "glucose_range_t60": contract.glucose_range(t60),
+            "glucose_range_t120": contract.glucose_range(t120),
             "prediction_confidence": self._confidence(meal, has_g0),
-            "delta_t_minutes": delta_t,
+            "delta_t_minutes": requested_horizon,
+            "target_horizons_minutes": {"glucose_t60": 60, "glucose_t120": 120},
+            "requested_horizon_minutes": requested_horizon,
             "model_version": self.model_version,
         }
 
-        errors = contract.validate_forecast_output(out)
+        errors = contract.validate_forecast_output({
+            **out,
+            "glucose_t60": selected_glucose,
+            "glucose_range": contract.glucose_range(selected_glucose),
+        })
         if errors:
             raise contract.ContractViolation(
                 "predictor produced a non-compliant record: " + "; ".join(errors)

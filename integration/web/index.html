@@ -65,7 +65,7 @@
 <body>
 <div class="wrap">
   <h1>GlucoSight — MVP Demo</h1>
-  <p class="sub">Meal photo + Bahasa note + contact-PPG capture &rarr; postprandial glucose forecast</p>
+  <p class="sub">Meal image + text + timestamped PPG processing demo. Glucose output is B2 baseline only; modalities do not affect it.</p>
 
   <div class="banner" id="banner">Checking what the service is serving&hellip;</div>
 
@@ -75,16 +75,17 @@
       <label>Participant ID</label>
       <input id="pid" value="P042">
 
-      <label>T=0 — first bite (not the photo)</label>
+      <label>Dataset/event timestamp</label>
       <input id="t0" type="datetime-local">
+      <p class="muted">This demo does not establish first-bite semantics.</p>
 
-      <label>&Delta;t to the label (minutes) — never assumed to be 60</label>
-      <input id="dt" type="number" value="60" min="0" max="240">
+      <label>Baseline target horizon</label>
+      <select id="dt"><option value="60">T+60</option><option value="120">T+120</option></select>
 
-      <label>Meal photo path (server-side)</label>
-      <input id="img" placeholder="leave empty to simulate a missing photo">
+      <label>Meal image</label>
+      <input id="img" type="file" accept="image/jpeg,image/png,image/webp">
 
-      <label>Catatan makan (Bahasa Indonesia)</label>
+      <label>Catatan makan (Bahasa Indonesia; heuristic, uncalibrated)</label>
       <textarea id="note" placeholder="mis. nasi goreng porsi besar, digoreng"></textarea>
 
       <label>Porsi dilaporkan (in-app question, not a CV output)</label>
@@ -94,21 +95,19 @@
         <option value="2">2 — besar</option>
       </select>
 
-      <label>Contact PPG capture</label>
+      <label>Contact PPG capture (simulated diagnostic only)</label>
       <div class="row">
-        <button class="ghost" id="synth">Simulate a 30 s capture</button>
+        <button class="ghost" id="synth">Simulate timestamped 33.1 s capture</button>
         <button class="ghost" id="clearppg">No capture</button>
         <span class="muted" id="ppgstate">no capture</span>
       </div>
 
-      <label>Gula darah sebelum makan — pre-meal glucose</label>
+      <label>Pre-event glucose source</label>
       <div class="row" style="margin-bottom:6px">
         <label class="opt"><input type="radio" name="gsrc" value="fingerstick" checked>
-          Punya glukometer (fingerstick)</label>
+          Fingerstick</label>
         <label class="opt"><input type="radio" name="gsrc" value="cgm">
-          Punya CGM / riwayat</label>
-        <label class="opt"><input type="radio" name="gsrc" value="ppg">
-          Tidak punya — pakai finger scan</label>
+          Supplied history</label>
       </div>
 
       <div id="src-fingerstick">
@@ -164,7 +163,7 @@
 
 <script>
 const $ = id => document.getElementById(id);
-let ppgSignal = null;
+let ppgCapture = null;
 
 (function initTime(){
   const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
@@ -181,36 +180,47 @@ document.querySelectorAll('input[name="gsrc"]').forEach(r => {
   r.onchange = () => {
     const v = currentSource();
     $('src-fingerstick').hidden = v !== 'fingerstick';
-    $('src-cgm').hidden         = v !== 'cgm';
-    $('src-ppg').hidden         = v !== 'ppg';
+    $('src-cgm').hidden = v !== 'cgm';
   };
 });
+
+function imageDataUrl(file){
+  if(!file) return Promise.resolve(null);
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=()=>reject(new Error('Unable to read selected image'));
+    reader.readAsDataURL(file);
+  });
+}
 
 fetch('/health').then(r=>r.json()).then(h=>{
   const trained = h.is_trained_model;
   $('banner').innerHTML = trained
     ? `<b>Serving a trained model:</b> ${h.model_version}. Contract v${h.schema_version}.`
-    : `<b>This is not a model.</b> The service is serving <code>${h.model_version}</code> —
-       ${h.serving}. Every number below is a baseline that a real model must be
-       reported <em>against</em>, not a model output. Contract v${h.schema_version}.`;
+    : `<b>Baseline demo only.</b> The service is serving <code>${h.model_version}</code> —
+       ${h.serving}. CV/NLP/PPG inputs are diagnostic and do not affect glucose values. Contract v${h.schema_version}.`;
   $('disclaimer').textContent = h.disclaimer;
 }).catch(()=>{ $('banner').textContent = 'Service unreachable.'; });
 
 $('synth').onclick = e => {
   e.preventDefault();
-  // A synthetic pulsatile trace so the capture path can be demonstrated
-  // without a phone. Clearly labelled as simulated in the result panel.
-  const fs = 30, secs = 30, bpm = 78, n = fs*secs;
-  ppgSignal = Array.from({length:n}, (_,i) => {
-    const t = i/fs;
-    return 1.0 + 0.05*Math.sin(2*Math.PI*(bpm/60)*t)
-               + 0.015*Math.sin(4*Math.PI*(bpm/60)*t)
-               + (Math.random()-0.5)*0.004;
-  });
-  $('ppgstate').textContent = `simulated ${secs}s @ ${fs} Hz (${n} samples)`;
+  const fs = 30, secs = 33.1, bpm = 78, n = Math.floor(fs*secs);
+  const start = performance.now()/1000;
+  ppgCapture = {
+    samples: Array.from({length:n}, (_,i) => {
+      const t = i/fs;
+      return 0.5 + 0.2*Math.sin(2*Math.PI*(bpm/60)*t)
+                 + 0.05*Math.sin(4*Math.PI*(bpm/60)*t)
+                 + (Math.random()-0.5)*0.004;
+    }),
+    timestamps_seconds: Array.from({length:n}, (_,i) => start + i/fs),
+    sampling_rate_hz: fs
+  };
+  $('ppgstate').textContent = `SIMULATED ${secs}s @ ${fs} Hz (${n} samples)`;
 };
 $('clearppg').onclick = e => {
-  e.preventDefault(); ppgSignal = null; $('ppgstate').textContent = 'no capture';
+  e.preventDefault(); ppgCapture = null; $('ppgstate').textContent = 'no capture';
 };
 
 function pill(on, label){
@@ -224,26 +234,33 @@ $('go').onclick = async () => {
   $('go').disabled = true; $('status').textContent = 'running…';
   const src = currentSource();
   let history = [];
+  let mealImage = null;
   if (src === 'cgm') {
     try { history = JSON.parse($('hist').value || '[]'); }
     catch { $('out').innerHTML = `<div class="err">Glucose history is not valid JSON.</div>`;
             $('go').disabled = false; $('status').textContent=''; return; }
   }
 
+  try { mealImage = await imageDataUrl($('img').files[0] || null); }
+  catch (err) {
+    $('out').innerHTML = `<div class="err">${err}</div>`;
+    $('go').disabled = false; $('status').textContent=''; return;
+  }
+
   const payload = {
     participant_id: $('pid').value,
     t0_timestamp: $('t0').value + ':00',
     delta_t_minutes: parseFloat($('dt').value),
-    meal_image_path: $('img').value || null,
+    prediction_mode: 'baseline_demo',
+    meal_image_data_url: mealImage,
     note_text: $('note').value || null,
-    ppg_signal: ppgSignal,
-    ppg_sampling_rate: 30.0,
+    ppg_capture: ppgCapture,
     portion_reported: parseInt($('portion').value, 10),
     glucose_history: history,
     source_dataset: 'live_capture',
     fingerstick_mgdl: src === 'fingerstick' ? parseFloat($('fs_val').value) : null,
     fingerstick_timestamp: src === 'fingerstick' ? $('fs_ts').value + ':00' : null,
-    allow_ppg_g0_estimate: src === 'ppg'
+    allow_ppg_g0_estimate: false
   };
 
   try {
@@ -259,6 +276,7 @@ $('go').onclick = async () => {
       return;
     }
     const f = j.forecast, m = j.modalities, h = j.glucose_history_used;
+    const processing = j.modality_processing;
     const gs = j.glucose_source || {};
     const srcLabel = {fingerstick:'Fingerstick (measured)', cgm:'CGM (measured)',
       ppg_estimate:'PPG estimate (inferred)',
@@ -266,16 +284,20 @@ $('go').onclick = async () => {
     $('out').innerHTML = `
       <div class="row" style="gap:28px;margin-bottom:14px">
         <div><div class="muted">T+60</div>
-          <div class="num range-${f.glucose_range}">${f.glucose_t60}<span class="unit"> mg/dL</span></div></div>
+          <div class="num range-${f.glucose_range_t60}">${f.glucose_t60}<span class="unit"> mg/dL</span></div>
+          <div class="muted">${f.glucose_range_t60}</div></div>
         <div><div class="muted">T+120</div>
-          <div class="num">${f.glucose_t120}<span class="unit"> mg/dL</span></div></div>
-        <div><div class="muted">Range</div>
-          <div class="num range-${f.glucose_range}" style="font-size:19px">${f.glucose_range}</div></div>
+          <div class="num range-${f.glucose_range_t120}">${f.glucose_t120}<span class="unit"> mg/dL</span></div>
+          <div class="muted">${f.glucose_range_t120}</div></div>
       </div>
-      ${f.is_trained_model ? '' :
-        `<div class="banner" style="margin:0 0 14px">
-           <b>Baseline output, not a model.</b> ${f.basis}
-         </div>`}
+      <div class="banner" style="margin:0 0 14px">
+        <b>Baseline demo, not a trained model.</b> ${f.basis}<br>
+        CV/NLP/PPG inputs are diagnostics only and do not change these glucose values.
+      </div>
+      <div class="muted" style="margin-bottom:10px">
+        Mode: ${j.prediction_mode} · requested horizon T+${f.requested_horizon_minutes} ·
+        output horizons T+60 and T+120
+      </div>
       ${f.used_fallback_g0 ? `<div class="err" style="margin-bottom:12px">
         No usable glucose measurement, so this prediction is a
         <b>population constant</b> — it is not personalised to you.</div>` : ''}
@@ -293,23 +315,22 @@ $('go').onclick = async () => {
              gs.rejected_candidates.join('; ')}</div>` : ''}
       </div>
       <div class="row" style="margin-bottom:12px">
-        ${pill(m.cv.present, 'CV')} ${pill(m.nlp.present, 'NLP')} ${pill(m.ppg.present, 'PPG')}
-        <span class="pill off">confidence ${f.prediction_confidence}</span>
+        ${pill(processing.cv.status==='processed', 'CV')} ${pill(processing.nlp.status==='processed', 'NLP')} ${pill(processing.ppg.status==='processed', 'PPG')}
+        <span class="pill off">baseline confidence ${f.prediction_confidence}</span>
       </div>
       <table>
-        <tr><th>Modality</th><th>Weight</th><th>Detail</th></tr>
-        <tr><td>CV</td><td>${bar(m.cv.weight)}${m.cv.weight}</td>
-            <td>${m.cv.food_class ?? '—'} · ${m.cv.carbs_g.toFixed(0)} g carb ·
-                <span class="muted">${m.cv.carbs_source}</span></td></tr>
-        <tr><td>NLP</td><td>${bar(m.nlp.weight)}${m.nlp.weight}</td>
+        <tr><th>Modality</th><th>Processing</th><th>Diagnostic detail</th></tr>
+        <tr><td>CV</td><td>${processing.cv.status}</td>
+            <td>${m.cv.food_class ?? '—'} · ${m.cv.carbs_g.toFixed(0)} g fallback/estimate ·
+                <span class="muted">${m.cv.carbs_source}${processing.cv.detail ? ` · ${processing.cv.detail}` : ''}</span></td></tr>
+        <tr><td>NLP</td><td>${processing.nlp.status}</td>
             <td>fried ${m.nlp.is_fried_cooking} · large ${m.nlp.is_large_portion} ·
-                <span class="muted">${m.nlp.feature_source}${
-                  m.nlp.present && m.nlp.calibrated===false ? ', UNCALIBRATED' : ''}</span></td></tr>
-        <tr><td>PPG</td><td>${bar(m.ppg.weight)}${m.ppg.weight}</td>
+                <span class="muted">${m.nlp.feature_source}, calibration ${m.nlp.calibration_status}</span></td></tr>
+        <tr><td>PPG</td><td>${processing.ppg.status}</td>
             <td>${m.ppg.pulse_rate_bpm.toFixed(1)} bpm · quality ${m.ppg.signal_quality.toFixed(2)} ·
-                <span class="muted">${m.ppg.n_windows} window(s)${
-                  ppgSignal ? ', SIMULATED SIGNAL' : ''}</span></td></tr>
+                <span class="muted">${m.ppg.n_windows} window(s)${ppgCapture ? ', simulated scalar signal' : ''}${processing.ppg.detail ? ` · ${processing.ppg.detail}` : ''}</span></td></tr>
       </table>
+      <p class="muted">${j.forecast_input_usage.message}</p>
       <p class="muted" style="margin-top:12px">
         Glucose history: ${h.n_causal_readings} causal reading(s) used,
         ${h.n_dropped_as_noncausal} dropped as at-or-after T=0 (rule C2).

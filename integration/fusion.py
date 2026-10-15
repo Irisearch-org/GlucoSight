@@ -29,7 +29,7 @@ from integration.adapters import cv_to_contract, nlp_to_contract, ppg_to_contrac
 # Provenance fields the adapters attach for the audit trail. They are not
 # contract fields, so they are separated out before validation rather than
 # being allowed to fail the strict unknown-field check.
-_PROVENANCE = ("gi_source", "cv_feature_status", "nlp_calibrated")
+_PROVENANCE = ("gi_source", "cv_feature_status", "nlp_calibrated", "nlp_calibration_status")
 
 
 def _to_dt(value) -> datetime:

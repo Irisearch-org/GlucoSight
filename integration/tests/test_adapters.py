@@ -51,6 +51,24 @@ def test_cv_mock_records_are_marked_absent():
     )
     assert block["cv_present"] == 0
     assert block["cv_confidence"] == 0.0
+    assert block["carbs_g"] == 45.0
+    assert block["protein_g"] == 18.0
+    assert block["fat_g"] == 12.0
+    assert block["fiber_g"] == 4.0
+    assert block["food_class"] == "unknown"
+
+
+def test_cv_partial_macro_record_falls_back_as_a_whole_modality():
+    block = cv_to_contract(
+        {"food_top1": "nasi_goreng", "carbs_g": 60.0, "protein_g": 10.0,
+         "fat_g": None, "fiber_g": 2.0, "confidence": 0.99,
+         "feature_status": "ok", "model_version": "v0"}, "m1")
+    assert block["cv_present"] == 0
+    assert block["carbs_g"] == 45.0
+    assert block["protein_g"] == 18.0
+    assert block["fat_g"] == 12.0
+    assert block["fiber_g"] == 4.0
+    assert block["food_class"] == "unknown"
 
 
 def test_cv_error_record_nulls_become_fallbacks_not_zeros():
@@ -154,13 +172,14 @@ def test_nlp_unavailable_with_present_is_rejected():
              "nlp_feature_source": "unavailable", "nlp_model_version": "v0"}, "m1")
 
 
-def test_nlp_flags_the_uncalibrated_confidence():
-    """The contract requires isotonic/Platt; the baseline is rule-based."""
+def test_nlp_reports_calibration_unavailable_and_zero_confidence():
     block = nlp_to_contract(
-        {"is_fried_cooking": 1, "is_large_portion": 0, "nlp_confidence": 0.91,
-         "nlp_present": 1, "nlp_feature_source": "rule_based",
-         "nlp_model_version": "v0.1"}, "m1")
+        {"is_fried_cooking": 1, "is_large_portion": 0, "nlp_confidence": 0.0,
+         "nlp_calibration_status": "unavailable", "nlp_present": 1,
+         "nlp_feature_source": "rule_based", "nlp_model_version": "v0.1"}, "m1")
     assert block["nlp_calibrated"] is False
+    assert block["nlp_calibration_status"] == "unavailable"
+    assert block["nlp_confidence"] == 0.0
 
 
 def test_nlp_rejects_unknown_feature_source():

@@ -128,19 +128,43 @@ def cv_to_contract(
     status = record.get("feature_status", "error")
     present, carbs_source = _STATUS_MAP.get(status, (0, "population_mean"))
 
-    # An error record has null macros by design — the CV track's own comment
-    # says a 0 would read downstream as "food with no calories". Fall back to
-    # the contract's population means and mark the modality absent.
-    macros = {}
-    for name, fallback in (("carbs_g", 45.0), ("protein_g", 18.0),
-                           ("fat_g", 12.0), ("fiber_g", 4.0)):
-        value = record.get(name)
-        if value is None:
-            macros[name] = fallback
-            present = 0
-            carbs_source = "population_mean"
-        else:
-            macros[name] = float(value)
+    # Mock/error/unknown records are not measured inputs. Never pass their
+    # arbitrary values through while marking the modality absent.
+    if not present:
+        return {
+            "meal_id": meal_id,
+            "carbs_g": 45.0,
+            "protein_g": 18.0,
+            "fat_g": 12.0,
+            "fiber_g": 4.0,
+            "gi_category": DEFAULT_GI,
+            "food_class": "unknown",
+            "cv_confidence": 0.0,
+            "cv_present": 0,
+            "carbs_source": "population_mean",
+            "portion_reported": portion_reported,
+            "cv_model_version": record.get("model_version", "unknown"),
+            "gi_source": "contract_fallback",
+            "cv_feature_status": status,
+        }
+
+    macro_fields = (("carbs_g", 45.0), ("protein_g", 18.0),
+                    ("fat_g", 12.0), ("fiber_g", 4.0))
+    if any(record.get(name) is None for name, _ in macro_fields):
+        return {
+            "meal_id": meal_id,
+            **{name: fallback for name, fallback in macro_fields},
+            "gi_category": DEFAULT_GI,
+            "food_class": "unknown",
+            "cv_confidence": 0.0,
+            "cv_present": 0,
+            "carbs_source": "population_mean",
+            "portion_reported": portion_reported,
+            "cv_model_version": record.get("model_version", "unknown"),
+            "gi_source": "contract_fallback",
+            "cv_feature_status": status,
+        }
+    macros = {name: float(record[name]) for name, _ in macro_fields}
 
     food_class = record.get("food_top1") or "unknown"
     if food_class in GI_BY_CLASS:

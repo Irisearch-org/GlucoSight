@@ -20,7 +20,7 @@ def _payload(**kw):
     base = {
         "participant_id": "P042",
         "t0_timestamp": "2026-01-15T19:30:00",
-        "delta_t_minutes": 62.0,
+        "delta_t_minutes": 60.0,
         "portion_reported": 2,
         "glucose_history": [
             {"timestamp": "2026-01-15T12:00:00", "value": 142.0},
@@ -31,10 +31,14 @@ def _payload(**kw):
     return base
 
 
-def _ppg(seconds=30, fs=30, bpm=78):
+def _ppg(seconds=33.1, fs=30, bpm=78):
     n = int(seconds * fs)
-    return [1.0 + 0.05 * math.sin(2 * math.pi * (bpm / 60) * (i / fs))
-            for i in range(n)]
+    return {
+        "samples": [0.5 + 0.2 * math.sin(2 * math.pi * (bpm / 60) * (i / fs))
+                    for i in range(n)],
+        "timestamps_seconds": [i / fs for i in range(n)],
+        "sampling_rate_hz": fs,
+    }
 
 
 def test_health_declares_whether_a_model_is_being_served():
@@ -72,21 +76,46 @@ def test_predict_with_a_note_only():
     assert r.status_code == 200, r.text
     nlp = r.json()["modalities"]["nlp"]
     assert nlp["present"] == 1
+    assert nlp["confidence"] == 0.0
+    assert nlp["calibrated"] is False
+    assert nlp["calibration_status"] == "unavailable"
     assert nlp["weight"] > 0
 
 
-def test_predict_with_a_ppg_capture_only():
-    r = client.post("/predict", json=_payload(ppg_signal=_ppg()))
+def test_predict_with_a_timestamped_ppg_capture_only():
+    r = client.post("/predict", json=_payload(ppg_capture=_ppg()))
     assert r.status_code == 200, r.text
-    ppg = r.json()["modalities"]["ppg"]
+    body = r.json()
+    ppg = body["modalities"]["ppg"]
     assert ppg["present"] == 1
     assert 40 <= ppg["pulse_rate_bpm"] <= 200
+    assert body["modality_processing"]["ppg"]["n_valid_windows"] == 3
+    assert 0.0 <= ppg["perfusion_index"] <= 20.0
+
+
+def test_ppg_processing_diagnostics_disclose_limited_scalar_capture_quality():
+    body = client.post("/predict", json=_payload(ppg_capture=_ppg())).json()
+    status = body["modality_processing"]["ppg"]
+    assert status["status"] == "processed"
+    assert 0.0 <= status["clip_fraction_proxy"] <= 1.0
+    assert "RGB camera channel clipping" in status["limitation"]
+
+
+def test_invalid_ppg_timestamping_is_reported_and_marked_absent():
+    capture = _ppg()
+    capture["timestamps_seconds"] = list(reversed(capture["timestamps_seconds"]))
+    response = client.post("/predict", json=_payload(ppg_capture=capture))
+    assert response.status_code == 200
+    body = response.json()
+    assert body["modalities"]["ppg"]["present"] == 0
+    assert body["modality_processing"]["ppg"]["status"] == "invalid"
+    assert "strictly increasing" in body["modality_processing"]["ppg"]["detail"]
 
 
 def test_response_never_contains_the_ringfenced_estimate():
     """E1 rule 2: never surfaced to a user."""
     r = client.post("/predict", json=_payload(
-        ppg_signal=_ppg(), note_text="nasi goreng"))
+        ppg_capture=_ppg(), note_text="nasi goreng"))
     assert "ppg_glucose_estimate" not in r.text
 
 
@@ -121,20 +150,48 @@ def test_baseline_is_labelled_as_a_baseline():
 
 def test_prediction_confidence_is_capped_for_a_baseline():
     body = client.post("/predict", json=_payload(
-        note_text="nasi goreng", ppg_signal=_ppg())).json()
+        note_text="nasi goreng", ppg_capture=_ppg())).json()
     assert body["forecast"]["prediction_confidence"] <= 0.45
 
 
-def test_delta_t_is_echoed_not_replaced_by_60():
-    body = client.post("/predict", json=_payload(delta_t_minutes=95.0)).json()
-    assert body["forecast"]["delta_t_minutes"] == 95.0
+def test_demo_mode_reports_modality_features_do_not_change_baseline_glucose():
+    base = client.post("/predict", json=_payload()).json()
+    with_modalities = client.post("/predict", json=_payload(
+        note_text="digoreng porsi besar",
+        ppg_capture=_ppg(),
+    )).json()
+    assert base["prediction_mode"] == "baseline_demo"
+    assert with_modalities["prediction_mode"] == "baseline_demo"
+    assert base["forecast"]["glucose_t60"] == with_modalities["forecast"]["glucose_t60"]
+    assert base["forecast"]["glucose_t120"] == with_modalities["forecast"]["glucose_t120"]
+    assert with_modalities["forecast_input_usage"]["not_used_for_glucose_value"] == [
+        "cv", "nlp", "ppg", "meal_context"
+    ]
 
 
-def test_delta_t_far_from_the_horizon_lowers_confidence():
-    near = client.post("/predict", json=_payload(delta_t_minutes=60.0)).json()
-    far = client.post("/predict", json=_payload(delta_t_minutes=200.0)).json()
-    assert (far["forecast"]["prediction_confidence"]
-            < near["forecast"]["prediction_confidence"])
+def test_b2_horizon_selector_is_reported_without_changing_both_fixed_outputs():
+    t60 = client.post("/predict", json=_payload(delta_t_minutes=60)).json()
+    t120 = client.post("/predict", json=_payload(delta_t_minutes=120)).json()
+    assert t60["forecast"]["requested_horizon_minutes"] == 60
+    assert t120["forecast"]["requested_horizon_minutes"] == 120
+    assert t60["forecast"]["target_horizons_minutes"] == {
+        "glucose_t60": 60, "glucose_t120": 120
+    }
+    assert t60["forecast"]["glucose_t60"] == t120["forecast"]["glucose_t60"]
+    assert t60["forecast"]["glucose_t120"] == t120["forecast"]["glucose_t120"]
+    assert t120["forecast"]["delta_t_minutes"] == 120
+
+
+def test_b2_rejects_non_supported_horizons():
+    for delta in (62.0, 95.0, 200.0):
+        r = client.post("/predict", json=_payload(delta_t_minutes=delta))
+        assert r.status_code == 422
+
+
+def test_trained_mode_fails_closed_when_artifact_is_not_configured():
+    r = client.post("/predict", json=_payload(prediction_mode="trained_forecast"))
+    assert r.status_code == 409
+    assert "No trained forecasting artifact" in r.json()["detail"]
 
 
 def test_out_of_range_delta_t_is_rejected_by_validation():
@@ -150,12 +207,13 @@ def test_glucose_range_matches_the_contract_thresholds():
     assert f["glucose_range"] == expected
 
 
-def test_a_broken_track_degrades_to_absent_rather_than_500():
-    """A nonexistent image path must not take the service down."""
-    r = client.post("/predict", json=_payload(
-        meal_image_path="/nonexistent/definitely_not_a_photo.jpg"))
+def test_invalid_image_data_url_is_reported_as_invalid():
+    r = client.post("/predict", json=_payload(meal_image_data_url="file:///etc/passwd"))
     assert r.status_code == 200, r.text
-    assert r.json()["modalities"]["cv"]["present"] == 0
+    body = r.json()
+    assert body["modalities"]["cv"]["present"] == 0
+    assert body["modality_processing"]["cv"]["status"] == "invalid"
+    assert "data URL" in body["modality_processing"]["cv"]["detail"]
 
 
 def test_demo_page_is_served():
@@ -222,7 +280,7 @@ def test_fingerstick_path_end_to_end():
     assert r.json()["forecast"]["used_fallback_g0"] is False
 
 
-def test_fingerstick_beats_the_population_fallback_in_confidence():
+def test_fingerstick_has_higher_baseline_confidence_than_population_fallback():
     with_fs = client.post("/predict", json=_payload(
         glucose_history=[], fingerstick_mgdl=132.0,
         fingerstick_timestamp="2026-01-15T19:10:00")).json()
@@ -243,7 +301,7 @@ def test_ppg_g0_path_is_refused_and_explains_why():
     """The user has no glucometer and opts for the scan. Today that falls
     back, and the response says which rule and which evidence blocked it."""
     r = client.post("/predict", json=_payload(
-        glucose_history=[], ppg_signal=_ppg(), allow_ppg_g0_estimate=True))
+        glucose_history=[], ppg_capture=_ppg(), allow_ppg_g0_estimate=True))
     assert r.status_code == 200, r.text
     gs = r.json()["glucose_source"]
     assert gs["source"] == "population_fallback"
@@ -253,7 +311,7 @@ def test_ppg_g0_path_is_refused_and_explains_why():
 
 def test_ppg_capture_without_opting_in_cites_the_ringfence():
     r = client.post("/predict", json=_payload(
-        glucose_history=[], ppg_signal=_ppg()))
+        glucose_history=[], ppg_capture=_ppg()))
     gs = r.json()["glucose_source"]
     assert any("E1.2" in m for m in gs["rejected_candidates"])
 
