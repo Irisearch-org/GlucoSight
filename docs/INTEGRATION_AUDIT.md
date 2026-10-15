@@ -4,7 +4,7 @@
 **Author:** Integration layer (PM-owned)
 **Scope:** the Sprint 2 forecasting notebook, the three track outputs on
 `main`, and the fusion spine built to join them.
-**Reproduce:** `python -m pytest utils/tests integration/tests rppg/tests/test_glucose_estimator.py -q` (165 tests)
+**Historical reproduce command (2026-09-10):** `python -m pytest utils/tests integration/tests rppg/tests/test_glucose_estimator.py -q` (165 tests at that branch commit). Current validation also needs `forecasting/tests` and `nlp/tests`; use the updated command in `integration/README.md`.
 
 ---
 
