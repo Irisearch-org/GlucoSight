@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 import re
 from pathlib import Path
 from typing import Optional
@@ -47,42 +46,6 @@ def _is_large(en: str, cn: str) -> int:
         return 0
     total = _total_grams(en) or _total_grams(cn)
     return int(total > LARGE_THRESHOLD_G)
-
-def _gl_from_grams(total: float) -> float:
-    return total * 0.28 * 73 / 100
-
-def _gl_confidence(total: float) -> float:
-    gl = _gl_from_grams(total)
-    return 1 / (1 + math.exp(-(gl - 20) / 5))
-
-def _fat_grams(en: str, cn: str, total: float) -> float:
-    txt = f"{en} {cn}"
-    if "炸" in txt or "crispy" in (en or "").lower() or "deep" in (en or "").lower():
-        return total * 0.18
-    if "煎" in txt:
-        return total * 0.12
-    if "炒" in txt:
-        return total * 0.10
-    return total * 0.03
-
-def _fried_confidence(en: str, cn: str, total: float) -> float:
-    fat = _fat_grams(en, cn, total)
-    return min(0.85, 0.60 + fat / 50 * 0.18)
-
-def _confidence(en: str, cn: str, is_fried: int, is_large: int, total: float) -> float:
-    if not is_fried and not is_large:
-        return _calibrate(0.65)
-    gl_c = _gl_confidence(total) if is_large else 0.0
-    fried_c = _fried_confidence(en, cn, total) if is_fried else 0.0
-    if is_fried and is_large:
-        raw = 0.7 * gl_c + 0.3 * fried_c
-        raw = 0.88 + (raw - 0.6) * 0.15
-    elif is_large:
-        raw = gl_c
-    else:
-        raw = fried_c
-    raw = max(0.55, min(0.97, raw))
-    return _calibrate(raw)
 
 def _clean(text: str) -> str:
     return str(text or "").replace("\r", "").replace("\n", " | ").strip()
