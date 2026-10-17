@@ -436,3 +436,17 @@ def index():
         return JSONResponse(content={"detail": "demo page not installed"},
                             status_code=404)
     return FileResponse(page)
+
+
+@app.get("/ppg")
+def ppg_capture():
+    """Camera-based contact PPG capture, producing a /predict ppg_capture.
+
+    Requires a secure context: http://127.0.0.1 and https qualify, a LAN IP
+    over http does not, so getUserMedia will be unavailable there.
+    """
+    page = _WEB / "ppg-capture.html"
+    if not page.exists():
+        return JSONResponse(content={"detail": "capture page not installed"},
+                            status_code=404)
+    return FileResponse(page)

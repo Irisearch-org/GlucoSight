@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GlucoSight · Contact PPG capture</title>
+<style>
+  :root{
+    --bg:#0f1216; --panel:#171c22; --line:#252c35; --ink:#e7edf3; --muted:#8b98a7;
+    --green:#3ddc84; --amber:#f5a524; --red:#f2545b; --blue:#5aa9f5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 60px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 22px}
+  a{color:var(--blue)}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
+           margin:0 0 12px;font-weight:600}
+  video{width:100%;border-radius:8px;background:#000;display:block}
+  .roi{position:relative}
+  .roi::after{content:"";position:absolute;inset:25%;border:1px dashed rgba(255,255,255,.35);
+              border-radius:50%;pointer-events:none}
+  button{font:inherit;font-weight:600;border-radius:8px;border:1px solid var(--line);
+         background:#1e252e;color:var(--ink);padding:9px 14px;cursor:pointer}
+  button:hover{background:#242d37}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button.primary{background:var(--green);border-color:var(--green);color:#06210f}
+  button.primary:hover{background:#33c877}
+  button.ghost{background:transparent}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .muted{color:var(--muted)}
+  .big{font-size:34px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600}
+  .pill.ok{background:rgba(61,220,132,.15);color:var(--green)}
+  .pill.warn{background:rgba(245,165,36,.15);color:var(--amber)}
+  .pill.bad{background:rgba(242,84,91,.15);color:var(--red)}
+  .note{border-left:3px solid var(--blue);background:rgba(90,169,245,.08);
+        padding:10px 14px;border-radius:0 8px 8px 0;margin:14px 0;font-size:14px}
+  .warnbox{border-left:3px solid var(--amber);background:rgba(245,165,36,.08);
+        padding:10px 14px;border-radius:0 8px 8px 0;margin:14px 0;font-size:14px}
+  canvas{width:100%;height:120px;display:block;background:#0b0e12;border-radius:8px}
+  pre{background:#0b0e12;border-radius:8px;padding:12px;overflow:auto;font-size:12px;
+      max-height:320px;margin:0}
+  label{display:block;font-size:12px;color:var(--muted);margin:12px 0 4px;
+        text-transform:uppercase;letter-spacing:.05em}
+  input,select{font:inherit;background:#0b0e12;color:var(--ink);border:1px solid var(--line);
+               border-radius:7px;padding:8px 10px;width:100%}
+  .bar{height:8px;background:#0b0e12;border-radius:999px;overflow:hidden}
+  .bar>span{display:block;height:100%;background:var(--green)}
+  .meter{margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Contact PPG capture</h1>
+  <p class="sub">
+    Finger on the lens, flash on. This page measures the colour of your fingertip across
+    video frames, extracts the pulse, and posts it to <code>POST /predict</code> as a
+    contract <code>ppg_capture</code>. ·
+    <a href="/">← the meal demo</a>
+  </p>
+
+  <div id="secwarn" class="warnbox" hidden></div>
+
+  <div class="grid">
+
+    <div class="card">
+      <h2>1 · Capture</h2>
+      <div class="roi"><video id="v" playsinline muted></video></div>
+
+      <div class="row" style="margin-top:12px">
+        <button id="start" class="primary">Start camera</button>
+        <button id="rec" disabled>Record</button>
+        <button id="stop" disabled class="ghost">Stop early</button>
+      </div>
+
+      <label>Region of interest</label>
+      <select id="roi">
+        <option value="full" selected>Full frame (finger fills the lens)</option>
+        <option value="centre">Centre 50% (fingertip not filling frame)</option>
+      </select>
+
+      <label>Channel</label>
+      <select id="chan">
+        <option value="auto" selected>Auto — whichever of R/G/B is brightest (best SNR)</option>
+        <option value="red">Red — carries the pulse when a finger covers the torch</option>
+        <option value="green">Green — reflectance off thin skin (wrist); goes black under a finger</option>
+        <option value="pos">POS — plane-orthogonal-to-skin (Wang 2017)</option>
+      </select>
+      <div id="posnote" class="muted" style="font-size:12px;margin-top:6px" hidden>
+        POS removes the DC component by construction, so <code>ppg_perfusion_index</code>
+        (which is AC/DC) comes back as an artefact — try it and watch it read ~1.3 instead
+        of ~0.03. POS is the more robust pulse <em>detector</em>, but it is not the right
+        channel for the contract record — that is whichever of R/G/B is brightest.
+      </div>
+
+      <label>Capture length</label>
+      <select id="dur">
+        <option value="34" selected>34 s — the API needs ≥33 s of samples for 3 windows</option>
+        <option value="24">24 s — gives 2 windows</option>
+        <option value="14">14 s — gives 1 window (minimum the API accepts)</option>
+      </select>
+
+      <div id="capstatus" class="muted" style="margin-top:10px">idle</div>
+      <div class="row" style="margin-top:10px">
+        <button id="synth" class="ghost">No camera? inject a synthetic 33 s capture</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2 · Live signal</h2>
+
+      <div class="row" style="gap:26px;margin-bottom:14px">
+        <div><div class="muted" style="font-size:12px">Heart rate</div>
+             <div class="big" id="hr">—</div></div>
+        <div><div class="muted" style="font-size:12px">Confidence</div>
+             <div class="big" id="sq">—</div></div>
+        <div><div class="muted" style="font-size:12px">Frames</div>
+             <div class="big" id="nf">0</div></div>
+      </div>
+
+      <canvas id="wave" width="900" height="240"></canvas>
+
+      <div style="margin-top:12px">
+        <div class="row" style="justify-content:space-between">
+          <span class="muted" style="font-size:12px">Red-channel saturation (flash clipping)</span>
+          <span id="cliptxt" class="muted">0.0%</span>
+        </div>
+        <div class="bar meter"><span id="clipbar" style="width:0%;background:var(--red)"></span></div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="row" style="justify-content:space-between">
+          <span class="muted" style="font-size:12px">Camera lock (exposure / white balance / torch)</span>
+          <span id="locktxt" class="muted">—</span>
+        </div>
+      </div>
+
+      <table style="margin-top:16px">
+        <tr><td class="muted">Sampling rate</td><td class="num" id="fs">—</td></tr>
+        <tr><td class="muted">Timestamp jitter</td><td class="num" id="jit">—</td></tr>
+        <tr><td class="muted">Duration</td><td class="num" id="dur2">—</td></tr>
+        <tr><td class="muted">Exposure drift (DC wander, post-settle)</td><td class="num" id="drift">—</td></tr>
+        <tr><td class="muted">Drift ÷ pulse amplitude</td><td class="num" id="driftratio">—</td></tr>
+        <tr><td class="muted">Pulse amplitude (AC/DC, as /predict reports it)</td><td class="num" id="pulseamp">—</td></tr>
+        <tr><td class="muted">DC level (selected channel, 0–1)</td><td class="num" id="dclevel">—</td></tr>
+        <tr><td class="muted">Channel DC (R / G / B)</td><td class="num" id="rgbdc">—</td></tr>
+        <tr><td class="muted">AC swing (absolute, of full scale)</td><td class="num" id="acabs">—</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h2>3 · Posted to POST /predict — the returned PPG contract record</h2>
+    <div id="verdict" class="muted">no capture sent yet</div>
+    <table id="outtbl" hidden style="margin-top:10px"></table>
+    <label>Raw response</label>
+    <pre id="raw">—</pre>
+  </div>
+
+  <div class="note">
+    <b>Why the numbers move when you squeeze the phone.</b> This measures the <em>colour</em> of
+    your fingertip, not its pressure. The contract's protocol (camera lock, flash on) exists
+    precisely to stop the camera's auto-exposure from cancelling the pulse — it changes the
+    exposure faster than your heart changes your blood volume.
+  </div>
+
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+
+/* ------------------------------------------------------------------ *
+ *  state
+ * ------------------------------------------------------------------ */
+let stream = null, track = null, caps = {}, lockReport = "—";
+let running = false, samples = [], tStart = 0, needSeconds = 33;
+let clipFrames = 0, totalFrames = 0;
+let lastCapture = null;              // {samples, timestamps_seconds, sampling_rate_hz}
+const video = $('v');
+const work = document.createElement('canvas');
+const wctx = work.getContext('2d', { willReadFrequently: true });
+const wave = $('wave'), wctx2 = wave.getContext('2d');
+
+/* ------------------------------------------------------------------ *
+ *  camera
+ * ------------------------------------------------------------------ */
+async function startCamera(){
+  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia){
+    insecureWarning();
+    return;
+  }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' },
+               width: { ideal: 640 }, height: { ideal: 480 },
+               frameRate: { ideal: 30 } },
+      audio: false
+    });
+  } catch (e) {
+    $('capstatus').innerHTML = `<span class="pill bad">camera failed</span> ${e.name}: ${e.message}. ` +
+      `A secure context is required — http://127.0.0.1 and https are fine, a LAN IP over http is not.`;
+    return;
+  }
+  video.srcObject = stream;
+  await video.play().catch(()=>{});
+  track = stream.getVideoTracks()[0];
+  caps  = (track.getCapabilities && track.getCapabilities()) || {};
+
+  // Try to honour the contract's capture protocol: torch on, and exposure /
+  // white balance / focus locked. Each constraint is applied and then read
+  // back from getSettings(), because some engines accept a constraint and
+  // silently ignore it. Reporting "applied" without readback would be worse
+  // than reporting nothing.
+  const want = [];
+  if (caps.torch) want.push({ torch: true });
+  want.push({ exposureMode: 'manual' });        // probed even when unadvertised
+  if ((caps.whiteBalanceMode || []).includes('manual')) want.push({ whiteBalanceMode: 'manual' });
+  if ((caps.focusMode || []).includes('manual'))        want.push({ focusMode: 'manual' });
+
+  const LOCK_LABEL  = { torch: 'flash (torch)', exposureMode: 'exposure lock',
+                        whiteBalanceMode: 'white-balance lock', focusMode: 'focus lock' };
+  const LOCK_COLOUR = { verified: 'var(--green)', accepted: 'var(--amber)', refused: 'var(--red)' };
+  const lock = {};                              // constraint -> verified|accepted|refused
+  for (const c of want){
+    const k = Object.keys(c)[0];
+    try {
+      await track.applyConstraints({ advanced: [c] });
+      const s = (track.getSettings && track.getSettings()) || {};
+      // 'verified' = the setting reads back with the value we asked for.
+      lock[k] = (k in s) ? (String(s[k]) === String(c[k]) ? 'verified' : 'accepted') : 'accepted';
+    } catch (_) { lock[k] = 'refused'; }
+  }
+  const renderLock = () => {
+    lockReport = Object.entries(lock).map(([k, v]) => `${LOCK_LABEL[k] || k}=${v}`).join(', ') || 'none';
+    $('locktxt').innerHTML = Object.entries(lock).map(([k, v]) =>
+      `<span style="color:${LOCK_COLOUR[v]}">${LOCK_LABEL[k] || k}</span> ${v}`).join(' · ');
+  };
+  renderLock();
+
+  // applyConstraints returning without error is NOT evidence the LED lit.
+  // Verify the only way that cannot lie: does switching it on actually make
+  // the picture brighter? Point the camera at a scene, not a finger, for this.
+  let torchDelta = null;
+  if (caps.torch && lock.torch){
+    try { await track.applyConstraints({ advanced: [{ torch: true }] }); } catch(_){}
+    await new Promise(r => setTimeout(r, 500));
+    const lit = frameBrightness();
+    try { await track.applyConstraints({ advanced: [{ torch: false }] }); } catch(_){}
+    await new Promise(r => setTimeout(r, 500));
+    const dark = frameBrightness();
+    torchDelta = lit - dark;
+    lock.torch = torchDelta > 0.03 ? 'verified' : 'refused';
+    renderLock();
+    try { await track.applyConstraints({ advanced: [{ torch: true }] }); } catch(_){}  // leave on
+  }
+
+  // A finger over the lens with no light is a black frame, and a black frame
+  // is not a faint measurement — it is no measurement at all.
+  if (lock.torch === 'refused'){
+    $('secwarn').hidden = false;
+    $('secwarn').innerHTML =
+      `<b>The flash did not turn on.</b> The device accepts <code>torch: true</code>
+       without error, but the picture got ${torchDelta >= 0 ? '+' : ''}${(torchDelta*100).toFixed(1)}%
+       brighter — i.e. no change. <b>This is accept-and-ignore</b>: iOS Safari reports the
+       <code>torch</code> capability and then silently does nothing.<br><br>
+       This matters more than the exposure lock. Contact PPG works by lighting the finger
+       <i>through</i> the flash and measuring the light that scatters back. Put a finger over
+       the lens with no flash and the sensor sees black — measured DC around 0.002 instead of
+       ~0.5 — and any "pulse" is noise divided by nearly zero. That is the exact failure the
+       previous captures showed.<br><br>
+       <b>Check it yourself:</b> look at the back of the phone during a capture. If the LED
+       is not lit, there is nothing to measure. Workarounds: Chrome on Android (where the
+       torch does work), or light the finger with a separate bright lamp.`;
+  }
+
+  // Only one absent lock can actually destroy the measurement: exposure.
+  if (lock.exposureMode === 'refused' || lock.exposureMode === undefined){
+    $('secwarn').hidden = false;
+    $('secwarn').innerHTML =
+      `<b>Exposure is on automatic — the one lock that can cancel a pulse.</b>
+       This device ${lock.exposureMode === 'refused' ? 'refused' : 'never reported'}
+       <code>exposureMode</code>. It supports:
+       <code>${Object.keys(caps).join(', ') || 'none'}</code>.<br><br>
+       If this is an iPhone or iPad, changing browser will not help:
+       <b>every browser on iOS is WebKit underneath</b>, so Safari, Chrome and Firefox on iOS
+       expose exactly the same video constraints. Chrome on Android is currently the only
+       common browser that hands over exposure control.<br><br>
+       That does not by itself ruin the capture. Auto-exposure only hurts if it <i>moves</i>
+       while you measure, and a still finger under a steady torch is close to a static scene.
+       So this page <b>measures the drift instead of assuming it</b>. Watch
+       <i>Exposure drift</i> and <i>Drift ÷ pulse</i> below: a ratio above 1 means the
+       auto-exposure is moving more than your heartbeat is.`;
+  }
+  $('start').disabled = true;
+  $('rec').disabled = false;
+  $('capstatus').textContent = 'camera live — cover the lens with your fingertip, flash on if you have one';
+}
+
+/* ------------------------------------------------------------------ *
+ *  frame sampling
+ * ------------------------------------------------------------------ */
+function meanRGB(){
+  const roi = $('roi').value;
+  const W = 96, H = 72;
+  if (work.width !== W){ work.width = W; work.height = H; }
+  wctx.drawImage(video, 0, 0, W, H);
+  const x0 = roi === 'centre' ? (W >> 2) : 0;
+  const y0 = roi === 'centre' ? (H >> 2) : 0;
+  const w  = roi === 'centre' ? (W >> 1) : W;
+  const h  = roi === 'centre' ? (H >> 1) : H;
+  const d  = wctx.getImageData(x0, y0, w, h).data;
+  let r = 0, g = 0, b = 0, n = 0;
+  for (let i = 0; i < d.length; i += 4){
+    r += d[i]; g += d[i+1]; b += d[i+2]; n++;
+  }
+  return [r/n/255, g/n/255, b/n/255];
+}
+
+function frameBrightness(){
+  // Mean luma of the whole frame. Used to check whether the torch actually
+  // lit, because getSettings() rarely reports 'torch' and applyConstraints
+  // can succeed while doing nothing at all.
+  const W = 32, H = 24;
+  if (work.width !== W){ work.width = W; work.height = H; }
+  wctx.drawImage(video, 0, 0, W, H);
+  const d = wctx.getImageData(0, 0, W, H).data;
+  let s = 0;
+  for (let i = 0; i < d.length; i += 4) s += (d[i] + d[i+1] + d[i+2]) / 3;
+  return s / (d.length / 4) / 255;
+}
+
+function meanOf(a){ let s = 0; for (let i = 0; i < a.length; i++) s += a[i]; return a.length ? s / a.length : 0; }
+
+function channelKey(recs, choice){
+  // Which channel carries the pulse depends on the geometry. A finger clamped
+  // over the torch transmits red — haemoglobin absorbs green heavily — so green
+  // can sit at the quantisation floor (~0.002, i.e. half a count out of 255)
+  // while red carries the signal. Dividing a near-zero AC by a near-zero DC is
+  // what manufactures a 50% "perfusion index" out of nothing.
+  //   'auto' takes the brightest channel, which is the one with the best SNR.
+  if (choice === 'red')   return 'r';
+  if (choice === 'green') return 'g';
+  if (choice === 'blue')  return 'b';
+  const mr = meanOf(recs.map(p => p.r));
+  const mg = meanOf(recs.map(p => p.g));
+  const mb = meanOf(recs.map(p => p.b));
+  if (mr >= mg && mr >= mb) return 'r';
+  return mg >= mb ? 'g' : 'b';
+}
+
+function onFrame(now){
+  if (!running) return;
+  const [r, g, b] = meanRGB();
+  samples.push({ t: now / 1000, r, g, b });
+  totalFrames++;
+  if (r >= 250/255) clipFrames++;
+  draw();
+  updateLive();
+  video.requestVideoFrameCallback(onFrame);
+}
+
+/* ------------------------------------------------------------------ *
+ *  signal maths — mirrors rppg/features/extractor.py
+ * ------------------------------------------------------------------ */
+function detrend(x, win){
+  // subtract a moving average of ~1 s: keeps the pulsatile band, kills drift
+  const n = x.length, half = Math.max(1, Math.round(win/2)), out = new Array(n);
+  let sum = 0;
+  for (let i = 0; i < n; i++){
+    sum += x[i];
+    if (i >= 2*half + 1) sum -= x[i - 2*half - 1];
+    const lo = Math.max(0, i - 2*half), cnt = i - lo + 1;
+    out[i] = x[i] - sum / cnt;
+  }
+  return out;
+}
+
+function dcLevel(x, fs){
+  // the slow component only: a ~1 s moving average. This is the brightness
+  // the auto-exposure controls. Locked exposure -> it is flat. Hunting
+  // auto-exposure -> it wanders, and that wander is what drowns the pulse.
+  const half = Math.max(1, Math.round(fs/2)), n = x.length, out = new Array(n);
+  let sum = 0;
+  for (let i = 0; i < n; i++){
+    sum += x[i];
+    if (i >= 2*half + 1) sum -= x[i - 2*half - 1];
+    const lo = Math.max(0, i - 2*half), cnt = i - lo + 1;
+    out[i] = sum / cnt;
+  }
+  return out;
+}
+
+function goertzelAmp(x, fs, f){
+  // Amplitude of the component at exactly f, as a narrowband filter. Unlike a
+  // broadband amplitude this cannot be inflated by slow drift, because only
+  // frequency f gets through.
+  const n = x.length, k = 2 * Math.cos(2*Math.PI*f/fs);
+  let s1 = 0, s2 = 0;
+  for (let i = 0; i < n; i++){ const s0 = x[i] + k*s1 - s2; s2 = s1; s1 = s0; }
+  const power = s1*s1 + s2*s2 - k*s1*s2;
+  return 2 * Math.sqrt(Math.max(0, power)) / n;
+}
+
+function driftAndPulse(green, fs){
+  // Returns the exposure drift and the pulse amplitude, both as fractions of
+  // the DC level so they are directly comparable ("% of brightness").
+  //
+  // drift  = std of the ~1 s moving average -> what auto-exposure controls
+  // pulse  = narrowband amplitude at the detected rate -> immune to drift
+  // A pulse measured broadband here would be inflated by the drift itself,
+  // which would make the ratio self-correcting and hide real failures.
+  const dc = dcLevel(green, fs);
+  const dcMean = dc.reduce((a, b) => a + b, 0) / dc.length;
+  if (!(dcMean > 0)) return { drift: NaN, pulse: NaN, ratio: NaN, acRatio: NaN, dcMean: NaN, acAbs: NaN, bpm: NaN, quality: 0 };
+  const dcSd = Math.sqrt(dc.reduce((a, b) => a + (b - dcMean) ** 2, 0) / dc.length);
+  const drift = dcSd / dcMean;
+
+  const ac = detrend(green, fs);
+  let mn = Infinity, mx = -Infinity;
+  for (let i = 0; i < ac.length; i++){ if (ac[i] < mn) mn = ac[i]; if (ac[i] > mx) mx = ac[i]; }
+  // Peak-to-peak over DC, in the same units /predict returns as
+  // perfusion_index (extractor.compute_perfusion_index, divided by 100 in
+  // integration/api.py). Blood volume modulates finger opacity by ~1-3%.
+  const acRatio = isFinite(mn) ? (mx - mn) / dcMean : NaN;
+  const acAbs   = isFinite(mn) ? (mx - mn) : NaN;   // absolute, in green units
+
+  const { bpm, quality } = estimateHR(ac, fs);
+  if (!isFinite(bpm) || bpm <= 0) return { drift, pulse: NaN, ratio: Infinity, acRatio, dcMean, acAbs, bpm: NaN, quality: 0 };
+  const pulse = goertzelAmp(ac, fs, bpm / 60) / dcMean;
+  return { drift, pulse, ratio: pulse > 0 ? drift / pulse : Infinity, acRatio, dcMean, acAbs, bpm, quality };
+}
+
+function estimateHR(x, fs){
+  const n = x.length;
+  if (n < fs * 4) return { bpm: NaN, quality: 0 };
+  let m = 0; for (const v of x) m += v; m /= n;
+  const s = x.map(v => v - m);
+  let e0 = 0; for (const v of s) e0 += v*v;
+  if (e0 <= 0) return { bpm: NaN, quality: 0 };
+
+  const minLag = Math.max(1, Math.floor(fs * 60 / 200));   // 200 bpm
+  const maxLag = Math.min(n - 2, Math.floor(fs * 60 / 40)); // 40 bpm
+  const ac = new Array(maxLag + 2).fill(0);
+  for (let lag = minLag; lag <= maxLag + 1 && lag < n; lag++){
+    let acc = 0;
+    for (let i = 0; i < n - lag; i++) acc += s[i] * s[i + lag];
+    ac[lag] = acc / e0;
+  }
+  let best = -1, bestLag = minLag;
+  for (let lag = minLag; lag <= maxLag; lag++){
+    if (ac[lag] > best){ best = ac[lag]; bestLag = lag; }
+  }
+  if (best <= 0) return { bpm: NaN, quality: 0 };
+  // parabolic refinement around the peak
+  const y0 = ac[bestLag-1] ?? 0, y1 = ac[bestLag], y2 = ac[bestLag+1] ?? 0;
+  const den = y0 - 2*y1 + y2;
+  const delta = den === 0 ? 0 : 0.5 * (y0 - y2) / den;
+  return { bpm: 60 * fs / (bestLag + delta), quality: Math.max(0, Math.min(1, best)) };
+}
+
+function observedFS(){
+  if (samples.length < 3) return NaN;
+  const d = [];
+  for (let i = 1; i < samples.length; i++) d.push(samples[i].t - samples[i-1].t);
+  d.sort((a,b) => a-b);
+  return 1 / d[Math.floor(d.length/2)];
+}
+
+/* POS: S1 = G-B, S2 = G+B-2R, h = S1 + (sigma1/sigma2) S2  (Wang 2017).
+   Operates on the regularised uniform arrays, because POS assumes uniform
+   sampling, and returns an array the same length as its input so that
+   samples and timestamps_seconds stay aligned. */
+function posSignal(rs, gs, bs, fs){
+  const n = gs.length;
+  const win = Math.max(4, Math.round(fs * 1.6));
+  const s1 = gs.map((g, i) => g - bs[i]);
+  const s2 = gs.map((g, i) => g + bs[i] - 2*rs[i]);
+  const raw = new Array(n).fill(0);
+  for (let k = win; k < n; k++){
+    let m1 = 0, m2 = 0;
+    for (let i = k - win; i < k; i++){ m1 += s1[i]; m2 += s2[i]; }
+    m1 /= win; m2 /= win;
+    let v1 = 0, v2 = 0;
+    for (let i = k - win; i < k; i++){
+      v1 += (s1[i] - m1) ** 2; v2 += (s2[i] - m2) ** 2;
+    }
+    const d1 = Math.sqrt(v1 / win), d2 = Math.sqrt(v2 / win);
+    const alpha = d2 > 1e-12 ? d1 / d2 : 0;
+    raw[k] = (s1[k] - m1) + alpha * (s2[k] - m2);
+  }
+  let lo = Infinity, hi = -Infinity;
+  for (let k = win; k < n; k++){ if (raw[k] < lo) lo = raw[k]; if (raw[k] > hi) hi = raw[k]; }
+  if (!isFinite(lo) || hi - lo < 1e-9) return new Array(n).fill(0.5);
+  // map into the [0,1] window the API's normalized-signal contract expects
+  return raw.map((v, i) => i < win ? 0.5 : 0.02 + 0.96 * (v - lo) / (hi - lo));
+}
+
+/* ------------------------------------------------------------------ *
+ *  display
+ * ------------------------------------------------------------------ */
+function draw(){
+  const W = wave.width, H = wave.height;
+  wctx2.fillStyle = '#0b0e12'; wctx2.fillRect(0,0,W,H);
+  wctx2.strokeStyle = '#1b2530'; wctx2.lineWidth = 1;
+  for (let i = 0; i <= 4; i++){
+    const y = (H/4)*i;
+    wctx2.beginPath(); wctx2.moveTo(0,y); wctx2.lineTo(W,y); wctx2.stroke();
+  }
+  const fs = observedFS();
+  if (!isFinite(fs) || samples.length < 10) return;
+  const want = Math.min(samples.length, Math.round(fs * 6));
+  const recs = samples.slice(samples.length - want);
+  let sig;
+  const choice = $('chan').value;
+  if (choice === 'pos'){
+    sig = posSignal(recs.map(p => p.r), recs.map(p => p.g), recs.map(p => p.b), fs);
+    const m = sig.reduce((a, b) => a + b, 0) / sig.length;
+    sig = sig.map(v => v - m);
+  } else {
+    sig = detrend(recs.map(p => p[channelKey(recs, choice)]), fs);
+  }
+  let lo = Infinity, hi = -Infinity;
+  for (const v of sig){ if (v < lo) lo = v; if (v > hi) hi = v; }
+  if (hi - lo < 1e-9){ lo -= 1e-3; hi += 1e-3; }
+  wctx2.strokeStyle = '#3ddc84'; wctx2.lineWidth = 1.6;
+  wctx2.beginPath();
+  sig.forEach((v, i) => {
+    const x = (i/(sig.length-1)) * W;
+    const y = H - ((v - lo)/(hi - lo)) * (H*0.8) - H*0.1;
+    i ? wctx2.lineTo(x,y) : wctx2.moveTo(x,y);
+  });
+  wctx2.stroke();
+}
+
+function updateLive(){
+  const fs = observedFS();
+  $('nf').textContent = totalFrames;
+  $('fs').textContent = isFinite(fs) ? fs.toFixed(2) + ' Hz' : '—';
+  if (samples.length){
+    $('rgbdc').textContent =
+      `${meanOf(samples.map(p=>p.r)).toFixed(4)} / ${meanOf(samples.map(p=>p.g)).toFixed(4)} / ` +
+      `${meanOf(samples.map(p=>p.b)).toFixed(4)}`;
+  }
+  if (samples.length > fs*4){
+    const want = Math.min(samples.length, Math.round(fs * 8));
+    const recs = samples.slice(samples.length - want);
+    const choice = $('chan').value;
+    const sig = choice === 'pos'
+      ? posSignal(recs.map(p => p.r), recs.map(p => p.g), recs.map(p => p.b), fs)
+      : detrend(recs.map(p => p[channelKey(recs, choice)]), fs);
+    const { bpm, quality } = estimateHR(sig, fs);
+    $('hr').textContent = isFinite(bpm) ? bpm.toFixed(0) : '—';
+    $('sq').textContent = quality.toFixed(2);
+  }
+  const cf = totalFrames ? clipFrames/totalFrames : 0;
+  $('cliptxt').textContent = (cf*100).toFixed(1) + '%';
+  $('clipbar').style.width = Math.min(100, cf*100) + '%';
+  const el = (performance.now() - tStart) / 1000;
+  $('dur2').textContent = el.toFixed(1) + ' s';
+  if (running && el >= needSeconds) stopRecording();
+}
+
+/* ------------------------------------------------------------------ *
+ *  recording
+ * ------------------------------------------------------------------ */
+function startRecording(){
+  samples = []; clipFrames = 0; totalFrames = 0;
+  needSeconds = parseInt($('dur').value, 10);
+  tStart = performance.now();
+  running = true;
+  $('rec').disabled = true; $('stop').disabled = false;
+  $('capstatus').textContent = `recording ${needSeconds} s — hold still, cover the lens`;
+  video.requestVideoFrameCallback(onFrame);
+}
+
+function stopRecording(){
+  running = false;
+  $('rec').disabled = false; $('stop').disabled = true;
+  if (samples.length < 10){
+    $('capstatus').innerHTML = '<span class="pill bad">too few frames</span>';
+    return;
+  }
+  const fsRaw = observedFS();
+  const fs = Math.round(fsRaw * 100) / 100;
+  const t0 = samples[0].t, t1 = samples[samples.length-1].t;
+
+  // Resample onto an exactly uniform grid. The API rejects timestamp jitter
+  // above 5% and requires no uniform-resampling server-side, so the capture
+  // is regularised here, where the raw frame times are still available.
+  const n = Math.floor((t1 - t0) * fs) + 1;
+  const ts = new Array(n), gs = new Array(n), rs = new Array(n), bs = new Array(n);
+  let j = 0;
+  for (let i = 0; i < n; i++){
+    const t = t0 + i/fs;
+    while (j < samples.length - 2 && samples[j+1].t < t) j++;
+    const a = samples[j], b = samples[j+1] || a;
+    const w = b.t > a.t ? (t - a.t)/(b.t - a.t) : 0;
+    const c = Math.min(1, Math.max(0, w));
+    ts[i] = t;
+    gs[i] = a.g + (b.g - a.g) * c;
+    rs[i] = a.r + (b.r - a.r) * c;
+    bs[i] = a.b + (b.b - a.b) * c;
+  }
+  // POS needs all three channels, so it is computed on the regularised
+  // arrays and returns the same length — samples and timestamps must align.
+  const choice = $('chan').value;
+  let chosen, chName;
+  if (choice === 'pos'){
+    chosen = posSignal(rs, gs, bs, fs);
+    chName = 'POS';
+  } else {
+    const k = channelKey(samples, choice);
+    chosen = k === 'r' ? rs : k === 'g' ? gs : bs;
+    chName = k === 'r' ? 'red' : k === 'g' ? 'green' : 'blue';
+  }
+
+  lastCapture = {
+    samples: Array.from(chosen),
+    timestamps_seconds: ts,
+    sampling_rate_hz: fs
+  };
+
+  const jit = (() => {
+    const d = []; for (let i = 1; i < ts.length; i++) d.push(ts[i]-ts[i-1]);
+    const m = d.reduce((a,b)=>a+b,0)/d.length;
+    const sd = Math.sqrt(d.reduce((a,b)=>a+(b-m)**2,0)/d.length);
+    return m > 0 ? sd/m : 0;
+  })();
+  const cf = clipFrames/totalFrames;
+  $('jit').textContent = (jit*100).toFixed(4) + '%';
+  $('fs').textContent = fs.toFixed(2) + ' Hz';
+
+  // Did the unlocked exposure actually move? Compare its wander to the pulse.
+  // Measured AFTER the API's 3 s settling discard, so we judge the same window
+  // the forecast is built from — a start-up exposure transient is not a fault.
+  // Both numbers are "% of brightness", so they are directly comparable.
+  const SKIP_S = 3.0;
+  const skipN = Math.min(gs.length - 1, Math.round(SKIP_S * fs));
+  const dp = driftAndPulse(chosen.slice(skipN), fs);
+  const pc = v => isFinite(v) ? (v*100).toFixed(3) + '%' : '—';
+
+  // Absolute plausibility comes FIRST. The drift ratio on its own can look
+  // healthy while the pulse term is itself contaminated, because a bigger
+  // artefact inflates the denominator and pushes the ratio DOWN. A capture is
+  // only usable if the amplitude is physiological AND the drift is small.
+  // Bands are in /predict's units: 1-3% of DC as a ratio is 0.01-0.03.
+  const a = dp.acRatio, dcm = dp.dcMean;
+  let ampLabel, ampColour;
+  // A dark frame inflates AC/DC through the denominator, so check DC first:
+  // the ratio is only comparable to the 1-3% physiological band when the
+  // frame is properly exposed.
+  if (!isFinite(a))    { ampLabel = 'no signal';                                   ampColour = 'var(--red)'; }
+  else if (dcm < 0.05) { ampLabel = 'frame nearly black — AC/DC inflated by a tiny DC, not comparable'; ampColour = 'var(--red)'; }
+  else if (a < 0.002)  { ampLabel = 'too faint — poor contact';                    ampColour = 'var(--red)'; }
+  else if (a <= 0.03)  { ampLabel = 'physiological';                               ampColour = 'var(--green)'; }
+  else if (a <= 0.08)  { ampLabel = 'above physiological — motion or stray light'; ampColour = 'var(--amber)'; }
+  else                 { ampLabel = 'impossible for blood volume — contaminated';  ampColour = 'var(--red)'; }
+
+  const ampOk   = isFinite(a) && dcm >= 0.05 && a >= 0.002 && a <= 0.03;
+  const driftOk = isFinite(dp.ratio) && dp.ratio <= 1;
+
+  const verdict = !ampOk
+    ? (isFinite(a) && a > 0.03
+        ? 'the pulse amplitude is far larger than blood can produce, so motion or stray light dominates — '
+          + 'this capture cannot be trusted whatever the drift ratio says'
+        : 'no trustworthy pulse was found in this capture')
+    : driftOk
+      ? 'amplitude is physiological and the drift is smaller than the pulse — usable'
+      : 'amplitude is physiological but the exposure drift exceeds the pulse — treat the rate as unreliable';
+  const vColour = ampOk && driftOk ? 'var(--green)' : (ampOk ? 'var(--amber)' : 'var(--red)');
+  const usable  = ampOk && driftOk;
+
+  $('drift').textContent = pc(dp.drift);
+  const aEl = $('pulseamp');
+  aEl.textContent = isFinite(a) ? a.toFixed(4) + ' — ' + ampLabel : '—';
+  aEl.style.color = ampColour;
+  $('dclevel').textContent = isFinite(dcm) ? dcm.toFixed(4) : '—';
+  $('acabs').textContent   = isFinite(dp.acAbs) ? dp.acAbs.toFixed(4) : '—';
+  const rEl = $('driftratio');
+  rEl.textContent = isFinite(dp.ratio) ? dp.ratio.toFixed(2) : '∞';
+  rEl.style.color = driftOk ? 'var(--green)' : 'var(--red)';
+
+  $('capstatus').innerHTML =
+    `<span class="pill ${usable ? 'ok' : 'bad'}">${usable ? 'capture usable' : 'capture NOT usable'}</span> ` +
+    `${ts.length} samples · ${(ts[ts.length-1]-ts[0]).toFixed(1)} s · ${fs} Hz · ` +
+    `clip ${(cf*100).toFixed(1)}% · channel: ${chName} · lock: ${lockReport}<br>` +
+    `<span class="muted">pulse amplitude ${isFinite(a) ? a.toFixed(4) : '—'} (healthy 0.01–0.03, ` +
+    `this is what /predict reports as perfusion_index) · DC level ${isFinite(dcm) ? dcm.toFixed(4) : '—'} · ` +
+    `drift ${pc(dp.drift)} · ` +
+    `ratio ${isFinite(dp.ratio) ? dp.ratio.toFixed(2) : '∞'}<br>` +
+    `<span style="color:${vColour}">${verdict}</span></span>`;
+  send();
+}
+
+/* ------------------------------------------------------------------ *
+ *  send to /predict
+ * ------------------------------------------------------------------ */
+async function send(){
+  $('verdict').textContent = 'posting…';
+  const payload = {
+    participant_id: 'PPG-DEMO',
+    meal_id: 'ppg-' + Date.now(),
+    t0_timestamp: new Date().toISOString().slice(0,19),
+    delta_t_minutes: 60,
+    prediction_mode: 'baseline_demo',
+    source_dataset: 'live_capture',
+    ppg_capture: lastCapture
+  };
+  try {
+    const r = await fetch('/predict', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const j = await r.json();
+    $('raw').textContent = JSON.stringify(j, null, 2);
+    if (!r.ok){
+      $('verdict').innerHTML = `<span class="pill bad">HTTP ${r.status}</span> ${j.detail || ''}`;
+      $('outtbl').hidden = true;
+      return;
+    }
+    const p = j.modalities.ppg, proc = j.modality_processing.ppg, f = j.forecast;
+    $('verdict').innerHTML =
+      `<span class="pill ok">accepted</span> ${proc.n_valid_windows} valid 10 s window(s) · ` +
+      `observed fs ${proc.observed_sampling_rate_hz.toFixed(2)} Hz · ` +
+      `jitter ${(proc.timestamp_jitter_fraction*100).toFixed(4)}% · ` +
+      `duration ${proc.capture_duration_seconds.toFixed(1)} s`;
+    const rows = [
+      ['ppg_present', p.present],
+      ['ppg_pulse_rate_bpm', p.pulse_rate_bpm.toFixed(1)],
+      ['ppg_signal_quality', p.signal_quality.toFixed(3)],
+      ['ppg_perfusion_index', p.perfusion_index.toFixed(4)],
+      ['ppg_hrv_rmssd', p.hrv_rmssd.toFixed(1)],
+      ['ppg_clip_fraction', p.clip_fraction.toFixed(4)],
+      ['ppg_n_windows', p.n_windows],
+      ['ppg_glucose_estimate', p.ppg_glucose_estimate === null ? 'null (ring-fenced E1)' : p.ppg_glucose_estimate],
+      ['\u2003 glucose_t60 (B2 baseline)', f.glucose_t60],
+      ['\u2003 g0 source', f.g0_source]
+    ];
+    $('outtbl').innerHTML = rows.map(([k,v]) =>
+      `<tr><td class="muted">${k}</td><td class="num">${v}</td></tr>`).join('');
+    $('outtbl').hidden = false;
+  } catch (e){
+    $('verdict').innerHTML = `<span class="pill bad">request failed</span> ${e.message}`;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ *  synthetic fallback, for machines without a camera
+ * ------------------------------------------------------------------ */
+function synthetic(){
+  const fs = 30, secs = parseInt($('dur').value, 10), bpm = 78, n = Math.floor(fs*secs);
+  const start = performance.now()/1000;
+  // realistic DC offset + AC pulse + harmonics + noise, as a fingertip under flash
+  const g = Array.from({length:n}, (_, i) => {
+    const t = i/fs;
+    const ac = 0.006*Math.sin(2*Math.PI*(bpm/60)*t)
+             + 0.0015*Math.sin(4*Math.PI*(bpm/60)*t);
+    const drift = 0.01*Math.sin(2*Math.PI*0.05*t);
+    return Math.min(0.999, Math.max(0.001, 0.52 + ac + drift + (Math.random()-0.5)*0.0015));
+  });
+  lastCapture = {
+    samples: g,
+    timestamps_seconds: Array.from({length:n}, (_, i) => start + i/fs),
+    sampling_rate_hz: fs
+  };
+  $('fs').textContent = fs.toFixed(2) + ' Hz';
+  $('jit').textContent = '0.0000%';
+  $('dur2').textContent = secs.toFixed(1) + ' s';
+  $('nf').textContent = n;
+  $('capstatus').innerHTML = `<span class="pill warn">synthetic</span> ${secs} s @ ${fs} Hz — not a measurement of anything`;
+  samples = g.map((v, i) => ({ t: start + i/fs, r: 0.30, g: v, b: 0.22 }));
+  totalFrames = n; clipFrames = 0;
+  draw(); updateLive();
+  send();
+}
+
+/* ------------------------------------------------------------------ *
+ *  wiring
+ * ------------------------------------------------------------------ */
+$('start').onclick = startCamera;
+$('rec').onclick = startRecording;
+$('stop').onclick = stopRecording;
+$('synth').onclick = synthetic;
+function syncRecLabel(){ $('rec').textContent = `Record ${$('dur').value} s`; }
+$('dur').onchange = syncRecLabel;
+syncRecLabel();
+$('chan').onchange = () => { $('posnote').hidden = $('chan').value !== 'pos'; };
+window.addEventListener('beforeunload', () => stream && stream.getTracks().forEach(t => t.stop()));
+
+function insecureWarning(){
+  $('secwarn').hidden = false;
+  $('secwarn').innerHTML =
+    `<b>No camera here: this origin is not a secure context.</b>
+     You are on <code>${location.origin}</code>.
+     Browsers expose <code>getUserMedia</code> only over <code>https://</code>, or
+     <code>localhost</code> / <code>127.0.0.1</code>. A LAN address like
+     <code>http://192.168.x.x</code> is deliberately excluded, so the camera is
+     blocked no matter what you grant. Fixes, best first:
+     <ol style="margin:8px 0 0 18px;padding:0">
+       <li><b>HTTPS tunnel</b> — serve this page over <code>https://</code>. Easiest and needs no phone configuration.</li>
+       <li><b>USB port forwarding</b> — desktop Chrome <code>chrome://inspect</code> →
+           Port forwarding → <code>8010</code> → <code>localhost:8010</code>, then open
+           <code>http://localhost:8010/ppg</code> on the phone. localhost is always a secure context.</li>
+       <li><b>Trusted certificate</b> — <code>mkcert</code> a cert for this host and install the CA on the phone.</li>
+     </ol>
+     You can still drive the whole pipeline with the synthetic capture below.`;
+}
+if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) insecureWarning();
+
+fetch('/health').then(r => r.json()).then(h => {
+  if (h.model_version) $('capstatus').textContent =
+    `service up — ${h.model_version}. ${h.serving}`;
+}).catch(() => {});
+</script>
+</body>
+</html>
