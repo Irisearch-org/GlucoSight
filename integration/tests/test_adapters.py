@@ -10,7 +10,7 @@ import pathlib
 
 import pytest
 
-from integration import contract
+from integration import contract, dish_table
 from integration.adapters import (
     cv_items_to_contract, cv_to_contract, nlp_to_contract, ppg_to_contract,
 )
@@ -213,6 +213,35 @@ def test_cv_all_items_unmatched_behaves_like_absent_photo():
     # population mean silently" applies at the whole-list level too.
     assert block["cv_items_unmatched"] == 1
     assert block["cv_item_count"] == 0
+
+
+def _fake_embedder(text, is_query):
+    """Same deterministic stand-in as test_dish_table.py's — proves
+    cv_items_to_contract actually uses the embedder when given one,
+    independent of which real model backs it."""
+    vocab = ("gudeg", "goreng", "nasi", "rendang", "kacang", "soto")
+    words = set(text.split())
+    return [1.0 if word in words else 0.0 for word in vocab]
+
+
+def test_cv_mixed_plate_uses_the_embedder_when_given_one():
+    """Regression for the real difflib false-match bug (dish_table.py's
+    match_dish docstring): "nasi gudeg" resolves to nasi_goreng without an
+    embedder, gudeg with one."""
+    rows = dish_table.load_dish_table()
+    without = cv_items_to_contract(
+        [{"food_name": "nasi gudeg", "confidence": 0.9}], "m1",
+    )
+    with_embedder = cv_items_to_contract(
+        [{"food_name": "nasi gudeg", "confidence": 0.9}], "m1",
+        embedder=_fake_embedder,
+        # the fake bag-of-words embedder's cosine geometry isn't on the
+        # same scale as real Gemini embeddings — see dish_table.py's
+        # EMBEDDING_MATCH_THRESHOLD measurement note.
+        embedding_match_threshold=0.6,
+    )
+    assert without["food_class"] == "nasi_goreng"  # the known-wrong default
+    assert with_embedder["food_class"] == "gudeg"  # fixed
 
 
 def test_cv_mixed_plate_sets_carbs_source_override_like_the_single_dish_case():

@@ -216,6 +216,8 @@ def cv_items_to_contract(
     portion_reported: int = 1,
     carbs_source_override: Optional[str] = None,
     model_version: str = "vlm-dish-id-v0",
+    embedder: Optional["dish_table.Embedder"] = None,
+    embedding_match_threshold: Optional[float] = None,
 ) -> Dict[str, Any]:
     """Translate a VLM's list of detected dishes into the contract's CV block.
 
@@ -230,6 +232,17 @@ def cv_items_to_contract(
         carbs_source_override: set to "weighed" on CGMacros, same as
             `cv_to_contract` — see its docstring.
         model_version: identifies which VLM/prompt produced `items`.
+        embedder: optional `dish_table.Embedder`. When given, matching uses
+            `dish_table.match_dish_by_embedding` instead of the default
+            `dish_table.match_dish` (character-ratio matching) — fixes a
+            measured false-match failure mode; see `match_dish`'s
+            docstring. None keeps the original offline, credential-free
+            behavior, so existing callers and tests are unaffected.
+        embedding_match_threshold: overrides `dish_table.
+            EMBEDDING_MATCH_THRESHOLD` when `embedder` is given. Exists so
+            tests exercising the embedder plumbing with a fake,
+            uncalibrated embedder aren't coupled to a threshold tuned for
+            real ones.
 
     Returns:
         A contract v1.2 CV block. Each name is resolved through the shared
@@ -270,9 +283,18 @@ def cv_items_to_contract(
         return absent_block(item_count=0, unmatched_count=0)
 
     rows = dish_table.load_dish_table()
+    index = dish_table.build_dish_table_index(rows, embedder) if embedder is not None else None
     matched = []
     for item in items:
-        m = dish_table.match_dish(item.get("food_name", ""), rows)
+        if index is not None:
+            kwargs = {}
+            if embedding_match_threshold is not None:
+                kwargs["threshold"] = embedding_match_threshold
+            m = dish_table.match_dish_by_embedding(
+                item.get("food_name", ""), index, embedder, **kwargs
+            )
+        else:
+            m = dish_table.match_dish(item.get("food_name", ""), rows)
         if m is None:
             continue
         confidence = float(item.get("confidence", 0.0) or 0.0)
