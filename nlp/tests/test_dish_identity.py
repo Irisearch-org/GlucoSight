@@ -26,6 +26,7 @@ from nlp.eval_dish_identity import (
     DEFAULT_LEGACY,
     DEFAULT_RESPONSE,
     dish_matrix,
+    feature_diagnostics,
     load_meals,
     repeated_ladder,
     run_ladder,
@@ -209,3 +210,43 @@ def test_repeated_ladder_finds_the_dish_signal():
     frame = synthetic(dish_driven=True, n_subjects=24, meals_each=8)
     spread = repeated_ladder(frame, seeds=3)
     assert spread["_deltas"]["M3_minus_M2"]["mean"] < -1.0
+
+
+# --------------------------------------------------------------------------
+# the diagnostics block (the numbers docs/METRICS.md quotes)
+# --------------------------------------------------------------------------
+
+def test_feature_diagnostics_reports_the_quoted_correlations():
+    diagnostics = feature_diagnostics(load_meals())
+    correlations = diagnostics["correlation_with_target"]
+    assert set(correlations) == {
+        "g0_mgdl", "total_grams", "is_fried_cooking", "is_large_portion"
+    }
+    # g0 is the only one of the four that carries signal on this cohort.
+    assert correlations["g0_mgdl"] == pytest.approx(-0.296, abs=0.005)
+    assert abs(correlations["total_grams"]) < 0.02
+
+
+def test_feature_diagnostics_reports_the_ols_ladder():
+    diagnostics = feature_diagnostics(load_meals())
+    r2 = diagnostics["ols_r2"]
+    assert r2["constant"] < 0.0
+    assert r2["g0"] > r2["constant"]
+    assert r2["g0_plus_shipped"] > r2["g0"]
+    assert r2["g0_plus_frequent_dishes"] > r2["g0_plus_shipped"]
+    assert diagnostics["frequent_dish_count"] == 23
+    assert diagnostics["comparable_to_ridge_ladder"] is False
+
+
+def test_feature_diagnostics_per_subject_counts_only_subjects_past_the_floor():
+    diagnostics = feature_diagnostics(load_meals(), min_meals_per_subject=10)
+    assert diagnostics["per_subject_correlation"]["g0_mgdl"]["n_subjects"] == 87
+    assert diagnostics["min_meals_per_subject"] == 10
+
+
+def test_feature_diagnostics_finds_a_dish_driven_signal():
+    """On dish-driven data the dish R^2 must beat the shipped-feature R^2."""
+    frame = synthetic(dish_driven=True)
+    diagnostics = feature_diagnostics(frame, min_dish_meals=10)
+    r2 = diagnostics["ols_r2"]
+    assert r2["g0_plus_frequent_dishes"] > r2["g0_plus_shipped"]

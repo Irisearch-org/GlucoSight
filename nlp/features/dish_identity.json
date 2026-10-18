@@ -3,6 +3,7 @@
     "splits": 5,
     "seeds": 5,
     "min_dish_meals": 10,
+    "diagnostic_dish_meals": 50,
     "group_column": "subject_id",
     "target": "rise_t60",
     "alphas": [
@@ -370,5 +371,35 @@
         ]
       }
     }
+  },
+  "diagnostics": {
+    "correlation_with_target": {
+      "g0_mgdl": -0.2958624406244181,
+      "total_grams": 0.011357988418996866,
+      "is_fried_cooking": -0.047927207325500994,
+      "is_large_portion": -0.04720308391982763
+    },
+    "per_subject_correlation": {
+      "g0_mgdl": {
+        "n_subjects": 87,
+        "median_r": -0.38558449194634015
+      },
+      "total_grams": {
+        "n_subjects": 87,
+        "median_r": -0.022714737634672532
+      }
+    },
+    "min_meals_per_subject": 10,
+    "ols_r2": {
+      "constant": -0.0024719140507996062,
+      "g0": 0.07556398115428697,
+      "g0_plus_shipped": 0.07896965483600882,
+      "g0_plus_frequent_dishes": 0.11449482990724913,
+      "shipped_plus_frequent_dishes": 0.11517154149039377
+    },
+    "frequent_dish_count": 23,
+    "frequent_dish_min_meals": 50,
+    "estimator": "unregularised OLS on the same subject-grouped folds",
+    "comparable_to_ridge_ladder": false
   }
 }

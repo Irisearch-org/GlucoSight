@@ -73,6 +73,8 @@ ARMS = ("M0_constant", "M1_g0", "M2_shipped", "M3_dish", "M3p_permuted")
 ALPHAS = (0.1, 1.0, 10.0, 100.0, 1000.0)
 #: A dish must appear this often *in the training fold* to get a coefficient.
 MIN_DISH_MEALS = 10
+#: The diagnostics' OLS R^2 uses a stricter floor, since it is unregularised.
+DIAGNOSTIC_DISH_MEALS = 50
 #: Inner folds used to pick the penalty. Grouped, so the tuning does not leak.
 INNER_SPLITS = 3
 SEED = 20261018
@@ -242,6 +244,75 @@ def run_ladder(
     return scored
 
 
+def feature_diagnostics(
+    frame: pd.DataFrame,
+    min_meals_per_subject: int = 10,
+    min_dish_meals: int = 50,
+) -> dict:
+    """The simpler measurements the write-up quotes, so they have a command.
+
+    Deliberately *not* part of the ridge ladder and **not comparable to it**:
+    these are plain correlations and unregularised OLS held-out R², used to
+    check the ladder's shape under a cruder estimator. Without this they would
+    live only in prose, which is the failure mode `docs/METRICS.md` exists to
+    catch.
+    """
+    y = frame[TARGET].to_numpy(dtype=float)
+    continuous = ("g0_mgdl", "total_grams")
+
+    correlations = {
+        column: float(frame[column].corr(frame[TARGET]))
+        for column in (*continuous, *FLAGS)
+    }
+
+    per_subject: Dict[str, dict] = {}
+    for column in continuous:
+        values = []
+        for _, group in frame.groupby("subject_id"):
+            if len(group) < min_meals_per_subject:
+                continue
+            value = group[column].corr(group[TARGET])
+            if np.isfinite(value):
+                values.append(float(value))
+        per_subject[column] = {
+            "n_subjects": len(values),
+            "median_r": float(np.median(values)) if values else float("nan"),
+        }
+
+    dishes, _ = dish_matrix(frame)
+    frequent = np.flatnonzero(dishes.sum(axis=0) >= min_dish_meals)
+    folds = grouped_folds(frame, n_splits=5, group_column="subject_id")
+    shipped = ("g0_mgdl", "total_grams", *FLAGS)
+
+    def held_out_r2(columns: Tuple[str, ...], dish_columns=None) -> float:
+        X = frame[list(columns)].to_numpy(dtype=float)
+        if dish_columns is not None:
+            X = np.hstack([X, dishes[:, dish_columns]])
+        X = np.hstack([X, np.ones((len(X), 1))])
+        errors = []
+        for train, test in folds:
+            beta, *_ = np.linalg.lstsq(X[train], y[train], rcond=None)
+            errors.append(float(np.mean((X[test] @ beta - y[test]) ** 2)))
+        return float(1 - np.mean(errors) / y.var())
+
+    return {
+        "correlation_with_target": correlations,
+        "per_subject_correlation": per_subject,
+        "min_meals_per_subject": min_meals_per_subject,
+        "ols_r2": {
+            "constant": held_out_r2(()),
+            "g0": held_out_r2(("g0_mgdl",)),
+            "g0_plus_shipped": held_out_r2(shipped),
+            "g0_plus_frequent_dishes": held_out_r2(("g0_mgdl",), frequent),
+            "shipped_plus_frequent_dishes": held_out_r2(shipped, frequent),
+        },
+        "frequent_dish_count": int(frequent.size),
+        "frequent_dish_min_meals": min_dish_meals,
+        "estimator": "unregularised OLS on the same subject-grouped folds",
+        "comparable_to_ridge_ladder": False,
+    }
+
+
 def shuffled_folds(
     frame: pd.DataFrame,
     n_splits: int = 5,
@@ -345,6 +416,22 @@ def _print_spread(title: str, spread: dict, seeds: int) -> None:
     print()
 
 
+def _print_diagnostics(diagnostics: dict) -> None:
+    print("Diagnostics — separate estimator, NOT comparable to the ladder")
+    print("-" * 78)
+    for column, value in diagnostics["correlation_with_target"].items():
+        print(f"  r({column}, {TARGET}) = {value:+.3f}")
+    for column, stat in diagnostics["per_subject_correlation"].items():
+        print(f"  median per-subject r({column}) = {stat['median_r']:+.3f} "
+              f"over {stat['n_subjects']} subjects")
+    print()
+    print(f"  held-out OLS R^2 ({diagnostics['frequent_dish_count']} dishes with "
+          f">= {diagnostics['frequent_dish_min_meals']} meals)")
+    for name, value in diagnostics["ols_r2"].items():
+        print(f"    {name:<32} {value:.4f}")
+    print()
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         description="Does dish identity beat total grams on the T+60 rise?"
@@ -393,6 +480,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         "Uncertainty — no insulin dose within 30 min", unmedicated_spread, args.seeds
     )
 
+    diagnostics = feature_diagnostics(
+        frame, min_dish_meals=DIAGNOSTIC_DISH_MEALS
+    )
+    _print_diagnostics(diagnostics)
+
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(
@@ -402,6 +494,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                         "splits": args.splits,
                         "seeds": args.seeds,
                         "min_dish_meals": args.min_dish_meals,
+                        "diagnostic_dish_meals": DIAGNOSTIC_DISH_MEALS,
                         "group_column": "subject_id",
                         "target": TARGET,
                         "alphas": list(ALPHAS),
@@ -410,6 +503,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     "unmedicated": secondary,
                     "repeated": spread,
                     "repeated_unmedicated": unmedicated_spread,
+                    "diagnostics": diagnostics,
                 },
                 indent=2,
             )

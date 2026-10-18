@@ -192,7 +192,9 @@ on subject-grouped folds, used only to see whether the ladder's shape repeats.
 The shipped feature set adds **+0.34 percentage points** of variance beyond
 `g0`. Twenty-three dish indicators add **+3.9**. The shape of the ladder is the
 same under a cruder, unregularised estimator, which is the point of including
-it.
+it. Both the correlations above and this table are emitted by the same command
+into the `diagnostics` block of `nlp/features/dish_identity.json`, so neither
+number lives only in this document.
 
 ---
 
