@@ -1,51 +1,24 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from typing import Optional
 
 import pandas as pd
 
 from nlp.data.shanghai_diet_loader import DEFAULT_DATA_DIR, load_shanghai_diet_records
+# Moved to utils/cooking_method.py (code review, 2026-10-19): it isn't
+# NLP-specific business logic, and forecasting/ needed it too — reaching
+# into this module's private helpers from another track was the finding.
+# Re-exported here, including the historical underscore-prefixed names, so
+# no existing NLP-track import has to change.
+from utils.cooking_method import (
+    FRIED_CN, FRIED_EN, FRIED_ID, FRIED_NEGATIONS, GRAM_RE,
+    LARGE_PORTION_PATTERNS, LARGE_THRESHOLD_G, SMALL_PORTION_PATTERNS,
+    is_fried as _is_fried, is_large as _is_large, total_grams as _total_grams,
+)
 
 MODEL_VERSION = "nlp-rule-v3"
 FEATURE_SOURCE = "rule_based"
-
-FRIED_EN = ("fried", "crispy", "deep-fried")
-FRIED_ID = ("digoreng", "goreng", "menggoreng", "gorengan")
-FRIED_CN = ("炒", "煎", "炸")
-FRIED_NEGATIONS = ("tidak digoreng", "bukan digoreng", "tidak goreng", "bukan goreng", "not fried", "not deep-fried")
-LARGE_PORTION_PATTERNS = (
-    re.compile(r"\b(?:jumbo|large|big)\b", re.I),
-    re.compile(r"\b(?:porsi|portion)\s+(?:besar|large|jumbo|extra besar)\b", re.I),
-    re.compile(r"\b(?:besar|large|jumbo)\s+(?:porsi|portion)\b", re.I),
-)
-SMALL_PORTION_PATTERNS = (
-    re.compile(r"\b(?:porsi|portion)\s+(?:kecil|small)\b", re.I),
-    re.compile(r"\b(?:kecil|small)\s+(?:porsi|portion)\b", re.I),
-)
-GRAM_RE = re.compile(r"(\d+(?:\.\d+)?)\s*(?:g|ml)\b", re.I)
-LARGE_THRESHOLD_G = 400
-
-def _total_grams(text: str) -> float:
-    return sum(float(m.group(1)) for m in GRAM_RE.finditer(text or ""))
-
-def _is_fried(en: str, cn: str) -> int:
-    combined = f"{en or ''} {cn or ''}".casefold()
-    if any(negation in combined for negation in FRIED_NEGATIONS):
-        return 0
-    return int(
-        any(term in combined for term in (*FRIED_EN, *FRIED_ID, *FRIED_CN))
-    )
-
-def _is_large(en: str, cn: str) -> int:
-    combined = f"{en or ''} {cn or ''}"
-    if any(pattern.search(combined) for pattern in LARGE_PORTION_PATTERNS):
-        return 1
-    if any(pattern.search(combined) for pattern in SMALL_PORTION_PATTERNS):
-        return 0
-    total = _total_grams(en) or _total_grams(cn)
-    return int(total > LARGE_THRESHOLD_G)
 
 def _clean(text: str) -> str:
     return str(text or "").replace("\r", "").replace("\n", " | ").strip()
