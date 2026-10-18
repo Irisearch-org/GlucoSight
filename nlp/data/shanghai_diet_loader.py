@@ -3,174 +3,66 @@ from __future__ import annotations
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import pandas as pd
 
-SOURCE_DATASET = "shanghai_t2dm"
-SCHEMA_VERSION = "1.2"
-
-DATE_CANDIDATES = {"Date"}
-CGM_CANDIDATES = {"CGM (mg / dl)"}
-DIET_EN_CANDIDATES = {"Dietary intake"}
-DIET_CN_CANDIDATES = {"饮食", "进食量"}
-CBG_CANDIDATES = {"CBG (mg / dl)"}
-
-_MISSING_TOKENS_LOWER = {
-    "", "/", "-", "—", "–",
-    "not available", "data not available", "data  not available",
-    "na", "n/a", "nan", "none", "null",
-    "未记录", "未进食", "无",
-}
+from .shanghai_response import meal_mask
+from .shanghai_schema import (
+    SCHEMA_VERSION,
+    SOURCE_DATASET,
+    read_sheet,
+    workbook_paths,
+)
 
 _HERE = Path(__file__).resolve().parent
 DEFAULT_DATA_DIR = _HERE / "Shanghai_T2DM"
-
-
-def _is_missing(value) -> bool:
-    if value is None:
-        return True
-    s = str(value).strip()
-    if s in ("", "/", "-", "—", "–", "未记录", "未进食", "无"):
-        return True
-    if s.lower() in _MISSING_TOKENS_LOWER:
-        return True
-    if " ".join(s.lower().split()) in _MISSING_TOKENS_LOWER:
-        return True
-    return s in _MISSING_TOKENS_LOWER
-
-
-def _find_col(header: List[str], candidates: set) -> Optional[int]:
-    for i, h in enumerate(header):
-        if h is None:
-            continue
-        hs = str(h).strip()
-        if hs in candidates or hs.lower() in {c.lower() for c in candidates}:
-            return i
-    return None
-
-
-def _parse_timestamp(value, datemode: Optional[int] = None) -> Optional[datetime]:
-    if value is None or value == "":
-        return None
-    if isinstance(value, datetime):
-        return value
-    if isinstance(value, (int, float)) and datemode is not None:
-        try:
-            import xlrd
-            return xlrd.xldate_as_datetime(float(value), datemode)
-        except Exception:
-            return None
-    s = str(value).strip()
-    if not s:
-        return None
-    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y/%m/%d %H:%M", "%Y-%m-%dT%H:%M:%S"):
-        try:
-            return datetime.strptime(s, fmt)
-        except ValueError:
-            continue
-    try:
-        return datetime.fromisoformat(s)
-    except ValueError:
-        return None
 
 
 def _meal_id(participant_id: str, file_name: str, row_index: int, t0: datetime) -> str:
     return f"SH-{str(participant_id).zfill(4)}-{t0.strftime('%Y%m%d%H%M')}-{row_index:04d}"
 
 
-def _read_excel(path: Path) -> Tuple[List[str], List[Tuple], Optional[int]]:
-    suffix = path.suffix.lower()
-    if suffix == ".xlsx":
-        import openpyxl
-        wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
-        ws = wb[wb.sheetnames[0]]
-        rows = list(ws.iter_rows(values_only=True))
-        if not rows:
-            return [], [], None
-        header = [str(h).strip() if h is not None else "" for h in rows[0]]
-        return header, rows[1:], None
-    if suffix == ".xls":
-        import xlrd
-        wb = xlrd.open_workbook(str(path))
-        sh = wb.sheet_by_index(0)
-        header = [str(sh.cell_value(0, c)).strip() for c in range(sh.ncols)]
-        data = [tuple(sh.cell_value(r, c) for c in range(sh.ncols)) for r in range(1, sh.nrows)]
-        return header, data, wb.datemode
-    raise ValueError(f"Unsupported suffix: {path}")
-
-
 def load_shanghai_diet_records(data_dir: Optional[Path] = None, *, generate_meal_ids: bool = True) -> pd.DataFrame:
+    """Load one row per meal from the ShanghaiT2DM workbooks.
+
+    Header matching goes through
+    :func:`nlp.data.shanghai_schema.canonical_columns`, not literal string
+    comparison: two of the 109 workbooks spell the CGM column ``"CGM "`` with
+    a trailing space, and the old exact match read those periods as having no
+    glucose at all.
+    """
     if data_dir is None:
         data_dir = DEFAULT_DATA_DIR
-    data_dir = Path(data_dir)
-    if not data_dir.exists():
-        raise FileNotFoundError(f"ShanghaiT2DM dir not found: {data_dir}")
-
-    files = sorted(set(sorted(data_dir.glob("*.xls")) + sorted(data_dir.glob("*.xlsx"))))
-    if not files:
-        raise FileNotFoundError(f"No Excel files in {data_dir}")
 
     records: List[Dict] = []
-    for path in files:
+    for path in workbook_paths(Path(data_dir)):
         participant_id = path.stem
         parts = participant_id.split("_")
         visit_id = parts[1] if len(parts) > 1 else ""
-        header, data_rows, datemode = _read_excel(path)
-        if not header:
-            continue
 
-        idx_date = _find_col(header, DATE_CANDIDATES) or 0
-        idx_cgm = _find_col(header, CGM_CANDIDATES)
-        idx_cbg = _find_col(header, CBG_CANDIDATES)
-        idx_en = _find_col(header, DIET_EN_CANDIDATES)
-        if idx_en is None:
-            idx_en = 4 if len(header) > 4 else None
-        idx_cn = _find_col(header, DIET_CN_CANDIDATES)
-
-        for r_idx, row in enumerate(data_rows, start=2):
-            diet_en_raw = row[idx_en] if idx_en is not None and idx_en < len(row) else None
-            if _is_missing(diet_en_raw):
+        sheet = read_sheet(path)
+        for _, row in sheet.loc[meal_mask(sheet)].iterrows():
+            t0 = row["timestamp"]
+            if pd.isna(t0):
                 continue
-            diet_en = str(diet_en_raw).strip()
-            diet_cn_raw = row[idx_cn] if idx_cn is not None and idx_cn < len(row) else None
-            diet_cn = "" if _is_missing(diet_cn_raw) else str(diet_cn_raw).strip()
+            t0 = pd.Timestamp(t0)
 
-            raw_date = row[idx_date] if idx_date < len(row) else None
-            t0 = _parse_timestamp(raw_date, datemode)
-            if t0 is None:
-                continue
-
-            cgm_val = None
-            if idx_cgm is not None and idx_cgm < len(row):
-                v = row[idx_cgm]
-                if v is not None and str(v).strip() not in ("", "/", "-", "—"):
-                    try:
-                        cgm_val = float(v)
-                    except (TypeError, ValueError):
-                        pass
-
-            cbg_val = None
-            if idx_cbg is not None and idx_cbg < len(row):
-                v = row[idx_cbg]
-                if v is not None and str(v).strip() not in ("", "/", "-", "—"):
-                    try:
-                        cbg_val = float(v)
-                    except (TypeError, ValueError):
-                        pass
+            cgm_val = None if pd.isna(row["cgm_mgdl"]) else float(row["cgm_mgdl"])
+            cbg_val = None if pd.isna(row["cbg_mgdl"]) else float(row["cbg_mgdl"])
 
             records.append({
-                "meal_id": _meal_id(participant_id, path.name, r_idx, t0) if generate_meal_ids else "",
+                "meal_id": _meal_id(participant_id, path.name, int(row["source_row"]), t0) if generate_meal_ids else "",
                 "participant_id": str(participant_id),
                 "visit_id": str(visit_id),
                 "file_name": path.name,
-                "row_index": r_idx,
+                "row_index": int(row["source_row"]),
                 "t0_timestamp": t0,
                 "t0_timestamp_iso": t0.isoformat(),
                 "source_dataset": SOURCE_DATASET,
                 "schema_version": SCHEMA_VERSION,
-                "dietary_intake": diet_en,
-                "dietary_intake_cn": diet_cn,
+                "dietary_intake": row["dietary_intake"],
+                "dietary_intake_cn": row["dietary_intake_cn"],
                 "cgm_mgdl": cgm_val,
                 "cbg_mgdl": cbg_val,
                 "cgm_available": 1 if cgm_val is not None else 0,

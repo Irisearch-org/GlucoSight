@@ -1,0 +1,58 @@
+{
+  "generated_from": "ShanghaiT2DM",
+  "source_dataset": "shanghai_t2dm",
+  "schema_version": "1.2",
+  "config": {
+    "horizons_minutes": [
+      60,
+      120
+    ],
+    "max_g0_staleness_minutes": 15.0,
+    "outcome_tolerance_minutes": 15.0,
+    "max_series_gap_minutes": 45.0,
+    "min_glucose_mgdl": 40.0,
+    "max_glucose_mgdl": 400.0,
+    "insulin_window_minutes": 30.0
+  },
+  "summary": {
+    "meals": 3060,
+    "subjects": 100,
+    "periods": 109,
+    "reason_vocabulary": [
+      "no_g0",
+      "g0_stale",
+      "g0_out_of_range",
+      "no_outcome",
+      "outcome_out_of_range",
+      "series_gap"
+    ],
+    "t60": {
+      "valid_meals": 3045,
+      "coverage_pct": 99.51,
+      "excluded_by_reason": {
+        "no_outcome": 7,
+        "g0_out_of_range": 7,
+        "outcome_out_of_range": 1
+      },
+      "median_g0_mgdl": 127.8,
+      "median_rise_mgdl": 23.4,
+      "median_abs_rise_mgdl": 28.8,
+      "overlapping_next_meal": 23
+    },
+    "t120": {
+      "valid_meals": 3028,
+      "coverage_pct": 98.95,
+      "excluded_by_reason": {
+        "no_outcome": 22,
+        "g0_out_of_range": 7,
+        "outcome_out_of_range": 3
+      },
+      "median_g0_mgdl": 127.8,
+      "median_rise_mgdl": 25.2,
+      "median_abs_rise_mgdl": 36.0,
+      "overlapping_next_meal": 107
+    },
+    "insulin_near_meal": 373,
+    "cgm_clamped_at_g0": 6
+  }
+}
