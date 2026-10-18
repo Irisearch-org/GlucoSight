@@ -148,11 +148,18 @@ of the numbers.
   comes from the VLM's text output, matched the same way a single label
   would have been.
 - **The matcher**: one shared function, `food name (string) -> matched
-  dish-table row, or no-match`, similarity-based (embedding or equivalent
-  retrieval), not an exact-key lookup and not a trained classifier. Called
-  identically by CV (on each VLM-listed item) and by NLP (on cooking-method
-  mentions in whatever text exists). Lives in one module shared by both
-  tracks' adapters, not duplicated.
+  dish-table row, or no-match`, similarity-based, not an exact-key lookup
+  and not a trained classifier. Called identically by CV (on each
+  VLM-listed item) and by NLP (on cooking-method mentions in whatever text
+  exists). Lives in one module shared by both tracks' adapters, not
+  duplicated. **Correction (ADR 0002 addendum, 2026-10-19):** built two
+  ways — a default, offline, dependency-free difflib matcher, and an
+  optional embedding-based one (real Gemini embeddings, dependency-injected
+  so either can be swapped in) — and neither cleanly separates true dish
+  matches from similar-sounding garnishes/condiments, measured live. The
+  shipped embedding threshold trades recall for precision deliberately;
+  this is an open problem, not a solved one. See the ADR addendum for the
+  measurement.
 - **The dish table**: unchanged in role (the single source of a dish's
   macro composition and standard serving weight) but now read by both
   tracks via the matcher, not owned/read by NLP alone. NLP continues to own
@@ -245,9 +252,31 @@ project's test suite should be asserting the internals of.
 - **Acceptance criterion**: this redesign counts as working when it's
   wired into the actual fusion forecast and Clarke Zone A is reported
   against the existing B0/B1/B2 baselines on subject-grouped held-out
-  folds — not as an isolated feature-level or adapter-level metric. Proven
-  first on CGMacros, the only dataset with both real meal photos and
-  weighed macro ground truth today.
+  folds — not as an isolated feature-level or adapter-level metric.
+
+  **Correction, 2026-10-19: CGMacros cannot prove this.** The line above
+  originally said to prove it first on CGMacros, "the only dataset with
+  both real meal photos and weighed macro ground truth today" — true, but
+  it went unchecked that CGMacros is an American-diet dataset. A live
+  photo pulled from it mid-session was a Chipotle burrito order. No
+  Indonesian dish will ever match against it; a VLM+matcher run against
+  CGMacros can only reproduce the same out-of-domain finding CV6 already
+  measured for the old classifier, not test anything new. Also found the
+  same session: B0/B1/B2 don't consume meal macros at all (they're
+  glucose-history-only baselines — population mean, persistence,
+  persistence+excursion); only one candidate model in
+  `forecasting/evaluate/baselines.py` uses `carbs_g`/`fat_g`, and that
+  module computes MAE/RMSE, not Zone A — FC1's Zone A table came from a
+  separate notebook. **There is currently no dataset and no wired pipeline
+  that can produce this acceptance criterion's number.** What a smoke test
+  *can* check — and did, live, this session — is matcher/dish-identification
+  accuracy against real Indonesian food photos
+  (`cv/data/raw/images/`, 6 labeled samples: 5/6 correct with the
+  difflib matcher, with two diagnosed false-match bugs; see the ADR 0002
+  addendum). Closing the real acceptance criterion needs: Zone A scoring
+  added to `forecasting/evaluate/baselines.py`, and either an Indonesian
+  photo+glucose dataset that doesn't currently exist, or a different
+  proof structure entirely. Open, not solved.
 - **Primary sources behind this spec**: `cv/LITERATURE_REVIEW.md` (VLM vs.
   closed-set classifier, portion-estimation ceiling, Indonesian dataset
   gap) and `nlp/docs/LITERATURE_REVIEW.md` (retrieval vs. classification

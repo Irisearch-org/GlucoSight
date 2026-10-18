@@ -58,3 +58,37 @@ table and the macros sum.
 Full reasoning, user stories, and the mixed-plate/matcher mechanics:
 `docs/SPEC_DISH_IDENTIFICATION.md`. Primary sources:
 `cv/LITERATURE_REVIEW.md`, `nlp/docs/LITERATURE_REVIEW.md`.
+
+## Addendum, 2026-10-19 — the matcher itself is still an open problem
+
+Building this surfaced a second, smaller decision worth recording. The
+matcher (how a VLM-listed or text-mentioned name resolves to a dish-table
+row) was built with plain `difflib` string-ratio matching, on the
+assumption — stated in the code at the time — that a learned embedding
+"buys nothing a string ratio doesn't already give" at 10 rows. That
+assumption is **false, measured live**: a real VLM call against
+`cv/data/raw/images/gudeg_005.jpg` correctly said "nasi gudeg," and the
+difflib matcher resolved it to `nasi_goreng` — the shared `"nasi "` prefix
+dominates a whole-string character ratio over the word that actually
+distinguishes the dish.
+
+Three approaches were tried, in order: plain difflib, naive symmetric
+Gemini embeddings, and task-type-aware (query/document) Gemini embeddings.
+**None of them cleanly separates true dish matches from superficially
+similar garnishes and condiments** ("kacang goreng," fried peanuts, scored
+*higher* against `nasi_goreng` than a true match, "soto mie," scored
+against `soto`, under naive embeddings). The shipped default
+(`dish_table.EMBEDDING_MATCH_THRESHOLD = 0.75`) is a deliberately
+conservative threshold from that measurement — it rejects every measured
+false positive at the cost of one known false negative (a harder synonym,
+"ayam betutu" for `bebek_betutu`) — chosen because a wrong match silently
+pollutes the macro sum, while a dropped item is already a safe, visible
+fallback in this project's design.
+
+This is **not a solved problem**, just a safely-defaulted one. It was
+measured against 8 real queries from one photo set — not a validated
+benchmark. Revisit before trusting it beyond a smoke test; the literature
+review's retrieval recommendation (`nlp/docs/LITERATURE_REVIEW.md`) may
+need a sharper mechanism than top-1 cosine similarity (e.g. the VLM
+reasoning about a short candidate list directly, rather than a separate
+embedding-similarity step) to actually close this.
