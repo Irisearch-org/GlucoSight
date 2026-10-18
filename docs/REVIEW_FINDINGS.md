@@ -5,6 +5,9 @@
 modes, conducted before any model training code was written.
 **Status:** Findings accepted by PM. Contract v1.1, the data collection
 protocol, and all track docs were updated against this list.
+**Amendments:** C5's *magnitude* claims were superseded by measurement on
+2026-10-17 (see the amendment under C5). C5's mechanism is unchanged. IDs are
+stable; amendments are appended, never rewritten.
 
 Every finding has a stable ID. Other documents cite these IDs. If you
 disagree with a change in the contract, argue against the finding here.
@@ -94,6 +97,43 @@ the primary portion signal. `carbs_source` field added so Forecasting knows
 `carbs_g` is a class-conditional estimate. Weighed ground truth and
 in-frame scale reference documented as upgrade paths, **not committed**.
 **Landed in:** contract CV schema + honesty note, `agents/cv/CLAUDE.md`.
+
+**Amendment — 2026-10-17 (measurement, not review).** Two supporting claims in
+the Problem above do not reproduce against paired meal-and-glucose data.
+Evidence: `docs/BIGIDEAS_MEAL_RESPONSE_FINDINGS.md` (B7, B8, B11), measured on
+688 meals from 15 BIG IDEAs participants (food log paired with CGM; participant
+015 dropped, its two files are two weeks apart).
+
+| Claim as written | Measured |
+|---|---|
+| "portion is the dominant term in carbohydrate load" | **2.5–5.0%** of the variance in a meal's carbohydrate, against **97.5%** for *which dish* was eaten (B7). Coarse small/medium/large banding moved the carbohydrate correlation by **0.01**, from both a cold-start and a personalised textbook (B8). |
+| "a 30 g carb error shifts glucose 40–60 mg/dL" | **+5.7 mg/dL** at T+60 — median slope +0.190 mg/dL per g, fitted with `g0` controlled, negative for one participant (B11). |
+
+**What the amendment does not change.** The mechanism in the Problem stands, and
+is a fact about the training data rather than about biology: a
+classification-labelled set gives the regression head zero within-class
+variance, so it learns a lookup table, and no architecture recovers volume from
+a scaleless 2D photo. The Fix above also stands — `portion_reported` remains a
+sound addition. It is the only portion signal CV can produce, and the meal term
+is genuinely sensitive to carbohydrate accuracy.
+
+**What it does change.** The magnitude, and therefore the priority. Portion is a
+small term, so `portion_reported` should not be presented as the headline CV
+gap. The binding constraint is **class breadth**: 10 classes against **455
+distinct dishes** in these logs, with identification alone recovering **38%** of
+the meal's forecast value cold-start and **71%** once the system knows the user
+(B9). Portion estimation is not where the next effort belongs.
+
+**Confidence in the amendment.** Medium, and the direction of the error is
+known. The 2.5–5.0% figure is measured on *logged* carbohydrate derived from a
+self-reported amount, so it is a **floor** — if people eat more variably than
+they log, portion's true share is larger and this amendment understates it.
+CGMacros carries weighed macros and is the dataset that would settle the
+question; its meal-feature modelling is currently blocked by the range
+violations in `docs/CGMACROS_DATA_QUALITY_REPORT.md`. Resolve those before
+treating the corrected figure as final. Note also that the 40–60 mg/dL figure
+appears to have originated in this finding and propagated to
+`agents/cv/CLAUDE.md`; both are now annotated.
 
 ### C6 — PURE/UBFC are face datasets; the input is a fingertip
 **Where:** PPG track training data.

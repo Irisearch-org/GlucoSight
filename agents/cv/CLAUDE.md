@@ -22,6 +22,14 @@ is the strongest predictor of postprandial glucose response.
 If the CV module gets carbs wrong by 30g, it can shift predicted
 glucose by 40–60 mg/dL. Accuracy here is critical.
 
+> **Corrected 2026-10-17.** The 40–60 mg/dL figure is **not reproducible**.
+> Fitted per participant on 688 paired meal-and-glucose records (BIG IDEAs),
+> with `g0` controlled, a 30 g carbohydrate error moves glucose
+> **+5.7 mg/dL at T+60** — median slope +0.190 mg/dL per g, and negative for
+> one participant. The paragraph's conclusion (carbohydrate accuracy matters)
+> still holds; the number that justified the urgency does not. Evidence:
+> `docs/BIGIDEAS_MEAL_RESPONSE_FINDINGS.md` finding B11.
+
 ### Read this before you plan anything (finding C5)
 
 The Indonesian food set is **classification-labeled**. Macros come from
@@ -40,6 +48,35 @@ information, not a modelling weakness, and no architecture fixes it.
 - Portion signal comes from the **in-app question** (`portion_reported` ∈
   {kecil, sedang, besar}), which CV passes through to Forecasting.
 - This goes in the paper's Limitations, plainly.
+
+**Amended 2026-10-17 — the magnitude is wrong, the mechanism is not.**
+Measured on 688 paired meal-and-glucose records (BIG IDEAs, 15 participants;
+sources in `docs/BIGIDEAS_MEAL_RESPONSE_FINDINGS.md`):
+
+- The variance in a meal's carbohydrate is **97.5% *which dish* was eaten** and
+  **2.5–5.0% portion size** (B7). Coarse small/medium/large portion banding
+  moved the carbohydrate correlation by **0.01**, from both a cold-start and a
+  personalised textbook (B8).
+- Portion is therefore a **small** term. It was the belief that portion is
+  *dominant* that made the in-app question the headline fix.
+
+**Unchanged:** everything above. Zero within-class variance is a fact about the
+labelled set, the lookup-table consequence follows from it, and no architecture
+recovers volume from a scaleless 2D photo. `portion_reported` stays — it is the
+only portion signal this track can produce, and the meal term is genuinely
+sensitive to carbohydrate accuracy in general.
+
+**Changed priority:** the binding constraint is **class breadth**, not portion
+estimation. These food logs contain **455 distinct dishes** against this
+track's 10 classes, and identification alone recovers **38%** of the meal's
+forecast value cold-start and **71%** once the system knows the user (B9).
+Spend capacity there first; treat the in-app question as a small refinement,
+not the critical path.
+
+**Caveat:** the 2.5–5.0% figure rests on *self-reported* amounts, so it is a
+floor and the bias runs against the number above. CGMacros carries weighed
+macros and would settle it — and its meal-feature modelling is currently
+blocked by the range violations in `docs/CGMACROS_DATA_QUALITY_REPORT.md`.
 
 **Not committed this cycle** (upgrade paths, if capacity appears): weighed
 ground truth on a 200–300 photo subset; a fixed-dimension scale reference
