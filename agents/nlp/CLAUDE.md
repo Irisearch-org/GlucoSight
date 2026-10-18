@@ -172,6 +172,35 @@ artifact plus the dataset paper.
 > *Item 3 — the split* is still open: the response table exposes `subject_id`
 > and `period_index` separately so the fix is one `groupby` away.
 
+> **Update 2026-10-18 (later) — item 3 is done, and Path A has its first
+> number.**
+>
+> *Item 3 — the split*: fixed. Folds now group on `subject_id` through
+> `nlp/data/splits.py`, and `leakage_report` keeps the old behaviour measurable
+> rather than merely replaced — **0.000 by subject, 0.185–0.215 by period** on
+> this data. `nlp/tests/test_splits.py` asserts both directions, so a future
+> regression to period grouping fails a test instead of quietly inflating a
+> number. The split was fixed *before* the first Path A figure was produced, so
+> nothing has to be withdrawn.
+>
+> *The measurement*: done, and it answers the question the gate left hanging.
+> Over 3,045 meals on subject-grouped folds, **dish identity beats total grams
+> by 0.65 mg/dL of MAE** (−0.555 ± 0.252 across five independent resplits),
+> against a permutation control that earns nothing (+0.064 ± 0.063, its own
+> inner CV choosing the maximum penalty in 5 of 5 folds). The shipped feature
+> set adds **0.082 mg/dL** over `g0` alone — indistinguishable from zero, and
+> `total_grams` correlates **+0.011** with the rise. The dimension the pipeline
+> discards is the dimension that carries the signal. See
+> `docs/NLP_DISH_IDENTITY_TEST.md` (DI1–DI4); reproduce with
+> `python3 -m nlp.eval_dish_identity`.
+>
+> What this does *not* buy, and it matters for the bridge: any claim about a
+> density *number*. Shanghai carries no macronutrient ground truth, so it
+> validates the **unit** of prediction — dish identity rather than summed
+> weight — and nothing about the **content** of a dish table. IB3 remains the
+> open half, and the deliverable remains the Indonesian dish list with
+> densities.
+
 ---
 
 ## Domain knowledge you hold
