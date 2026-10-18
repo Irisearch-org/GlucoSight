@@ -31,6 +31,12 @@ def load_shanghai_diet_records(data_dir: Optional[Path] = None, *, generate_meal
     comparison: two of the 109 workbooks spell the CGM column ``"CGM "`` with
     a trailing space, and the old exact match read those periods as having no
     glucose at all.
+
+    ``participant_id`` is the workbook stem — one CGM *period*. The 109 periods
+    belong to 100 *subjects*, so ``subject_id`` and ``period_index`` are
+    carried separately: grouping a split on ``participant_id`` leaks a
+    subject's second admission into training (finding N5, and
+    :mod:`nlp.data.splits`).
     """
     if data_dir is None:
         data_dir = DEFAULT_DATA_DIR
@@ -54,6 +60,8 @@ def load_shanghai_diet_records(data_dir: Optional[Path] = None, *, generate_meal
             records.append({
                 "meal_id": _meal_id(participant_id, path.name, int(row["source_row"]), t0) if generate_meal_ids else "",
                 "participant_id": str(participant_id),
+                "subject_id": str(row["subject_id"]),
+                "period_index": int(row["period_index"]),
                 "visit_id": str(visit_id),
                 "file_name": path.name,
                 "row_index": int(row["source_row"]),

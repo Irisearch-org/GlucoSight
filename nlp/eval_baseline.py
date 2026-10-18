@@ -1,27 +1,43 @@
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
-from sklearn.model_selection import GroupKFold
 
 from nlp.data.derive_labels import derive_labels
 from nlp.data.shanghai_diet_loader import load_shanghai_diet_records
+from nlp.data.splits import (
+    assert_no_group_leakage,
+    ensure_subject_id,
+    grouped_folds,
+    leakage_report,
+)
 
 
 def evaluate(n_splits: int = 5, data_dir=None) -> dict:
     raw = load_shanghai_diet_records(data_dir=data_dir)
-    df = derive_labels(raw)
+    df = ensure_subject_id(pd.DataFrame(derive_labels(raw)))
 
-    groups = df["participant_id"].values
-    gkf = GroupKFold(n_splits=n_splits)
+    # Finding N5: the split unit used to be `participant_id`, which is the CGM
+    # period, not the patient. Group on the subject so a subject's second
+    # admission cannot land on both sides of a fold.
+    folds = grouped_folds(df, n_splits=n_splits, group_column="subject_id")
+    assert_no_group_leakage(df, folds, group_column="subject_id")
+
+    # Measured, not asserted: the same data split by period leaks, by subject
+    # it does not. Both numbers are reported so the fix is visible in output.
+    period_folds = grouped_folds(df, n_splits=n_splits, group_column="participant_id")
+    split_leakage = {
+        "by_subject": leakage_report(df, folds, group_column="subject_id"),
+        "by_period": leakage_report(df, period_folds, group_column="subject_id"),
+    }
 
     fold_stats = []
-    for fold, (tr, te) in enumerate(gkf.split(df, groups=groups)):
+    for fold, (tr, te) in enumerate(folds):
         test = df.iloc[te]
         fold_stats.append({
             "fold": fold,
             "n_test": len(test),
-            "n_participants": test["participant_id"].nunique(),
+            "n_subjects": test["subject_id"].nunique(),
+            "n_periods": test["participant_id"].nunique(),
             "fried_rate": test["is_fried_cooking"].mean(),
             "large_rate": test["is_large_portion"].mean(),
             "both_rate": ((test["is_fried_cooking"] == 1) & (test["is_large_portion"] == 1)).mean(),
@@ -34,6 +50,7 @@ def evaluate(n_splits: int = 5, data_dir=None) -> dict:
     overall = {
         "n_records": len(df),
         "n_participants": df["participant_id"].nunique(),
+        "n_subjects": df["subject_id"].nunique(),
         "fried_rate": df["is_fried_cooking"].mean(),
         "large_rate": df["is_large_portion"].mean(),
         "both_rate": ((df["is_fried_cooking"] == 1) & (df["is_large_portion"] == 1)).mean(),
@@ -53,7 +70,10 @@ def evaluate(n_splits: int = 5, data_dir=None) -> dict:
     print("=" * 70)
     print("NLP BASELINE EVAL — ShanghaiT2DM v1.2 (rule_based)")
     print("=" * 70)
-    print(f"Records: {overall['n_records']}  Participants: {overall['n_participants']}  Splits: {n_splits} (GroupKFold by participant_id)")
+    print(f"Records: {overall['n_records']}  Subjects: {overall['n_subjects']}  "
+          f"Periods: {overall['n_participants']}  Splits: {n_splits} (GroupKFold by subject_id)")
+    print(f"Split leakage — by subject: {split_leakage['by_subject']:.4f}  "
+          f"by period (the old behaviour): {split_leakage['by_period']:.4f}")
     print(f"Overall: fried={overall['fried_rate']:.3f}  large={overall['large_rate']:.3f}  both={overall['both_rate']:.3f}  neither={overall['neither_rate']:.3f}")
     print(f"Confidence: mean={overall['conf_mean']:.3f} std={overall['conf_std']:.3f}")
     print("-" * 70)
@@ -72,7 +92,14 @@ def evaluate(n_splits: int = 5, data_dir=None) -> dict:
     print("  nlp_present distinguishes present-all-zero (1) vs missing (0).")
     print("=" * 70)
 
-    return {"overall": overall, "per_fold": stats_df, "consistency": consistency, "df": df}
+    return {
+        "overall": overall,
+        "per_fold": stats_df,
+        "consistency": consistency,
+        "split_leakage": split_leakage,
+        "folds": folds,
+        "df": df,
+    }
 
 
 if __name__ == "__main__":
