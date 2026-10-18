@@ -136,6 +136,14 @@ signal you find is more likely autonomic and vascular than
 optically-glucose"). No evidence yet of an optical glucose signal beyond
 what a population mean already captures, at n=23 subjects.
 
+**Update, 2026-10-19 (ADR `0003`): this is now a settled negative result,
+not an open modeling question.** An independent peer-reviewed re-test
+(Ramesh et al., ACM ISWC '26) ran five model architectures on this exact
+dataset and got the same null result. No further PPG glucose-estimation
+modeling is planned — see the ADR and
+`rppg/LITERATURE_REVIEW_GLUCOSE_ESTIMATION.md` for what would actually need
+to change (an HbA1c/calibration covariate, not a better model).
+
 ## Guardrails this pipeline follows
 
 - Every split is `GroupKFold` by `subject_id`, asserted disjoint in code
