@@ -29,7 +29,12 @@ from integration.adapters import cv_to_contract, nlp_to_contract, ppg_to_contrac
 # Provenance fields the adapters attach for the audit trail. They are not
 # contract fields, so they are separated out before validation rather than
 # being allowed to fail the strict unknown-field check.
-_PROVENANCE = ("gi_source", "cv_feature_status", "nlp_calibrated", "nlp_calibration_status")
+_PROVENANCE = (
+    "gi_source", "cv_feature_status", "nlp_calibrated", "nlp_calibration_status",
+    # cv_items_to_contract / nlp_to_contract's cooking-method correction
+    # (docs/SPEC_DISH_IDENTIFICATION.md) — audit trail, not contract fields.
+    "cv_item_count", "cv_items_unmatched", "nlp_cooking_method_redundant_with_cv",
+)
 
 
 def _to_dt(value) -> datetime:

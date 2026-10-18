@@ -32,10 +32,33 @@ from integration import contract
 # (isotonic/Platt)" is open; until it lands, everything here is uncalibrated.
 _UNCALIBRATED_SOURCES = {"rule_based", "lookup", "unavailable"}
 
+# A dish whose own name already says how it's cooked (docs/
+# SPEC_DISH_IDENTIFICATION.md, H2). Keyword, not a trained classifier —
+# matches agents/nlp/CLAUDE.md's Path B: cooking method is "recoverable
+# programmatically from titles" for exactly this one context label.
+_FRIED_KEYWORD = "goreng"
+
+
+def _dish_already_implies_fried(cv_food_class: Optional[str]) -> bool:
+    return bool(cv_food_class) and _FRIED_KEYWORD in cv_food_class.lower()
+
+
+def extract_cooking_method_signal(text: Optional[str]) -> Optional[bool]:
+    """Rule-based: does the text mention a frying verb? None = no mention.
+
+    Other methods (`rebus`/`bakar`/`tumis`/`kukus`) don't set
+    `is_fried_cooking` — the contract only has the one boolean.
+    """
+    if not text:
+        return None
+    return True if _FRIED_KEYWORD in text.lower() else None
+
 
 def nlp_to_contract(
     record: Optional[Dict[str, Any]],
     meal_id: str,
+    cv_food_class: Optional[str] = None,
+    cooking_method_text: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Translate one nlp-baseline record into the contract's NLP block."""
     if record is None:
@@ -47,6 +70,7 @@ def nlp_to_contract(
             "nlp_feature_source": "unavailable",
             "nlp_model_version": "absent",
             "nlp_calibrated": False,
+            "nlp_cooking_method_redundant_with_cv": None,
         })
         return block
 
@@ -80,15 +104,31 @@ def nlp_to_contract(
             "nlp_feature_source='unavailable' with nlp_present=1 is incoherent"
         )
 
+    is_fried_cooking = int(record.get("is_fried_cooking", 0))
+    feature_source = source
+    redundant_with_cv: Optional[bool] = None
+
+    # Cooking-method correction. Scope note (ponytail): only corrects an
+    # *existing* record (present=1) — it doesn't manufacture a record from
+    # text alone when none exists. Extend to the absent case if a live
+    # pilot ever needs that; not exercised by anything today.
+    text_signal = extract_cooking_method_signal(cooking_method_text)
+    if present == 1 and text_signal is not None:
+        redundant_with_cv = _dish_already_implies_fried(cv_food_class)
+        if not redundant_with_cv:
+            is_fried_cooking = 1
+            feature_source = "rule_based"
+
     return {
         "meal_id": meal_id,
-        "is_fried_cooking": int(record.get("is_fried_cooking", 0)),
+        "is_fried_cooking": is_fried_cooking,
         "is_large_portion": int(record.get("is_large_portion", 0)),
         "nlp_confidence": confidence,
         "nlp_present": present,
-        "nlp_feature_source": source,
+        "nlp_feature_source": feature_source,
         "nlp_model_version": record.get("nlp_model_version", "unknown"),
         # Provenance, stripped before validation.
         "nlp_calibrated": False,
         "nlp_calibration_status": record.get("nlp_calibration_status", "unavailable"),
+        "nlp_cooking_method_redundant_with_cv": redundant_with_cv,
     }

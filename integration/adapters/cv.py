@@ -29,7 +29,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
-from integration import contract
+from integration import contract, dish_table
 
 # Glycemic index band by food class. 0=low (<55), 1=medium (55-70), 2=high (>70).
 #
@@ -76,6 +76,27 @@ _STATUS_MAP = {
 }
 
 
+def _validate_portion_and_override(
+    portion_reported: int, carbs_source_override: Optional[str]
+) -> None:
+    """Shared by `cv_to_contract` and `cv_items_to_contract`.
+
+    Validated before either function's absent-photo branch: an invalid
+    portion or override must fail whether or not a photo happened to be
+    taken, and whether it was one dish or a list.
+    """
+    if portion_reported not in (0, 1, 2):
+        raise contract.ContractViolation(
+            f"portion_reported must be 0/1/2, got {portion_reported!r}"
+        )
+    if (carbs_source_override is not None
+            and carbs_source_override not in contract.VALID_CARBS_SOURCES):
+        raise contract.ContractViolation(
+            f"carbs_source_override {carbs_source_override!r} not in "
+            f"{sorted(contract.VALID_CARBS_SOURCES)}"
+        )
+
+
 def cv_to_contract(
     record: Optional[Dict[str, Any]],
     meal_id: str,
@@ -97,18 +118,7 @@ def cv_to_contract(
         A contract v1.2 CV block. Absent CV yields every field at its
         contract fallback with cv_present=0 and cv_confidence=0.0.
     """
-    if portion_reported not in (0, 1, 2):
-        raise contract.ContractViolation(
-            f"portion_reported must be 0/1/2, got {portion_reported!r}"
-        )
-    # Validated here, before the absent-photo branch: an invalid override
-    # must fail whether or not a photo happened to be taken.
-    if (carbs_source_override is not None
-            and carbs_source_override not in contract.VALID_CARBS_SOURCES):
-        raise contract.ContractViolation(
-            f"carbs_source_override {carbs_source_override!r} not in "
-            f"{sorted(contract.VALID_CARBS_SOURCES)}"
-        )
+    _validate_portion_and_override(portion_reported, carbs_source_override)
 
     if record is None:
         block = {f.name: f.fallback for f in contract.CV_FIELDS}
@@ -197,4 +207,117 @@ def cv_to_contract(
         # stripped by fusion.assemble() before validation.
         "gi_source": gi_source,
         "cv_feature_status": status,
+    }
+
+
+def cv_items_to_contract(
+    items: Optional[list],
+    meal_id: str,
+    portion_reported: int = 1,
+    carbs_source_override: Optional[str] = None,
+    model_version: str = "vlm-dish-id-v0",
+) -> Dict[str, Any]:
+    """Translate a VLM's list of detected dishes into the contract's CV block.
+
+    Args:
+        items: stands in for the VLM's output — [{"food_name": str,
+            "confidence": float}, ...], one entry per dish it lists on the
+            plate (GLOSSARY.md "mixed plate"), or None/empty when no photo
+            was taken.
+        meal_id: the envelope key this CV record belongs to.
+        portion_reported: 0=kecil, 1=sedang, 2=besar, from the in-app
+            question. Defaults to the contract fallback (1, sedang).
+        carbs_source_override: set to "weighed" on CGMacros, same as
+            `cv_to_contract` — see its docstring.
+        model_version: identifies which VLM/prompt produced `items`.
+
+    Returns:
+        A contract v1.2 CV block. Each name is resolved through the shared
+        matcher (`integration.dish_table`) against the dish table; macros
+        sum across every matched item, `cv_confidence` is the minimum
+        confidence across matched items (one shaky item pulls the whole
+        meal down), and `carbs_source` becomes `class_lookup_multi` once
+        more than one item matched, distinguishing a mixed-plate result
+        from a single-dish lookup.
+
+        An item the matcher can't resolve is dropped from the sum, never
+        defaulted to a population mean silently — see
+        docs/SPEC_DISH_IDENTIFICATION.md, Implementation Decisions. This
+        holds even when *every* item fails to match: the result still
+        falls back to population_mean (there's nothing else to predict
+        from), but `cv_item_count`/`cv_items_unmatched` still carry the
+        count, the same as the partial-match case.
+    """
+    _validate_portion_and_override(portion_reported, carbs_source_override)
+
+    def absent_block(item_count: int, unmatched_count: int) -> Dict[str, Any]:
+        return {
+            "meal_id": meal_id,
+            "carbs_g": 45.0, "protein_g": 18.0, "fat_g": 12.0, "fiber_g": 4.0,
+            "gi_category": DEFAULT_GI,
+            "food_class": "unknown",
+            "cv_confidence": 0.0,
+            "cv_present": 0,
+            "carbs_source": "population_mean",
+            "portion_reported": portion_reported,
+            "cv_model_version": model_version,
+            "gi_source": "contract_fallback",
+            "cv_item_count": item_count,
+            "cv_items_unmatched": unmatched_count,
+        }
+
+    if not items:
+        return absent_block(item_count=0, unmatched_count=0)
+
+    rows = dish_table.load_dish_table()
+    matched = []
+    for item in items:
+        m = dish_table.match_dish(item.get("food_name", ""), rows)
+        if m is None:
+            continue
+        confidence = float(item.get("confidence", 0.0) or 0.0)
+        matched.append((m.row, confidence))
+
+    if not matched:
+        return absent_block(item_count=0, unmatched_count=len(items))
+
+    totals = {"carbs_g": 0.0, "protein_g": 0.0, "fat_g": 0.0, "fiber_g": 0.0}
+    # Tracks the matched item with the most carbs, to pick that item's GI
+    # category for the whole meal (docs/SPEC_DISH_IDENTIFICATION.md:
+    # "Default to the GI category of the item contributing the most carbs").
+    dominant_carbs_so_far = -1.0
+    gi_category, gi_source = DEFAULT_GI, "contract_fallback"
+    for row, _ in matched:
+        macros = dish_table.serving_macros(row)
+        for key in totals:
+            totals[key] += macros[key]
+        if macros["carbs_g"] > dominant_carbs_so_far:
+            dominant_carbs_so_far = macros["carbs_g"]
+            if row.food_class in GI_BY_CLASS:
+                gi_category, gi_source = GI_BY_CLASS[row.food_class], "class_table"
+            else:
+                gi_category, gi_source = DEFAULT_GI, "contract_fallback"
+
+    confidence = min(c for _, c in matched)
+    carbs_source = carbs_source_override or (
+        "class_lookup" if len(matched) == 1 else "class_lookup_multi"
+    )
+
+    return {
+        "meal_id": meal_id,
+        **{k: round(v, 1) for k, v in totals.items()},
+        "gi_category": gi_category,
+        # Joined, not a list: food_class is a plain str contract field
+        # (CV_FIELDS), and nothing downstream parses a mixed-plate value
+        # back apart today. Readable for logging/audit, not a structured
+        # multi-value field — revisit if a consumer ever needs the list.
+        "food_class": "+".join(row.food_class for row, _ in matched),
+        "cv_confidence": confidence,
+        "cv_present": 1,
+        "carbs_source": carbs_source,
+        "portion_reported": portion_reported,
+        "cv_model_version": model_version,
+        "gi_source": gi_source,
+        "cv_item_count": len(matched),
+        "cv_items_unmatched": len(items) - len(matched),
     }

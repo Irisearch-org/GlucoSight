@@ -11,7 +11,9 @@ import pathlib
 import pytest
 
 from integration import contract
-from integration.adapters import cv_to_contract, nlp_to_contract, ppg_to_contract
+from integration.adapters import (
+    cv_items_to_contract, cv_to_contract, nlp_to_contract, ppg_to_contract,
+)
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 
@@ -138,6 +140,91 @@ def test_cv_rejects_unknown_carbs_source():
 
 
 # ---------------------------------------------------------------------
+# CV — mixed plates (docs/SPEC_DISH_IDENTIFICATION.md)
+#
+# `items` stands in for a VLM's listed dishes: [{"food_name", "confidence"}].
+# The VLM call itself is not exercised here (per the spec's own Testing
+# Decisions) — these fixtures are what the adapter receives regardless of
+# which VLM produced them.
+# ---------------------------------------------------------------------
+
+def test_cv_single_item_behaves_like_the_single_dish_case():
+    block = cv_items_to_contract(
+        [{"food_name": "rendang", "confidence": 0.9}], meal_id="m1",
+    )
+    assert block["cv_present"] == 1
+    assert block["carbs_g"] == 3.5
+    assert block["cv_confidence"] == 0.9
+    assert block["carbs_source"] == "class_lookup"
+    assert block["food_class"] == "rendang"
+
+
+def test_cv_mixed_plate_sums_macros_and_takes_minimum_confidence():
+    """Nasi padang: rice plus a side dish, not one label (Task 5)."""
+    block = cv_items_to_contract(
+        [{"food_name": "nasi goreng", "confidence": 0.95},
+         {"food_name": "rendang daging", "confidence": 0.7}],
+        meal_id="m1",
+    )
+    assert block["cv_present"] == 1
+    assert block["carbs_g"] == 67.5 + 3.5  # nasi_goreng (250g) + rendang (100g)
+    assert block["cv_confidence"] == 0.7  # the weaker item, not the average
+    assert block["carbs_source"] == "class_lookup_multi"
+
+
+def test_cv_mixed_plate_drops_unmatched_items_not_defaults_them():
+    block = cv_items_to_contract(
+        [{"food_name": "rendang", "confidence": 0.9},
+         {"food_name": "makanan antah berantah", "confidence": 0.5}],
+        meal_id="m1",
+    )
+    # One real item matched: behaves like the single-dish case, not a
+    # population-mean blend with the unmatched item.
+    assert block["carbs_g"] == 3.5
+    assert block["carbs_source"] == "class_lookup"
+    assert block["cv_items_unmatched"] == 1
+
+
+def test_cv_mixed_plate_output_satisfies_every_contract_field():
+    block = cv_items_to_contract(
+        [{"food_name": "nasi goreng", "confidence": 0.95},
+         {"food_name": "rendang", "confidence": 0.7}],
+        meal_id="m1",
+    )
+    for f in contract.CV_FIELDS:
+        assert f.name in block, f"{f.name} missing"
+        err = f.check(block[f.name])
+        assert err is None, err
+
+
+def test_cv_no_items_behaves_like_absent_photo():
+    assert cv_items_to_contract(None, "m1") == cv_items_to_contract([], "m1")
+    assert cv_items_to_contract(None, "m1")["cv_present"] == 0
+
+
+def test_cv_all_items_unmatched_behaves_like_absent_photo():
+    block = cv_items_to_contract(
+        [{"food_name": "makanan antah berantah", "confidence": 0.5}], "m1",
+    )
+    assert block["cv_present"] == 0
+    assert block["carbs_source"] == "population_mean"
+    # code-review finding: this must stay visible even when the whole list
+    # fails to match, not just the partial-match case — "not defaulted to a
+    # population mean silently" applies at the whole-list level too.
+    assert block["cv_items_unmatched"] == 1
+    assert block["cv_item_count"] == 0
+
+
+def test_cv_mixed_plate_sets_carbs_source_override_like_the_single_dish_case():
+    """CGMacros weighs macros; this path needs the same override cv_to_contract has."""
+    block = cv_items_to_contract(
+        [{"food_name": "rendang", "confidence": 0.9}],
+        meal_id="m1", carbs_source_override="weighed",
+    )
+    assert block["carbs_source"] == "weighed"
+
+
+# ---------------------------------------------------------------------
 # NLP
 # ---------------------------------------------------------------------
 
@@ -201,6 +288,52 @@ def test_nlp_real_predict_output_translates():
     block = nlp_to_contract(out, "m1")
     for f in contract.NLP_FIELDS:
         assert f.check(block[f.name]) is None
+
+
+# ---------------------------------------------------------------------
+# NLP — cooking-method correction (docs/SPEC_DISH_IDENTIFICATION.md, H2)
+#
+# `cooking_method_text` stands in for whatever live text exists. Checked
+# for redundancy against `cv_food_class` (the dish CV already identified)
+# before being treated as independent information.
+# ---------------------------------------------------------------------
+
+_SOTO_RECORD = {"is_fried_cooking": 0, "is_large_portion": 0,
+                "nlp_confidence": 0.8, "nlp_present": 1,
+                "nlp_feature_source": "rule_based", "nlp_model_version": "v0.1"}
+
+
+def test_nlp_cooking_method_text_corrects_when_cv_doesnt_already_imply_it():
+    """soto is not fried by name; the text is genuinely new information."""
+    block = nlp_to_contract(
+        _SOTO_RECORD, "m1",
+        cv_food_class="soto", cooking_method_text="soto ayam digoreng dulu",
+    )
+    assert block["is_fried_cooking"] == 1
+    assert block["nlp_feature_source"] == "rule_based"
+    assert block.get("nlp_cooking_method_redundant_with_cv") is False
+
+
+def test_nlp_cooking_method_text_flagged_redundant_when_cv_already_implies_it():
+    """nasi_goreng is fried by name — text saying so adds no new information."""
+    block = nlp_to_contract(
+        {**_SOTO_RECORD, "is_fried_cooking": 1}, "m1",
+        cv_food_class="nasi_goreng", cooking_method_text="nasi goreng pete",
+    )
+    assert block["nlp_cooking_method_redundant_with_cv"] is True
+
+
+def test_nlp_cooking_method_correction_is_noop_without_a_mention():
+    block = nlp_to_contract(_SOTO_RECORD, "m1", cv_food_class="soto")
+    assert block["is_fried_cooking"] == 0
+    assert block["nlp_cooking_method_redundant_with_cv"] is None
+
+
+def test_nlp_cooking_method_correction_does_not_fire_without_a_record():
+    """Scoped: corrects an existing record, doesn't manufacture one from text alone."""
+    block = nlp_to_contract(None, "m1", cooking_method_text="semuanya digoreng")
+    assert block["nlp_present"] == 0
+    assert block["is_fried_cooking"] == 0
 
 
 # ---------------------------------------------------------------------

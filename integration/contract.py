@@ -33,7 +33,14 @@ SCHEMA_VERSION = "1.2"
 VALID_SOURCE_DATASETS = {
     "cgmacros", "shanghai_t2dm", "big_ideas", "ppg_dataset", "live_capture",
 }
-VALID_CARBS_SOURCES = {"weighed", "cv_regressed", "class_lookup", "population_mean"}
+VALID_CARBS_SOURCES = {
+    "weighed", "cv_regressed", "class_lookup", "population_mean",
+    # A mixed-plate result (docs/SPEC_DISH_IDENTIFICATION.md): macros summed
+    # across more than one matched dish-table item. Kept distinct from
+    # "class_lookup" so a mixed-plate result doesn't look identical to a
+    # single-dish lookup downstream.
+    "class_lookup_multi",
+}
 VALID_NLP_SOURCES = {"extracted", "lookup", "rule_based", "unavailable"}
 VALID_GLUCOSE_RANGES = {"normal", "borderline", "high"}
 

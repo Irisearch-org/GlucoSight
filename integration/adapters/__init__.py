@@ -7,8 +7,10 @@ drift shows up here as a failing test rather than as a silent column of
 fallback values.
 """
 
-from integration.adapters.cv import cv_to_contract
+from integration.adapters.cv import cv_items_to_contract, cv_to_contract
 from integration.adapters.nlp import nlp_to_contract
 from integration.adapters.ppg import ppg_to_contract
 
-__all__ = ["cv_to_contract", "nlp_to_contract", "ppg_to_contract"]
+__all__ = [
+    "cv_items_to_contract", "cv_to_contract", "nlp_to_contract", "ppg_to_contract",
+]
