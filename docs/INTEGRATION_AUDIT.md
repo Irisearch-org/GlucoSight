@@ -330,7 +330,7 @@ now built. The PPG branch cannot ship yet, for two independent reasons:
    v2.0 agenda rather than in a code change.
 2. **Evidence.** The only committed PPG-glucose model
    (`rppg/models/baseline_mean.py`) predicts the training-fold population
-   mean for every subject — MAE 14.51 +/- 2.00 mg/dL over 23 subjects.
+   mean for every subject — MAE 14.54 +/- 1.10 mg/dL over 23 subjects.
    Predicting one constant for everyone carries the same information as
    the population fallback. Registering it would change the label on the
    number, not the number.
@@ -347,7 +347,7 @@ Attempting to fix the finger-scan path surfaced a blocker that no amount of
 modelling clears.
 
 **Predicting a single constant for every subject achieves Clarke Zone A
-85.1% on the PPG glucose dataset.** Computed with the corrected
+83.6% on the PPG glucose dataset.** Computed with the corrected
 `utils.clarke_grid` from the committed
 `rppg/models/reports/baseline_mean_predictions.csv` — the mean baseline,
 GroupKFold by subject, n=67 recordings, 23 subjects. Zone A+B is 100.0%,
@@ -357,7 +357,7 @@ The project target is Zone A > 70%.
 
 So on this dataset, **a Zone A figure cannot distinguish a working
 PPG-glucose model from a constant.** Anyone who trains a model here and
-reports "Zone A 85%, exceeds the 70% clinical target" will have reported the
+reports "Zone A 84%, exceeds the 70% clinical target" will have reported the
 baseline. This is finding C3 in its purest form.
 
 The cause is the cohort, not the metric:
@@ -405,7 +405,7 @@ the labels are real and the signals are noise) produced:
 
 | Predictor | MAE | Zone A |
 |---|---|---|
-| Mean baseline | 14.57 | 85.1% |
+| Mean baseline | 14.54 | 83.6% |
 | Ridge on **pure noise** | 14.78 | **88.1%** |
 
 The noise model is *worse* on MAE and *better* on Zone A, and would have
@@ -531,7 +531,7 @@ Not updated, per instruction. Recorded here so the board can be corrected.
 |---|---|---|
 | `[W1] BLOCKER clarke_grid.py` | to do | **Was genuinely not done.** Done now |
 | `[PPG] brno ECG validation` | in progress | **Done** — `rppg/brno_validation.py`, MAE 3.76 bpm pooled |
-| `[PPG] predict-the-mean baseline` | in progress | **Done** — MAE 14.51 ± 2.00, 5-fold by subject |
+| `[PPG] predict-the-mean baseline` | in progress | **Done** — MAE 14.54 ± 1.10, 5-fold by subject |
 | `[PM] Merge cv/nlp baselines into monorepo` | to do | **Done** |
 | `[CV] Indonesian classifier on CGMacros (OOD gap)` | complete | Done |
 | `[Forecasting] CGMacros loader (causal filter)` | to do | **Done in the notebook, never committed** |

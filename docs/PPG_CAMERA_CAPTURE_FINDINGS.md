@@ -271,7 +271,7 @@ diagnostic result and not a modelling one.
    the amplitude behaved correctly throughout.
 3. **The negative control exists.** Paper → 0.000345 with quality 0.131 and
    correct down-weighting (P2). That is the discipline the integration audit
-   found missing elsewhere — the constant predictor at Zone A 85.1%, and 88.1%
+   found missing elsewhere — the constant predictor at Zone A 83.6%, and 88.1%
    for a model trained on pure noise.
 
 ---

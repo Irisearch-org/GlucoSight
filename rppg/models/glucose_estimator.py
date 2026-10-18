@@ -6,7 +6,7 @@ a user with no glucometer (`integration/glucose_source.py`).
 Read the dataset-adequacy warning before running it
 ---------------------------------------------------
 Predicting a single constant for every subject already achieves **Zone A
-85.1%** on this dataset (n=67 recordings, 23 subjects, GroupKFold by
+83.6%** on this dataset (n=67 recordings, 23 subjects, GroupKFold by
 subject; computed from `reports/baseline_mean_predictions.csv`). The project
 target is Zone A > 70%.
 

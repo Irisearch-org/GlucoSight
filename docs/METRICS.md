@@ -33,11 +33,10 @@ So every figure here carries a **tag** for how it is backed.
 | **prose** | the number appears only inside a sentence. No file holds it as data |
 | **uncommitted** | its source file exists in the working tree but is not in git |
 
-The distribution is the finding. **42 of the 55 figures below sit in a committed
-file; 13 do not** — 9 living only in a sentence, 3 not in git at all, and 1
-derivable but never computed. And 16 of the committed ones cannot be re-derived
-without a dataset the repo does not ship, so a reader with a clone can check 26 of
-them unaided.
+The distribution is the finding. **43 of the 55 figures below sit in a committed
+file; 12 do not** — 9 living only in a sentence, 3 not in git at all. And 16 of
+the committed ones cannot be re-derived without a dataset the repo does not ship,
+so a reader with a clone can check 27 of them unaided.
 
 ---
 
@@ -45,9 +44,9 @@ them unaided.
 
 | # | metric | value | tag | where it lives | reproduce |
 |---|---|---|---|---|---|
-| PP1 | finger-scan glucose, mean baseline MAE | **14.51 ± 2.00** mg/dL; folds 14.79 / 14.23 / 17.74 / 12.62 / 13.19; 67 recordings, 23 subjects | **artefact** — but see §7, **it does not reproduce** | `rppg/models/reports/baseline_mean.md`, `baseline_mean_folds.csv` | `python3 -m rppg.models.baseline_mean` |
-| PP2 | mean-baseline Clarke Zone A | **85.1%** (n=67, 23 subjects) | **derivable** | inputs in `rppg/models/reports/baseline_mean_predictions.csv`; stated in `docs/INTEGRATION_AUDIT.md`, `integration/README.md`, `rppg/models/glucose_estimator.py` | none committed |
-| PP3 | trained model MAE vs that baseline | baseline 14.57, Ridge 15.64, Random Forest 16.52 | **prose** | `rppg/README.md` | `python3 -m rppg.models.glucose_estimator --train` (needs gitignored `RawData/*.mat`) |
+| PP1 | finger-scan glucose, mean baseline MAE | **14.54 ± 1.10** mg/dL; folds 13.87 / 15.59 / 15.74 / 14.32 / 13.19; 67 recordings, 23 subjects | **artefact** | `rppg/models/reports/baseline_mean.md`, `baseline_mean_folds.csv` | `python3 -m rppg.models.baseline_mean` |
+| PP2 | mean-baseline Clarke Zone A | **83.6%** (n=67, 23 subjects) | **artefact** | `rppg/models/reports/baseline_mean.md`; computed from `baseline_mean_predictions.csv`; also stated in `docs/INTEGRATION_AUDIT.md`, `integration/README.md`, `rppg/models/glucose_estimator.py` | `python3 -m rppg.models.baseline_mean` |
+| PP3 | trained model MAE vs that baseline | baseline 14.54, Ridge 15.64, Random Forest 16.52 | **prose** | `rppg/README.md` | `python3 -m rppg.models.glucose_estimator --train` (needs gitignored `RawData/*.mat`) |
 | PP4 | pulse rate vs simultaneous ECG | **MAE 3.76 bpm**, bias +0.00, LoA [−14.82, +14.82]; over **32** recordings that yield a rate error, from 35 annotated good-quality of 48; 12 subjects | **artefact · gated** | `rppg/reports/brno_validation.md`, `brno_validation_raw.csv` | `python3 -m rppg.brno_validation` (needs BUT PPG) |
 | PP5 | the same agreement, per subject | MAE spans **1.27 → 30.85 bpm**, computed over **all** recordings per subject — see §7 | **artefact · gated** | same table | same — read the caveat in §7 |
 | PP6 | HRV RMSSD vs ECG | **MAE 79.36 ms**, bias **+50.32 ms** (31 recordings) | **artefact · gated** | same | same |
@@ -142,7 +141,7 @@ must never be quoted against FC1** — different sample counts (F3).
 | IN1 | integration tests | **108 pass** | **artefact** | `integration/tests/` | `python3 -m pytest integration/tests -q` |
 | IN2 | utility tests | **47 pass** | **artefact** | `utils/tests/` | `python3 -m pytest utils/tests -q` |
 | IN3 | modality down-weighting floor | absent **or** zero-confidence modality → weight **0.1**, never 0 (H1) | **artefact** | `integration/contract.py::modality_weight` | `python3 -m pytest integration/tests -q` |
-| IN4 | the noise-model trap | mean baseline MAE 14.57 / Zone A **85.1%**; Ridge on pure noise MAE 14.78 / Zone A **88.1%** | **prose** | `docs/INTEGRATION_AUDIT.md` §F15 | gate refuses it: permutation p = 0.486 |
+| IN4 | the noise-model trap | mean baseline MAE 14.54 / Zone A **83.6%**; Ridge on pure noise MAE 14.78 / Zone A **88.1%** | **prose** | `docs/INTEGRATION_AUDIT.md` §F15 | gate refuses it: permutation p = 0.486 |
 | IN5 | the 70% floor | the project's own Zone A target | **prose** | `docs/INTEGRATION_AUDIT.md` | — |
 
 ### Test counts, whole repo
@@ -166,16 +165,16 @@ the PPG virtualenv. A bare `pytest` fails collection on it.
 
 | tag | count | what it means for a claim |
 |---|---|---|
-| artefact | 26 | re-derivable from the repo today |
+| artefact | 27 | re-derivable from the repo today |
 | artefact · gated | 16 | re-derivable, but only with a dataset the repo does not ship |
-| derivable | 1 | the inputs are committed; nobody wrote the command |
+| derivable | 0 | the inputs are committed; nobody wrote the command |
 | prose | 9 | a sentence. Treat as a lead, not a result |
 | uncommitted | 3 | not in git at all yet |
 | **total** | **55** | |
 
 Almost a third of the tags depend on a dataset the repository does not ship (16 of
 55), which is unavoidable — but it means most of this project's evidence cannot be
-re-derived by a reader with a clone. Only the 26 `artefact` rows travel.
+re-derived by a reader with a clone. Only the 27 `artefact` rows travel.
 
 Three of the best numbers in this repository are `uncommitted` (the BIG IDEAs
 ladder, the meal contribution, and the 455-dish breadth behind everything CV
@@ -188,19 +187,6 @@ CGMacros 62.5%).
 
 These were found by building this page. None is fixed here; each is recorded so
 it cannot be discovered for the first time by a reviewer.
-
-**7.1 — The PPG baseline report does not reproduce.**
-`python3 -m rppg.models.baseline_mean` regenerates
-`rppg/models/reports/baseline_mean.md` with **different numbers than are
-committed**: summary **14.54 ± 1.10** against the committed **14.51 ± 2.00**, and
-every per-fold MAE different. The script is deterministic — two consecutive runs
-agree exactly — so the committed report is **stale relative to the committed
-data**. It predates the commit that first tracked `rppg/data/labels.csv`
-(`8936fb1`), which added the file only after an unanchored `data/` ignore rule
-was fixed. **The 14.51 quoted in `integration/glucose_source.py`,
-`integration/api.py`, `integration/README.md` and `docs/INTEGRATION_AUDIT.md`
-(twice) is a stale draw.** The difference is immaterial (0.03 mg/dL), but the
-staleness is not, and the SD more than halves.
 
 **7.2 — CV test accuracy has three values.** 0.8659, 0.866 and 0.8801, all for
 "food-10 test accuracy" of `cv-baseline-v0.1`. `training_metadata.json` records
@@ -239,9 +225,21 @@ the sparsest and plausibly hardest participants. The like-for-like figure was
 computed and never printed. **Never present the +5.0-point calibration gain as
 established.**
 
-**7.6 — The mean baseline appears as both 14.51 and 14.57.** 14.51 is the
-committed report's summary; 14.57 is in `rppg/README.md` and the audit's Zone A
-table. Same model, two values, neither annotated. See 7.1.
+**7.6 — ~~The mean baseline appears as both 14.51 and 14.57~~ (fixed
+2026-10-18).** It did: 14.51 was `rppg/models/reports/baseline_mean.md`'s
+committed summary, stale against the committed `rppg/data/labels.csv`
+(predates `8936fb1`, which added the file after an unanchored `data/`
+ignore rule was fixed); 14.57 was `rppg/README.md` and the audit's Zone A
+table, a second, different stale draw. `python3 -m rppg.models.baseline_mean`
+is deterministic — re-running it regenerates **14.54 ± 1.10** mg/dL, Zone A
+**83.6%** (previously an uncommitted, hand-derived 85.1% — PP2 is now
+**artefact**). Updated everywhere that quoted either figure: PP1/PP2/PP3/IN4
+above, `integration/glucose_source.py`, `integration/api.py`,
+`integration/README.md`, `docs/INTEGRATION_AUDIT.md` (three sites),
+`docs/PPG_CAMERA_CAPTURE_FINDINGS.md`, `rppg/README.md`, and
+`rppg/models/glucose_estimator.py`'s docstring. The committed report also
+had a mojibake `�7`/`�` (should be `§7`/`±`) from the same stale write,
+fixed by the same regeneration.
 
 ---
 
@@ -252,8 +250,8 @@ while nothing was learned**, and each already has a documented rebuttal.
 
 | number | why not |
 |---|---|
-| **"Zone A 88.1%, exceeding the 70% clinical target"** | It is a Ridge regression trained on pure noise. MAE 14.78, worse than the 14.57 constant it beat on Zone A. The gate refused it (permutation p = 0.486) |
-| **"Zone A 85%, exceeds the 70% target"** | That is the constant predictor. On this cohort a Zone A figure cannot distinguish a working finger-scan model from a flat line — glucose SD is 18.6 mg/dL and the Zone A band is ±22 mg/dL |
+| **"Zone A 88.1%, exceeding the 70% clinical target"** | It is a Ridge regression trained on pure noise. MAE 14.78, worse than the 14.54 constant it beat on Zone A. The gate refused it (permutation p = 0.486) |
+| **"Zone A 84%, exceeds the 70% target"** | That is the constant predictor (83.6%, PP2). On this cohort a Zone A figure cannot distinguish a working finger-scan model from a flat line — glucose SD is 18.6 mg/dL and the Zone A band is ±22 mg/dL |
 | **"the meal contributes 2.70 mg/dL"** | Quoted against B2 instead of B2g. The meal's own contribution is **1.49** mg/dL at T+60. The 2.70 figure does not survive review |
 | **"30 g of carbohydrate error moves glucose 40–60 mg/dL"** | Measured at **5.7** mg/dL (B11 / FC10). Amended in place in `agents/cv/CLAUDE.md` and recorded in `docs/REVIEW_FINDINGS.md` |
 | **"53% perfusion index"** | Manufactured: the page read the green channel under a fingertip, where haemoglobin absorbs, so AC/DC divided one near-zero number by another (P1) |
@@ -269,7 +267,7 @@ while nothing was learned**, and each already has a documented rebuttal.
 
 ```bash
 # contact PPG — no download needed
-python3 -m rppg.models.baseline_mean          # PP1  (rewrites the committed report; see 7.1)
+python3 -m rppg.models.baseline_mean          # PP1, PP2
 python3 -m rppg.check_ppg_findings            # PP8, PP9, PP10
 
 # NLP — reads committed tables only
@@ -296,13 +294,12 @@ python3 cv/scripts/evaluate_mean_baseline.py                      # CGMacros
 
 ## Open threads for this document
 
-1. **Fix 7.1** — regenerate the PPG baseline report against the committed data
-   and update the five files that quote 14.51. One atomic change.
+1. ~~**Fix 7.1**~~ — done 2026-10-18 (§7.6).
 2. **Resolve 7.2 / 7.3** — re-run the CV baseline once and decide which split
    and which number is the reported one, then delete the others.
 3. **Move FC7 and FC8 off `uncommitted`** — the BIG IDEAs findings and their code
    are the strongest meal-response evidence in the repository and are not in git.
-4. **Make PP2 `artefact`** — 85.1% is a one-line computation over a committed
-   predictions file that nobody wrote down. It should have a command.
+4. ~~**Make PP2 `artefact`**~~ — done 2026-10-18 (§7.6); `baseline_mean.py` now
+   prints and writes the Zone A figure itself.
 5. **Re-check this page when the contract is signed.** A number that is
    `derivable` or `prose` today should be `artefact` before it goes in a paper.

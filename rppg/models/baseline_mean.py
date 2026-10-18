@@ -124,9 +124,21 @@ def print_summary(fold_df):
     print(f'Baseline predicts training-fold population mean for each held-out sample.')
 
 
+def compute_zone_a(pred_df):
+    """Pooled Clarke Zone A percentage over every held-out prediction.
+
+    docs/METRICS.md PP2 — committed here so the figure is reproducible
+    from baseline_mean_predictions.csv instead of derived by hand.
+    """
+    sys.path.insert(0, os.path.join(_HERE, '..', '..'))
+    from utils.clarke_grid import clarke_error_grid
+    _, pct = clarke_error_grid(pred_df['glucose_true'], pred_df['glucose_pred'])
+    return pct['A']
+
 def main():
     labels_df = load_labels()
     fold_df, pred_df = run_mean_baseline(labels_df)
+    zone_a_pct = compute_zone_a(pred_df)
 
     # Save results
     reports_dir = os.path.join(_HERE, 'reports')
@@ -136,6 +148,8 @@ def main():
     pred_df.to_csv(os.path.join(reports_dir, 'baseline_mean_predictions.csv'), index=False)
 
     print_summary(fold_df)
+    print(f'Pooled Clarke Zone A: {zone_a_pct:.1f}% (n={len(pred_df)} recordings, '
+          f'{pred_df["subject_id"].nunique()} subjects)')
 
     # Write markdown report
     report_path = os.path.join(reports_dir, 'baseline_mean.md')
@@ -157,7 +171,9 @@ def main():
         f.write('## Summary\n\n')
         f.write(f'- **MAE:** {fold_df["mae"].mean():.2f} ± {fold_df["mae"].std():.2f} mg/dL\n')
         f.write(f'- **RMSE:** {fold_df["rmse"].mean():.2f} ± {fold_df["rmse"].std():.2f} mg/dL\n')
-        f.write(f'- **Effective n:** {int(fold_df["n_subjects_test"].sum())} held-out subjects\n\n')
+        f.write(f'- **Effective n:** {int(fold_df["n_subjects_test"].sum())} held-out subjects\n')
+        f.write(f'- **Pooled Clarke Zone A:** {zone_a_pct:.1f}% (n={len(pred_df)} recordings, '
+                f'{pred_df["subject_id"].nunique()} subjects)\n\n')
         f.write('## Interpretation\n\n')
         f.write('The mean baseline achieves MAE of ~15 mg/dL by predicting the training\n')
         f.write('population mean. Any real model must beat this number to demonstrate\n')

@@ -278,7 +278,7 @@ def health() -> Dict[str, Any]:
             "ppg_estimate": (
                 "UNAVAILABLE — no informative estimator registered; the only "
                 "committed PPG-glucose model is a constant predictor "
-                "(MAE 14.51, n=23 subjects). Also conflicts with ring-fence "
+                "(MAE 14.54, n=23 subjects). Also conflicts with ring-fence "
                 "E1.2 until contract v2.0."
                 if (gsrc.registered_ppg_g0_estimator() is None
                     or not gsrc.registered_ppg_g0_estimator().provides_information)

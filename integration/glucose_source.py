@@ -35,7 +35,7 @@ needs a v2.0 amendment — the Interface Contract meeting is the place.
 
 **Evidence.** The only committed PPG-glucose model
 (`rppg/models/baseline_mean.py`) predicts the training-fold population mean
-for every subject: MAE 14.51 +/- 2.00 mg/dL over 23 subjects. Predicting one
+for every subject: MAE 14.54 +/- 1.10 mg/dL over 23 subjects. Predicting one
 constant for everyone is, in information terms, identical to the population
 fallback this module already has. Registering it would change the label on
 the number, not the number. `G0Estimator.provides_information` records that

@@ -125,7 +125,7 @@ rppg/PPG_Dataset/.venv/bin/python3 rppg/data/convert_labels.py
 
 | Model | Pooled MAE | Per-subject median [IQR] |
 |---|---|---|
-| Baseline (population mean) | 14.57 mg/dL | 13.94 [10.99, 15.96] |
+| Baseline (population mean) | 14.54 mg/dL | 13.94 [10.99, 16.63] |
 | Ridge | 15.64 mg/dL | 13.96 [12.67, 17.05] |
 | Random Forest | 16.52 mg/dL | 16.47 [10.77, 19.19] |
 

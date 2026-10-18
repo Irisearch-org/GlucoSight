@@ -86,7 +86,7 @@ explicitly enabled *and* an informative estimator is registered.
 ### The finger scan cannot be validated on the current dataset
 
 Before training anything, know this: **predicting one constant for every
-subject already reaches Clarke Zone A 85.1%** on the PPG glucose dataset
+subject already reaches Clarke Zone A 83.6%** on the PPG glucose dataset
 (n=67 recordings, 23 subjects, GroupKFold by subject), against a project
 target of 70%. Zone A is ±20%, which at this cohort's median glucose of 110
 mg/dL is ±22 mg/dL — wider than the label SD of 18.6.
@@ -112,7 +112,7 @@ PPG-derived `g0` *is* the sole driver of a user-visible number. Enabling it
 needs a contract v2.0 amendment, not a config change.
 
 **And there is nothing to enable yet.** The only committed PPG-glucose
-model predicts the training-fold mean for every subject (MAE 14.51, n=23),
+model predicts the training-fold mean for every subject (MAE 14.54, n=23),
 so it carries no more information than the population fallback.
 `G0Estimator.provides_information` records that, and `resolve_g0` refuses
 to prefer a constant predictor over the fallback — so the seam cannot be
