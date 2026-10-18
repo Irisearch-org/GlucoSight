@@ -79,3 +79,6 @@ Thumbs.db
 
 # Integration layer scratch
 integration/web/*.png
+
+# ── Teaching workspace (personal learning artefacts, not project code) ──
+/teach/
