@@ -13,6 +13,12 @@ Your user is a member of the **NLP sub-team**.
 > anchor dataset (CGMacros) contains no free-text notes at all. Rather than
 > pretend otherwise, the track splits into two paths with different
 > purposes. Read "The honest situation" below before planning any work.
+>
+> **Update, 2026-10-17 — the Day 1 gate is answered.** ShanghaiT2DM's dietary
+> records are rich enough to model; the feature derivation currently discards
+> that richness. Read the answer in "The Day 1 gate" below, and
+> `docs/NLP_PATH_A_GATE.md` for the measurements. It does not change the
+> notice above.
 
 ---
 
@@ -101,6 +107,70 @@ strings rather than prose.
 Either outcome is a fine result for day 1. Reporting the wrong one is not.
 Forecasting will hand you the file format at end of day 1 — coordinate
 rather than both downloading blind.
+
+**Answered 2026-10-17.** The gate is closed. Full measurements, with a
+reproduction script, are in `docs/NLP_PATH_A_GATE.md`:
+
+```bash
+python -m nlp.eval_path_a_gate
+```
+
+The strings carry real variation, so the **"proceed"** branch applies —
+1,825 distinct dish names across 3,060 meals, compound dishes with cooking
+method and preparation, median 3 items per meal. They are not uniformly
+`米饭 100g`.
+
+**But the pipeline implements the other branch.** Composition is documented
+as `GL = total_grams × 0.28 × 73/100` — one carbohydrate density for every
+food (`nlp/docs/DOMAIN_KNOWLEDGE.md` §1.4) — and `total_grams` is the summed
+weight of every item, so a bowl of rice and a pile of cabbage contribute
+identically. The dish name is discarded, and 2,762 distinct meals collapse
+to 661 feature states. **Path A is currently a dictionary lookup with a
+single dictionary entry, arrived at by discarding the input rather than by
+lacking it.**
+
+Before any Path A number is reported, three things need fixing — all
+detailed in that document:
+
+1. **Composition must come from the dish name.** Either look it up against a
+   composition table (TKPI/DKBM or USDA — the same dictionary CV already
+   intends to use), or declare Path A a lookup and set
+   `nlp_feature_source=lookup`. This is the open decision and it is the
+   whole of Path A's remaining value.
+2. **There is no response variable.** The extracted rows carry glucose *at*
+   the meal. `g0` and the T+60 rise must be rebuilt from the raw 15-minute
+   CGM series, as `forecasting/data/bigideas.py` does.
+3. **`eval_baseline.py` groups folds on the period id, not the patient.**
+   Eight subjects contribute nine extra periods, so 18.5–21.5% of test meals
+   are a repeat visit of a training subject. Group on the subject.
+
+Two blockers on acting: the raw ShanghaiT2DM Excel files are not on disk,
+and `nlp/features/shanghai_nlp_features.csv` is neither read nor producible
+by any code in this repository. Every number above comes from that committed
+artifact plus the dataset paper.
+
+> **Update 2026-10-18 — blockers 1 and 2 cleared, and item 1 decided.**
+>
+> *Blocker (a)*: the raw v3 workbooks were downloaded (3.4 MB, CC BY 4.0) and
+> are now read by `nlp/data/shanghai_schema.py`, which replaces the exact
+> header matching that silently read two workbooks as having no glucose.
+>
+> *Item 2 — response variable*: done.
+> `nlp/features/shanghai_nlp_response.csv` carries a strictly causal `g0` and
+> a T+60 / T+120 rise for 3,045 of 3,060 meals (99.51%), every exclusion
+> named. See `docs/SHANGHAI_RESPONSE_REBUILD.md` (R1–R6). Run
+> `python3 -m nlp.data.shanghai_response`.
+>
+> *Item 1 — where composition comes from*: decided. It comes from **dish
+> identity → carbohydrate density**, with Shanghai used to validate the
+> *method* and a fixed Indonesian dish list supplying the *content*. A
+> translation lexicon is not the bridge; it only renames. The bridge, the
+> rejected alternatives, and what IndoBERT is still for are in
+> `docs/NLP_INDONESIAN_BRIDGE.md` (IB1–IB8). Note IB4: the Indonesian lookup
+> in this repo is 10 rows, so breadth — not language — is the ceiling.
+>
+> *Item 3 — the split* is still open: the response table exposes `subject_id`
+> and `period_index` separately so the fix is one `groupby` away.
 
 ---
 
