@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Does the meal earn its place? — GlucoSight prototype</title>
+<style>
+  :root {
+    --bg: #fbfaf8;
+    --panel: #ffffff;
+    --ink: #1b1a18;
+    --muted: #6b6862;
+    --line: #e2ded6;
+    --good: #1a7f4b;
+    --bad: #b02a1f;
+    --warn: #9a6b00;
+    --accent: #2f5d8a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 32px 20px 80px; }
+  .prototype-badge {
+    display: inline-block; font-size: 12px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--warn);
+    border: 1px solid var(--warn); border-radius: 999px;
+    padding: 2px 10px; margin-bottom: 14px;
+  }
+  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 8px; }
+  .lede { color: var(--muted); max-width: 62ch; margin: 0 0 6px; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .06em;
+       color: var(--muted); margin: 34px 0 10px; font-weight: 600; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; padding: 18px 20px;
+  }
+  .readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+             gap: 18px 24px; }
+  .field .label { font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
+                  color: var(--muted); margin-bottom: 3px; }
+  .field .value { font-size: 21px; font-variant-numeric: tabular-nums; }
+  .field .note { font-size: 13px; color: var(--muted); }
+  .verdict { margin-top: 18px; padding: 12px 14px; border-radius: 8px;
+             border: 1px solid var(--line); font-weight: 600; }
+  .verdict.good { color: var(--good); border-color: #bfe3cf; background: #f2faf5; }
+  .verdict.bad  { color: var(--bad);  border-color: #f0cdc8; background: #fdf4f3; }
+  .verdict.warn { color: var(--warn); border-color: #ecd9a8; background: #fdfaf0; }
+  button {
+    font: inherit; color: var(--ink); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 8px;
+    padding: 9px 13px; cursor: pointer; text-align: left;
+  }
+  button:hover { border-color: #c8c2b6; }
+  button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent); }
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+  .slider { margin-top: 16px; }
+  .slider input { width: 100%; max-width: 520px; }
+  .slider .row { display: flex; justify-content: space-between;
+                 max-width: 520px; font-size: 13px; color: var(--muted); }
+  .scenarios { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 640px) { .scenarios { grid-template-columns: 1fr; } }
+  .scenario { padding: 12px 14px; }
+  .scenario strong { display: block; margin-bottom: 2px; }
+  .scenario span { font-size: 13px; color: var(--muted); }
+  .caption { margin-top: 14px; padding: 12px 14px; border-left: 3px solid var(--accent);
+             background: #f4f7fb; border-radius: 0 6px 6px 0; font-size: 15px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--line);
+           font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px;
+       text-transform: uppercase; letter-spacing: .05em; }
+  .gain-good { color: var(--good); }
+  .gain-bad { color: var(--bad); }
+  .caveats { margin-top: 34px; font-size: 13.5px; color: var(--muted); }
+  .caveats li { margin-bottom: 7px; }
+  code { background: #f1eee8; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="prototype-badge">Prototype · throwaway · not production code</div>
+
+  <h1>Does the meal earn its place?</h1>
+  <p class="lede">
+    GlucoSight claims that knowing what someone ate improves the glucose
+    forecast. This page recomputes that claim on 666 real meals from 15 people,
+    live in your browser, so you can push it until it breaks.
+  </p>
+  <p class="lede">
+    The only question that matters: <strong>how well does the system have to
+    know the food before the food starts helping?</strong>
+  </p>
+
+  <h2>What the system knows right now</h2>
+  <section class="panel">
+    <div class="readout">
+      <div class="field">
+        <div class="label">What it knows about the dish</div>
+        <div class="value" id="f-scheme" style="font-size:16px">—</div>
+      </div>
+      <div class="field">
+        <div class="label">How well it knows the carbs</div>
+        <div class="value" id="f-corr">—</div>
+        <div class="note">correlation with the true carbohydrates</div>
+      </div>
+      <div class="field">
+        <div class="label">Forecast error, glucose history only</div>
+        <div class="value" id="f-base">—</div>
+        <div class="note">mg/dL, leave-one-out</div>
+      </div>
+      <div class="field">
+        <div class="label">Forecast error, history + meal</div>
+        <div class="value" id="f-meal">—</div>
+        <div class="note">mg/dL, leave-one-out</div>
+      </div>
+      <div class="field">
+        <div class="label">What the meal buys you</div>
+        <div class="value" id="f-gain">—</div>
+        <div class="note">negative is better</div>
+      </div>
+      <div class="field">
+        <div class="label">People helped</div>
+        <div class="value" id="f-improved">—</div>
+      </div>
+    </div>
+    <div class="verdict" id="f-verdict">—</div>
+  </section>
+
+  <h2>Free play</h2>
+  <section class="panel">
+    <div class="choices" id="schemes"></div>
+    <div class="slider">
+      <label for="retained"><strong>How much of the dish signal actually
+        survives?</strong> <span id="retained-label">as measured</span></label>
+      <input type="range" id="retained" min="0" max="100" value="100">
+      <div class="row"><span>nothing survives</span><span>as measured</span></div>
+    </div>
+  </section>
+
+  <h2>Guided walkthroughs</h2>
+  <section class="panel">
+    <div class="scenarios" id="scenarios"></div>
+    <div class="caption" id="caption">Pick a walkthrough above.</div>
+  </section>
+
+  <h2>Per person</h2>
+  <section class="panel">
+    <table>
+      <thead><tr><th>Participant</th><th>Carb correlation</th>
+      <th>Gain from the meal</th></tr></thead>
+      <tbody id="detail"></tbody>
+    </table>
+  </section>
+
+  <div class="caveats" id="caveats"></div>
+
+</div>
+
+<script>
+const DATA = __DATA__;
+
+/* ------------------------------------------------------------------ *
+ * Pure logic. No DOM in here — this is the part worth reading.
+ * ------------------------------------------------------------------ */
+const MealModel = (function () {
+
+  function transpose(a) {
+    const out = [];
+    for (let j = 0; j < a[0].length; j++) {
+      const row = [];
+      for (let i = 0; i < a.length; i++) row.push(a[i][j]);
+      out.push(row);
+    }
+    return out;
+  }
+
+  function multiply(a, b) {
+    const out = [];
+    for (let i = 0; i < a.length; i++) {
+      const row = [];
+      for (let j = 0; j < b[0].length; j++) {
+        let s = 0;
+        for (let k = 0; k < b.length; k++) s += a[i][k] * b[k][j];
+        row.push(s);
+      }
+      out.push(row);
+    }
+    return out;
+  }
+
+  function matVec(a, v) {
+    return a.map(row => row.reduce((s, x, j) => s + x * v[j], 0));
+  }
+
+  // Gauss-Jordan with a tiny ridge so a rank-deficient design stays finite.
+  function inverse(m) {
+    const n = m.length;
+    const scale = Math.max(1, ...m.map((r, i) => Math.abs(r[i])));
+    const a = m.map((r, i) => r.concat(
+      Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))));
+    for (let i = 0; i < n; i++) a[i][i] += 1e-9 * scale;
+    for (let col = 0; col < n; col++) {
+      let pivot = col;
+      for (let r = col + 1; r < n; r++) {
+        if (Math.abs(a[r][col]) > Math.abs(a[pivot][col])) pivot = r;
+      }
+      [a[col], a[pivot]] = [a[pivot], a[col]];
+      const p = a[col][col];
+      if (Math.abs(p) < 1e-14) return null;
+      for (let j = 0; j < 2 * n; j++) a[col][j] /= p;
+      for (let r = 0; r < n; r++) {
+        if (r === col) continue;
+        const factor = a[r][col];
+        if (!factor) continue;
+        for (let j = 0; j < 2 * n; j++) a[r][j] -= factor * a[col][j];
+      }
+    }
+    return a.map(r => r.slice(n));
+  }
+
+  /* Leave-one-out OLS predictions via the hat matrix — algebraically the same
+   * as refitting with each meal held out, but O(1) per meal. */
+  function looPredictLinear(design, y) {
+    const xtx = multiply(transpose(design), design);
+    const inv = inverse(xtx);
+    if (!inv) return null;
+    const beta = matVec(inv, matVec(transpose(design), y));
+    const out = [];
+    for (let i = 0; i < design.length; i++) {
+      const row = design[i];
+      const fit = row.reduce((s, x, j) => s + x * beta[j], 0);
+      const residual = y[i] - fit;
+      const invRow = matVec(inv, row);
+      let leverage = row.reduce((s, x, j) => s + x * invRow[j], 0);
+      leverage = Math.min(Math.max(leverage, 0), 1 - 1e-9);
+      out.push(y[i] - residual / (1 - leverage));
+    }
+    return out;
+  }
+
+  function mean(a) { return a.reduce((s, x) => s + x, 0) / a.length; }
+  function stdev(a) {
+    const m = mean(a);
+    return Math.sqrt(a.reduce((s, x) => s + (x - m) * (x - m), 0) / a.length);
+  }
+  function median(a) {
+    const s = a.slice().sort((x, y) => x - y);
+    const mid = s.length >> 1;
+    return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+  }
+  function correlation(a, b) {
+    const ma = mean(a), mb = mean(b);
+    let num = 0, va = 0, vb = 0;
+    for (let i = 0; i < a.length; i++) {
+      const da = a[i] - ma, db = b[i] - mb;
+      num += da * db; va += da * da; vb += db * db;
+    }
+    if (va <= 0 || vb <= 0) return NaN;
+    return num / Math.sqrt(va * vb);
+  }
+  function meanAbs(a, b) {
+    let s = 0;
+    for (let i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]);
+    return s / a.length;
+  }
+
+  // Deterministic, so the same slider position always shows the same number.
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /* Keep `retained` of the estimate's signal and replace the rest with
+   * orthogonal noise, preserving mean and spread. retained=1 is untouched. */
+  function degrade(values, retained, rand) {
+    if (retained >= 1) return values.slice();
+    const m = mean(values), sd = stdev(values);
+    if (sd <= 0) return values.slice();
+    const keep = Math.max(0, Math.min(1, retained));
+    const drop = Math.sqrt(Math.max(0, 1 - keep * keep));
+    return values.map(v => {
+      const z = (v - m) / sd;
+      const noise = Math.sqrt(-2 * Math.log(rand() + 1e-12)) *
+                    Math.cos(2 * Math.PI * rand());
+      return Math.max(0, m + sd * (keep * z + drop * noise));
+    });
+  }
+
+  function evaluate(participants, schemeKey, retained, seed) {
+    const rand = mulberry32(seed);
+    const perPerson = [];
+    participants.forEach(function (p) {
+      const truth = p.estimates.oracle;
+      const est = degrade(p.estimates[schemeKey], retained, rand);
+      if (stdev(est) <= 0) return;
+
+      const baseDesign = p.g0.map(g => [1, g]);
+      const mealDesign = p.g0.map((g, i) => [1, g, est[i]]);
+      const basePred = looPredictLinear(baseDesign, p.delta);
+      const mealPred = looPredictLinear(mealDesign, p.delta);
+      if (!basePred || !mealPred) return;
+
+      const maeBase = meanAbs(p.delta, basePred);
+      const maeMeal = meanAbs(p.delta, mealPred);
+      perPerson.push({
+        id: p.id,
+        correlation: correlation(est, truth),
+        maeBase: maeBase,
+        maeMeal: maeMeal,
+        gain: maeMeal - maeBase,
+        helps: maeMeal < maeBase,
+      });
+    });
+
+    if (!perPerson.length) return null;
+    const correlations = perPerson.map(r => r.correlation)
+                                 .filter(r => isFinite(r));
+    return {
+      correlationMedian: correlations.length ? median(correlations) : NaN,
+      correlationMean: correlations.length ? mean(correlations) : NaN,
+      maeBase: mean(perPerson.map(r => r.maeBase)),
+      maeMeal: mean(perPerson.map(r => r.maeMeal)),
+      gain: mean(perPerson.map(r => r.gain)),
+      improved: perPerson.filter(r => r.helps).length,
+      participants: perPerson.length,
+      perPerson: perPerson,
+    };
+  }
+
+  return { evaluate: evaluate, correlation: correlation,
+           looPredictLinear: looPredictLinear };
+})();
+
+/* ------------------------------------------------------------------ *
+ * Presentation
+ * ------------------------------------------------------------------ */
+const SCHEMES = [
+  { key: "oracle",  label: "Weighed macros",
+    short: "Weighed on a scale",
+    note: "The ceiling. Cannot come from a photograph." },
+  { key: "cohort1", label: "Names the dish, one standard serving",
+    short: "Names the dish (cold start)",
+    note: "What a vision model can do today: a dish, no size." },
+  { key: "self1",   label: "Names the dish, knows your usual serving",
+    short: "Names the dish (knows you)",
+    note: "After the app has learned this person's habits." },
+  { key: "self3",   label: "Names the dish, and can tell small from large",
+    short: "Names the dish + portion band",
+    note: "Adds a crude small / medium / large estimate." },
+];
+
+const state = { scheme: "cohort1", retained: 1.0, seed: 1 };
+
+const $ = id => document.getElementById(id);
+
+function verdictFor(gain) {
+  if (gain <= -0.10) return { cls: "good", text:
+    "Worth including. The meal makes the forecast better." };
+  if (gain >= 0.10) return { cls: "bad", text:
+    "Actively harmful. The meal makes the forecast worse — leave it out." };
+  return { cls: "warn", text:
+    "Buys nothing. The meal is no better than ignoring the food." };
+}
+
+function render() {
+  const result = MealModel.evaluate(
+    DATA.participants, state.scheme, state.retained, state.seed);
+  const scheme = SCHEMES.find(s => s.key === state.scheme);
+
+  document.querySelectorAll("[data-scheme]").forEach(b => {
+    b.setAttribute("aria-pressed",
+      String(b.dataset.scheme === state.scheme));
+  });
+
+  const retained = $("retained");
+  retained.value = Math.round(state.retained * 100);
+  $("retained-label").textContent = state.retained >= 0.999
+    ? "as measured"
+    : Math.round(state.retained * 100) + "%";
+
+  if (!result) {
+    $("f-verdict").textContent = "No usable data for this setting.";
+    return;
+  }
+
+  $("f-scheme").textContent = scheme.short;
+  $("f-corr").textContent = isFinite(result.correlationMedian)
+    ? result.correlationMedian.toFixed(2) : "—";
+  $("f-base").textContent = result.maeBase.toFixed(1);
+  $("f-meal").textContent = result.maeMeal.toFixed(1);
+  $("f-gain").textContent = (result.gain >= 0 ? "+" : "") +
+    result.gain.toFixed(2);
+  $("f-gain").className = "value " +
+    (result.gain < -0.1 ? "gain-good" : result.gain > 0.1 ? "gain-bad" : "");
+  $("f-improved").textContent =
+    result.improved + " of " + result.participants;
+
+  const verdict = verdictFor(result.gain);
+  $("f-verdict").className = "verdict " + verdict.cls;
+  $("f-verdict").textContent = verdict.text;
+
+  $("detail").innerHTML = result.perPerson
+    .map(r => "<tr><td>" + r.id + "</td><td>" +
+      (isFinite(r.correlation) ? r.correlation.toFixed(2) : "—") +
+      "</td><td class='" + (r.gain < 0 ? "gain-good" : "gain-bad") + "'>" +
+      (r.gain >= 0 ? "+" : "") + r.gain.toFixed(2) + "</td></tr>")
+    .join("");
+}
+
+function setState(scheme, retained, caption) {
+  state.scheme = scheme;
+  state.retained = retained;
+  render();
+  if (caption) $("caption").textContent = caption;
+}
+
+function buildControls() {
+  $("schemes").innerHTML = SCHEMES.map(s =>
+    "<button data-scheme='" + s.key + "' title='" + s.note + "'>" +
+    s.label + "</button>").join("");
+  document.querySelectorAll("[data-scheme]").forEach(b => {
+    b.addEventListener("click", () => setState(b.dataset.scheme, state.retained,
+      SCHEMES.find(s => s.key === b.dataset.scheme).note));
+  });
+  $("retained").addEventListener("input", event => {
+    state.retained = Number(event.target.value) / 100;
+    render();
+  });
+}
+
+const WALKTHROUGHS = [
+  {
+    title: "What the meal is worth at best",
+    blurb: "Weighed macros — a ceiling nothing can reach from a photo.",
+    run: () => setState("oracle", 1.0,
+      "Even with perfect information, the meal buys about 1.5 mg/dL at T+60 " +
+      "and about 4.2 at T+120. That is the whole prize. Anything the CV track " +
+      "does is a fraction of this number."),
+  },
+  {
+    title: "A vision model naming dishes",
+    blurb: "Knows which dish, not how much — and has never seen your meals.",
+    run: () => setState("cohort1", 1.0,
+      "Naming the dish alone recovers roughly a third of the prize. Note it " +
+      "still helps — the carb correlation clears the break-even — but it is " +
+      "the weakest useful operating point."),
+  },
+  {
+    title: "After the app has learned your habits",
+    blurb: "Still no portion estimate, but it knows your dishes and servings.",
+    run: () => setState("self1", 1.0,
+      "The gap between this and the previous step is large. It comes from " +
+      "familiarity, not from a better model — the same dish, learned from " +
+      "this person's own history. Personalisation is the lever."),
+  },
+  {
+    title: "Does measuring the portion help?",
+    blurb: "Compare 'names the dish' with 'names the dish and sizes it'.",
+    run: () => setState("self3", 1.0,
+      "Compare this with the previous step: the carb correlation moves by " +
+      "about 0.01 and the gain barely changes. Portion size is 2.5% of the " +
+      "variance in how many carbs a meal contains. Which dish is 97.5%."),
+  },
+  {
+    title: "When does the meal start hurting?",
+    blurb: "Drag the slider down and watch the verdict flip.",
+    run: () => setState("self1", 0.35,
+      "Drag the 'dish signal' slider. Somewhere around 40% the gain reaches " +
+      "zero, and past it the meal stops helping and starts making the " +
+      "forecast worse. A half-right food estimate is not harmless — it is " +
+      "negative value."),
+  },
+  {
+    title: "What if the estimate carries no information?",
+    blurb: "The system sees a plate but learns nothing from it.",
+    run: () => setState("self1", 0.0,
+      "At zero signal the meal is actively harmful: it fits noise. If the " +
+      "classifier's output does not correlate with what was actually eaten, " +
+      "wiring it in makes the product worse than shipping without it."),
+  },
+];
+
+function buildWalkthroughs() {
+  $("scenarios").innerHTML = WALKTHROUGHS.map((w, i) =>
+    "<button class='scenario' data-scenario='" + i + "'><strong>" + w.title +
+    "</strong><span>" + w.blurb + "</span></button>").join("");
+  document.querySelectorAll("[data-scenario]").forEach(b => {
+    b.addEventListener("click", () => WALKTHROUGHS[Number(b.dataset.scenario)].run());
+  });
+}
+
+function buildCaveats() {
+  const problems = (DATA.problems || []).map(p =>
+    "<li>Skipped — " + p + "</li>").join("");
+  $("caveats").innerHTML =
+    "<h2>Caveats — read these before quoting a number</h2><ul>" +
+    "<li><strong>Oracle macros.</strong> The carbohydrate values are what each " +
+    "person's food-search app looked up, not what they ate off a scale. " +
+    "Every number here is a ceiling.</li>" +
+    "<li><strong>Cohort.</strong> 15 pre-diabetic participants over about " +
+    "8 days each — not the type 2 diabetes cohort the product targets.</li>" +
+    "<li><strong>Two sensitivities, not one.</strong> The dish estimates here " +
+    "carry the whole meal's composition — fat, protein and fibre move with " +
+    "the dish. A test that corrupts only the carbohydrate number shows a " +
+    "smaller effect at the same correlation. Do not compare the two.</li>" +
+    "<li><strong>Leave-one-out, per person.</strong> No model is fitted and " +
+    "scored on the same meal, and no accountability is claimed across " +
+    "people.</li>" +
+    "<li><strong>No p-values.</strong> Meals within one person are not " +
+    "independent. Medians across the 15 people are the honest statistic.</li>" +
+    problems +
+    "</ul><p>Full write-up: <code>docs/BIGIDEAS_MEAL_RESPONSE_FINDINGS.md</code>. " +
+    "Data: " + DATA.source + ", " + DATA.meals + " paired meals.</p>";
+}
+
+buildControls();
+buildWalkthroughs();
+buildCaveats();
+render();
+$("caption").textContent = "Pick a walkthrough above, or drive the controls " +
+  "on your own.";
+</script>
+</body>
+</html>
