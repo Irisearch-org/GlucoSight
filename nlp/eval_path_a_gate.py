@@ -16,19 +16,17 @@ import re
 import statistics
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 _HERE = Path(__file__).resolve().parent
 DEFAULT_FEATURES = _HERE / "features" / "shanghai_nlp_features.csv"
 PROCESSED = _HERE / "data" / "processed"
 
+from nlp.data.diet_items import ITEM_RE, dish_names, parse_items  # noqa: F401
+
 # The five prefix variations `nlp/scripts/create_dataset.py` adds on top of
 # its hand-written templates (N7).
 PREFIXES = ("aku tadi ", "hari ini ", "barusan ", "tadi ", "semalam ", "karena ")
-
-# "Rice 150 g" / "Milk 250 ml" -> ("Rice", 150.0). Anchored at the end so an
-# item name containing a digit does not split the wrong way.
-ITEM_RE = re.compile(r"^(?P<name>.*?)\s*(?P<grams>\d+(?:\.\d+)?)\s*(?:g|ml)\s*$", re.I)
 
 
 # --------------------------------------------------------------------------
@@ -38,23 +36,6 @@ ITEM_RE = re.compile(r"^(?P<name>.*?)\s*(?P<grams>\d+(?:\.\d+)?)\s*(?:g|ml)\s*$"
 def load_features(path: Path = DEFAULT_FEATURES) -> List[dict]:
     with path.open(encoding="utf-8-sig", newline="") as fh:
         return list(csv.DictReader(fh))
-
-
-def parse_items(rows: Iterable[dict]) -> List[Tuple[str, str, float]]:
-    """(participant_id, normalised dish name, grams) for every parsed item."""
-    out: List[Tuple[str, str, float]] = []
-    for r in rows:
-        for seg in r["dietary_intake"].split("|"):
-            m = ITEM_RE.match(seg.strip())
-            if m:
-                name = re.sub(r"\s+", " ", m.group("name").strip().lower())
-                if name and float(m.group("grams")) > 0:
-                    out.append((r["participant_id"], name, float(m.group("grams"))))
-    return out
-
-
-def dish_names(rows: Iterable[dict]) -> List[str]:
-    return [name for _, name, _ in parse_items(rows)]
 
 
 # --------------------------------------------------------------------------
