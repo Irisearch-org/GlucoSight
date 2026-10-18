@@ -1,0 +1,278 @@
+{
+  "metadata": {
+    "evaluation": "out_of_domain",
+    "run_label": "FULL OOD",
+    "is_full_manifest_run": true,
+    "max_meals": null,
+    "selection_seed": 42,
+    "manifest_source": "existing_b0_manifest",
+    "b0_reference_check": "manifest_hash_and_b0_mae_match",
+    "full_manifest_sha256": "064f78df9be342da94bff2761236d0e3b5ac6da7bbd5a5aaac7c7a0109a2c152",
+    "selected_manifest_sha256": "064f78df9be342da94bff2761236d0e3b5ac6da7bbd5a5aaac7c7a0109a2c152",
+    "checkpoint_sha256": "394c8869408025ad2cb29a3bd3e1a75d8bdc30598ec776dd75ec3db1d1bcd181",
+    "macro_table_sha256": "57a0bb7e3e3c74f89a0f4e52d779e7bb7337a0a4e494ee1b6e556ca8bc84fb08",
+    "inference_code_sha256": {
+      "classifier.py": "07d0d01eef1c3e8ae4ed3f282aae059e463845a617530af85358ababb552911d",
+      "predict.py": "2a42e820b61148566c6ca236a1746546c8ad37fab9c11e0189167fce3a45c21b",
+      "preprocessing.py": "42a5c17eaa80ce4c7caf6bc87dd3c37d960a0586efc68e0df0f5b18c249759ec",
+      "config.py": "fb98d2305382e96f3e6460e83348b2954def378e7157da26c86239285ca00fa0",
+      "macro_lookup.py": "16c8263f67b7f15f05aad906fd853d78f61804926f8442e345e53179b95e389f",
+      "mean_baseline.py": "a5fae9a9d903115b6c9b1a38496ec08928c258d0576d6ed3d02ba6ea57f7dbbc",
+      "cgmacros_manifest.py": "246ad54954c8c71f49861b8f53c7cc1cc850dba6088d44c556b130ea417468bb",
+      "b0_evaluation.py": "bb83aa720146a788b2ba93195555a8cd8b21af54f3d552dc5dfd76ce816e4a3e",
+      "schema.py": "51bdeb743d53c6db14c3316474fb9aaf39bb7fbe171c9048f8eeba6014925ac6"
+    },
+    "model_version": "cv-baseline-v0.1",
+    "confidence_type": "uncalibrated_top1_softmax",
+    "low_confidence_threshold": 0.6,
+    "prediction_carbs_source": "class_lookup",
+    "prediction_fiber_source": "estimated_from_carb_ratio",
+    "ground_truth_provenance": "cgmacros_reported_estimate",
+    "device": "cpu",
+    "cpu_threads": 4,
+    "python_version": "3.11.0",
+    "packages": {
+      "numpy": "1.26.4",
+      "pandas": "3.0.5",
+      "matplotlib": "3.10.9",
+      "torch": "2.2.2",
+      "torchvision": "0.17.2",
+      "Pillow": "10.2.0"
+    },
+    "full_manifest_meals": 1616,
+    "selected_meals": 1616,
+    "selected_participants": 45,
+    "started_at_utc": "2026-09-08T05:30:51.492341+00:00",
+    "inference_complete": true,
+    "inference_seconds": 116.20499420000033,
+    "finished_at_utc": "2026-09-08T05:32:47.698795+00:00"
+  },
+  "coverage": {
+    "full_manifest_meals": 1616,
+    "selected_meals": 1616,
+    "scored_meals": 1616,
+    "failed_meals": 0,
+    "scored_fraction": 1.0,
+    "selected_participants": 45,
+    "scored_participants": 45,
+    "prediction_status_counts": {
+      "ok": 858,
+      "low_confidence": 758
+    }
+  },
+  "b0_fixed_prediction": {
+    "carbs_g": 45.0,
+    "protein_g": 18.0,
+    "fat_g": 12.0,
+    "fiber_g": 4.0
+  },
+  "comparison": [
+    {
+      "macro": "carbs_g",
+      "n_meals": 1616,
+      "cv_mae_g": 35.019059405940595,
+      "b0_mae_g": 27.342388613861388,
+      "delta_mae_g": 7.676670792079207,
+      "cv_rmse_g": 42.9247619171448,
+      "b0_rmse_g": 31.844678841912575
+    },
+    {
+      "macro": "protein_g",
+      "n_meals": 1616,
+      "cv_mae_g": 20.69585396039604,
+      "b0_mae_g": 19.698576732673267,
+      "delta_mae_g": 0.9972772277227726,
+      "cv_rmse_g": 29.10965260871383,
+      "b0_rmse_g": 28.11969608954401
+    },
+    {
+      "macro": "fat_g",
+      "n_meals": 1616,
+      "cv_mae_g": 13.099009900990099,
+      "b0_mae_g": 12.50946782178218,
+      "delta_mae_g": 0.5895420792079182,
+      "cv_rmse_g": 18.42075682968042,
+      "b0_rmse_g": 18.258389330403546
+    },
+    {
+      "macro": "fiber_g",
+      "n_meals": 1616,
+      "cv_mae_g": 4.276608910891089,
+      "b0_mae_g": 4.1783415841584155,
+      "delta_mae_g": 0.09826732673267369,
+      "cv_rmse_g": 7.917569602841619,
+      "b0_rmse_g": 7.265194047956011
+    }
+  ],
+  "participant_summary": [
+    {
+      "macro": "carbs_g",
+      "n_participants": 45,
+      "cv_median_mae_g": 34.71785714285714,
+      "cv_q1_mae_g": 31.7764705882353,
+      "cv_q3_mae_g": 38.59444444444445,
+      "b0_median_mae_g": 27.057142857142857,
+      "b0_q1_mae_g": 25.7,
+      "b0_q3_mae_g": 29.066666666666666,
+      "delta_median_mae_g": 7.9452380952381,
+      "delta_q1_mae_g": 4.637499999999999,
+      "delta_q3_mae_g": 11.04333333333334
+    },
+    {
+      "macro": "protein_g",
+      "n_participants": 45,
+      "cv_median_mae_g": 20.557499999999997,
+      "cv_q1_mae_g": 19.2390243902439,
+      "cv_q3_mae_g": 22.75,
+      "b0_median_mae_g": 19.575,
+      "b0_q1_mae_g": 18.318181818181817,
+      "b0_q3_mae_g": 21.22222222222222,
+      "delta_median_mae_g": 0.9824999999999982,
+      "delta_q1_mae_g": 0.372131147540987,
+      "delta_q3_mae_g": 1.6682926829268254
+    },
+    {
+      "macro": "fat_g",
+      "n_participants": 45,
+      "cv_median_mae_g": 13.046341463414636,
+      "cv_q1_mae_g": 11.92,
+      "cv_q3_mae_g": 14.379487179487182,
+      "b0_median_mae_g": 12.5,
+      "b0_q1_mae_g": 11.1875,
+      "b0_q3_mae_g": 13.411764705882353,
+      "delta_median_mae_g": 0.4875000000000007,
+      "delta_q1_mae_g": -0.0964285714285733,
+      "delta_q3_mae_g": 1.3631578947368421
+    },
+    {
+      "macro": "fiber_g",
+      "n_participants": 45,
+      "cv_median_mae_g": 4.13,
+      "cv_q1_mae_g": 3.4583333333333335,
+      "cv_q3_mae_g": 4.735294117647058,
+      "b0_median_mae_g": 3.8421052631578947,
+      "b0_q1_mae_g": 3.6,
+      "b0_q3_mae_g": 4.433333333333334,
+      "delta_median_mae_g": 0.1599999999999997,
+      "delta_q1_mae_g": -0.13220338983050928,
+      "delta_q3_mae_g": 0.4049999999999998
+    }
+  ],
+  "confidence": {
+    "n_meals": 1616,
+    "mean": 0.6358234529702971,
+    "median": 0.62175,
+    "q1": 0.442575,
+    "q3": 0.840225,
+    "min": 0.1724,
+    "max": 0.9999,
+    "fraction_status_low_confidence": 0.46905940594059403,
+    "fraction_reported_confidence_ge_0_9": 0.1745049504950495,
+    "threshold": 0.6,
+    "type": "uncalibrated_top1_softmax_rounded_4dp"
+  },
+  "confidence_histogram": [
+    {
+      "lower_bound": 0.0,
+      "upper_bound": 0.1,
+      "n_meals": 0,
+      "fraction": 0.0
+    },
+    {
+      "lower_bound": 0.1,
+      "upper_bound": 0.2,
+      "n_meals": 4,
+      "fraction": 0.0024752475247524753
+    },
+    {
+      "lower_bound": 0.2,
+      "upper_bound": 0.30000000000000004,
+      "n_meals": 90,
+      "fraction": 0.055693069306930694
+    },
+    {
+      "lower_bound": 0.30000000000000004,
+      "upper_bound": 0.4,
+      "n_meals": 202,
+      "fraction": 0.125
+    },
+    {
+      "lower_bound": 0.4,
+      "upper_bound": 0.5,
+      "n_meals": 242,
+      "fraction": 0.14975247524752475
+    },
+    {
+      "lower_bound": 0.5,
+      "upper_bound": 0.6000000000000001,
+      "n_meals": 220,
+      "fraction": 0.13613861386138615
+    },
+    {
+      "lower_bound": 0.6000000000000001,
+      "upper_bound": 0.7000000000000001,
+      "n_meals": 193,
+      "fraction": 0.11943069306930693
+    },
+    {
+      "lower_bound": 0.7000000000000001,
+      "upper_bound": 0.8,
+      "n_meals": 176,
+      "fraction": 0.10891089108910891
+    },
+    {
+      "lower_bound": 0.8,
+      "upper_bound": 0.9,
+      "n_meals": 207,
+      "fraction": 0.1280940594059406
+    },
+    {
+      "lower_bound": 0.9,
+      "upper_bound": 1.0,
+      "n_meals": 282,
+      "fraction": 0.1745049504950495
+    }
+  ],
+  "predicted_classes": [
+    {
+      "predicted_class": "pempek",
+      "n_meals": 531
+    },
+    {
+      "predicted_class": "gado_gado",
+      "n_meals": 196
+    },
+    {
+      "predicted_class": "nasi_goreng",
+      "n_meals": 196
+    },
+    {
+      "predicted_class": "rendang",
+      "n_meals": 162
+    },
+    {
+      "predicted_class": "soto",
+      "n_meals": 138
+    },
+    {
+      "predicted_class": "sate",
+      "n_meals": 108
+    },
+    {
+      "predicted_class": "gudeg",
+      "n_meals": 102
+    },
+    {
+      "predicted_class": "bebek_betutu",
+      "n_meals": 100
+    },
+    {
+      "predicted_class": "rawon",
+      "n_meals": 51
+    },
+    {
+      "predicted_class": "bakso",
+      "n_meals": 32
+    }
+  ]
+}
