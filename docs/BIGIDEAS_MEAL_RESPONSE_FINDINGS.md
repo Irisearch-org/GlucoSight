@@ -282,6 +282,39 @@ is consistent with B3's weak median correlation of +0.246.
 
 ---
 
+### B12 — `is_fried_cooking` adds nothing measurable, and it's a power problem, not a physiology one (ADR 0004)
+
+`history_baselines()` (`forecasting/evaluate/bigideas_response.py`) gained a
+fourth model, **B4: `g0 + fitted slope + carbs + is_fried_cooking`**, with
+`is_fried_cooking` derived per meal from BIG IDEAs' own `item_names` text via
+the same rule-based matcher the NLP track already ships
+(`utils/cooking_method.py::is_fried` — not a new keyword list).
+
+**B4 is numerically identical to B3** on the real data: 19.52 mg/dL MAE,
+both, to two decimal places. **This is not "frying doesn't matter."** The
+matcher works correctly — checked directly, not assumed: 12 of 688 meals
+(1.7%) are flagged fried, and reading them confirms it: *"Air Fried Chicken
+Wings," "Hibachi Steak + ... + Fried Rice," "Fried Potato."* The problem is
+sample size, not signal: `history_baselines` fits one coefficient per
+participant via leave-one-out regression, and across 15 participants, 12
+fried meals works out to under one per participant on average — there is
+essentially no within-participant variation left to fit a third coefficient
+against. A real effect at 1.7% prevalence is underpowered by construction
+here, independent of whether frying genuinely changes the glucose response
+(the published literature — `rppg/LITERATURE_REVIEW_GLUCOSE_ESTIMATION.md`
+cites Bo et al. 2017 on fried-food fat content — says it plausibly does).
+
+**What would actually answer the question:** either a cohort where fried
+meals are logged densely enough per participant to fit a coefficient
+(BIG IDEAs is not that cohort), or a pooled (not per-participant) model
+willing to spend degrees of freedom differently — not re-running this exact
+test and expecting a different number.
+
+Reproduce: `python3 -m forecasting.evaluate.bigideas_response --data-dir
+~/Downloads/Bigideas-dataset` (gitignored raw data, not shipped).
+
+---
+
 ## Relationship to review finding C5
 
 `docs/REVIEW_FINDINGS.md` C5 states:

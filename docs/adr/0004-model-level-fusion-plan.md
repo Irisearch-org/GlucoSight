@@ -32,7 +32,7 @@ test**, each answering the question its dataset can actually support —
    out-of-domain failure, not test whether a carbs signal helps the
    forecast at all. The ground truth isolates the right question.
 2. **`is_fried_cooking` contribution, on BIG IDEAS**, using its real
-   `logged_food` text through the existing `_is_fried()` keyword matcher.
+   `logged_food` text through the existing `is_fried()` keyword matcher.
 
 Claiming a single end-to-end "proof" across both would misrepresent what
 was actually tested, the same way the original CGMacros/Zone-A acceptance
@@ -62,3 +62,28 @@ criterion did.
 - This ADR records the decision; the build itself (feature column, BIG
   IDEAS loader wiring, the gated evaluation, the eventual `_predictor`
   swap) is not done yet and is tracked as the next spec when picked up.
+
+## Addendum, 2026-10-19 — the BIG IDEAS half is built and run; the CGMacros half is blocked
+
+**BIG IDEAS: done.** `is_fried_cooking` added as a fourth model (B4) in
+`forecasting/evaluate/bigideas_response.py::history_baselines`, derived
+from the dataset's own `item_names` text via the existing
+`utils/cooking_method.py::is_fried` matcher (moved there from `nlp/`
+during code review — see commit history). Run for real against the
+local dataset. **Result: B4 is numerically identical to B3 (19.52 mg/dL
+MAE, both)** — not because the feature is broken (it correctly flags 12 of
+688 meals, 1.7%, and they're genuinely fried items on inspection), but
+because 1.7% prevalence spread across 15 participants leaves almost no
+within-participant variation for the per-participant leave-one-out fit to
+use. A sample-size limitation, not a physiology finding — full detail in
+`docs/BIGIDEAS_MEAL_RESPONSE_FINDINGS.md` finding B12.
+
+**CGMacros: blocked, not done.** `forecasting/evaluate/run_cgmacros.py`
+requires `bio.csv` and `gut_health_test.csv` at the dataset root
+(`forecasting/data/cgmacros.py::load_metadata`, called from
+`audit_dataset`). Neither file is present in this environment's copy of
+the dataset (`data/forecasting/cgmacros_extracted/`,
+`cgmacros_raw/*.zip`) — only the per-participant meal CSVs and photos. No
+committed prior run of this script exists to fall back on either. The
+carbs/CV-ground-truth validation this ADR calls for is therefore not run.
+Needs those two files before it can be.

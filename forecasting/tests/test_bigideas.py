@@ -19,6 +19,7 @@ from forecasting.evaluate.bigideas_response import (
     carbohydrate_sensitivity,
     carbohydrate_variance_decomposition,
     crossing_point,
+    history_baselines,
     loo_predict_linear,
 )
 
@@ -309,15 +310,20 @@ def test_portion_share_is_bracketed_by_the_varying_amount_figure(tmp_path):
 # Carbohydrate sensitivity
 # ----------------------------------------------------------------------
 
-def synthetic_cohort(n=15, slope=2.0, intercept=5.0, g0_effect=0.0, seed=0):
+def synthetic_cohort(n=15, slope=2.0, intercept=5.0, g0_effect=0.0, seed=0,
+                      fried_effect=0.0, item_names=None):
     rng = np.random.default_rng(seed)
     g0 = 100.0 + rng.normal(0, 10, n)
     carbs = 40.0 + rng.normal(0, 20, n)
-    delta = intercept + g0_effect * g0 + slope * carbs
+    if item_names is None:
+        item_names = ["grilled chicken"] * n
+    is_fried = np.array([1 if "fried" in name.lower() else 0 for name in item_names])
+    delta = intercept + g0_effect * g0 + slope * carbs + fried_effect * is_fried
     return pd.DataFrame({
         "participant_id": ["001"] * n,
         "g0_mgdl": g0,
         "carbs_g": carbs,
+        "item_names": item_names,
         "glucose_60_mgdl": g0 + delta,
         "glucose_120_mgdl": g0 + delta,
         "delta_60_mgdl": delta,
@@ -340,3 +346,35 @@ def test_carbohydrate_sensitivity_is_not_fooled_by_the_g0_slope():
     cohort = synthetic_cohort(slope=1.5, g0_effect=-0.6, seed=3)
     sensitivity = carbohydrate_sensitivity(cohort, 60)
     assert sensitivity["median_mgdl_per_g"] == pytest.approx(1.5, abs=1e-9)
+
+
+# ----------------------------------------------------------------------
+# history_baselines — B4 adds is_fried_cooking (ADR 0004)
+# ----------------------------------------------------------------------
+
+def test_history_baselines_b4_recovers_a_known_fried_effect():
+    """Half the cohort's meals are fried, with a real, known glucose effect
+    B3 (g0 + slope + carbs) cannot see — B4 adds is_fried_cooking, derived
+    from item_names via the same rule-based matcher the NLP track already
+    ships (utils/cooking_method.py::is_fried), and should recover it."""
+    n = 16
+    names = (["fried chicken"] * (n // 2)) + (["grilled chicken"] * (n // 2))
+    cohort = synthetic_cohort(n=n, slope=2.0, fried_effect=15.0,
+                               item_names=names, seed=1)
+    summary, _ = history_baselines(cohort, 60)
+    by_model = summary.set_index("model")["mae_mgdl"]
+    assert "B4 g0 + slope + carbs + is_fried" in by_model.index
+    # Deterministic synthetic data, no noise: B4 should fit it almost
+    # exactly, and clearly beat B3, which has no way to see the fried term.
+    assert by_model["B4 g0 + slope + carbs + is_fried"] < 1e-6
+    assert by_model["B4 g0 + slope + carbs + is_fried"] < by_model["B3 g0 + slope + carbs"]
+
+
+def test_history_baselines_b4_is_a_noop_when_nothing_is_fried():
+    """No fried meals in the cohort: B4 should match B3, not invent a signal."""
+    cohort = synthetic_cohort(n=16, slope=2.0, fried_effect=0.0, seed=2)
+    summary, _ = history_baselines(cohort, 60)
+    by_model = summary.set_index("model")["mae_mgdl"]
+    assert by_model["B4 g0 + slope + carbs + is_fried"] == pytest.approx(
+        by_model["B3 g0 + slope + carbs"], abs=1e-6
+    )

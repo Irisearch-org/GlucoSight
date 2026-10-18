@@ -43,6 +43,7 @@ from forecasting.data.bigideas import (
     load_cohort,
     load_food_log,
 )
+from utils.cooking_method import is_fried
 
 PRIMARY_HORIZON = 60
 MIN_MEALS_PER_PARTICIPANT = 12
@@ -190,11 +191,20 @@ def history_baselines(cohort: pd.DataFrame, horizon: int = PRIMARY_HORIZON) -> t
         B2   g0 + mean rise  the project's baseline
         B2g  g0 + fitted slope, no meal term — mean reversion pulled out
         B3   g0 + fitted slope + carbs
+        B4   g0 + fitted slope + carbs + is_fried_cooking
 
     ``B2g`` exists to stop the meal being credited for mean reversion. Compare
     B3 against B2g, not against B2.
+
+    ``B4`` (ADR 0004): is_fried_cooking is derived per meal from
+    ``item_names`` (BIG IDEAS' own joined food-log text) via the same
+    rule-based matcher the NLP track already ships
+    (utils/cooking_method.py::is_fried) — not a new keyword list.
+    Present only when the cohort carries ``item_names``; older callers
+    without it still get B0-B3 unchanged.
     """
     target = f"glucose_{horizon}_mgdl"
+    has_item_names = "item_names" in cohort.columns
     rows = []
     for participant_id, usable in _finite_participants(cohort, horizon):
         actual = usable[target].to_numpy(float)
@@ -209,6 +219,14 @@ def history_baselines(cohort: pd.DataFrame, horizon: int = PRIMARY_HORIZON) -> t
             "B2g g0 + fitted slope": g0 + loo_predict_linear(_design(g0), delta),
             "B3 g0 + slope + carbs": g0 + loo_predict_linear(_design(g0, carbs), delta),
         }
+        if has_item_names:
+            fried_flags = np.array(
+                [is_fried(str(name)) for name in usable.item_names],
+                dtype=float,
+            )
+            predictions["B4 g0 + slope + carbs + is_fried"] = g0 + loo_predict_linear(
+                _design(g0, carbs, fried_flags), delta
+            )
         for model, predicted in predictions.items():
             rows.append({
                 "participant_id": participant_id,
