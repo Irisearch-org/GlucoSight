@@ -194,19 +194,40 @@ def test_trained_mode_fails_closed_when_artifact_is_not_configured():
     assert "No trained forecasting artifact" in r.json()["detail"]
 
 
-def test_nlp_dish_identity_mode_fails_closed_when_artifact_is_not_configured():
-    """nlp/models/dish_identity_ridge.json has not been trained against the
-    real ShanghaiT2DM data in this environment, so this mode stays off,
-    same fail-closed shape as any other unconfigured mode."""
-    r = client.post("/predict", json=_payload(prediction_mode="nlp_dish_identity_forecast"))
-    assert r.status_code == 409
-    assert "No trained forecasting artifact" in r.json()["detail"]
-
-
 def test_health_reports_nlp_dish_identity_mode_status():
+    """nlp/models/dish_identity_ridge.json has been trained against the real
+    ShanghaiT2DM data and passed its gate, so this mode is live."""
     body = client.get("/health").json()
     assert "nlp_dish_identity_mode" in body
-    assert "UNAVAILABLE" in body["nlp_dish_identity_mode"]
+    assert "available" in body["nlp_dish_identity_mode"]
+    assert "nlp-dish-identity-ridge-v1" in body["nlp_dish_identity_mode"]
+
+
+def test_nlp_dish_identity_mode_returns_a_trained_prediction():
+    r = client.post("/predict", json=_payload(
+        prediction_mode="nlp_dish_identity_forecast",
+        note_text="Rice 150 g | Egg 60 g",
+    ))
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["prediction_mode"] == "nlp_dish_identity_forecast"
+    assert body["forecast"]["is_trained_model"] is True
+    assert body["forecast"]["model_version"] == "nlp-dish-identity-ridge-v1"
+    assert 70 <= body["forecast"]["glucose_t60"] <= 400
+    assert body["forecast_input_usage"]["used_for_glucose_value"] == [
+        "g0_mgdl", "nlp_total_grams", "nlp_dish_names",
+        "is_fried_cooking", "is_large_portion",
+    ]
+
+
+def test_nlp_dish_identity_mode_t120_still_falls_back_to_b2():
+    """No T+120 arm exists for this model anywhere in the repo."""
+    trained = client.post("/predict", json=_payload(
+        prediction_mode="nlp_dish_identity_forecast", delta_t_minutes=120.0,
+    )).json()
+    baseline = client.post("/predict", json=_payload(delta_t_minutes=120.0)).json()
+    assert trained["forecast"]["glucose_t120"] == baseline["forecast"]["glucose_t120"]
+    assert "T+120" in trained["forecast"]["basis"]
 
 
 def test_out_of_range_delta_t_is_rejected_by_validation():

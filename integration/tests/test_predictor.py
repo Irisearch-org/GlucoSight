@@ -4,7 +4,6 @@ fusion pipeline, change 5)."""
 
 from __future__ import annotations
 
-import json
 import os
 
 from integration import predictor
@@ -17,43 +16,30 @@ def test_default_predictor_is_still_baseline_b2():
     assert isinstance(predictor.default_predictor(), predictor.BaselineB2Predictor)
 
 
-def test_autoload_nlp_dish_identity_predictor_absent_by_default():
-    """Expected state in this environment: train_and_persist() has not
-    been run against the real ShanghaiT2DM data through this path, so no
-    artifact exists at the real ARTIFACT_PATH yet."""
-    from nlp.models.dish_identity_ridge import ARTIFACT_PATH
-    assert not os.path.exists(ARTIFACT_PATH)
-    assert predictor.autoload_nlp_dish_identity_predictor() is None
-
-
-def test_autoload_nlp_dish_identity_predictor_loads_a_real_artifact():
+def test_autoload_nlp_dish_identity_predictor_loads_the_real_trained_artifact():
+    """nlp.models.dish_identity_ridge --train has been run against the real
+    committed ShanghaiT2DM data and its gate passed (5/5 folds, bootstrap CI
+    [0.20, 1.07] excludes zero, permutation p=0.001 -- see
+    nlp/models/reports/dish_identity_ridge.md), so the artifact is
+    committed and this mode is live, not a no-op."""
     from nlp.models.dish_identity_ridge import ARTIFACT_PATH, NLPDishIdentityPredictor
+    assert os.path.exists(ARTIFACT_PATH)
+    est = predictor.autoload_nlp_dish_identity_predictor()
+    assert isinstance(est, NLPDishIdentityPredictor)
+    assert est.model_version == "nlp-dish-identity-ridge-v1"
 
-    blob = {
-        "model_version": "test-autoload-v1",
-        "target": "rise_t60",
-        "continuous_names": ["g0_mgdl", "total_grams"],
-        "flag_names": ["is_fried_cooking", "is_large_portion"],
-        "dish_vocabulary": ["rice"],
-        "min_dish_meals": 10,
-        "scaler_mean": [130.0, 300.0],
-        "scaler_scale": [25.0, 150.0],
-        "coef": [0.0, 0.0, 0.0, 0.0, 5.0],
-        "intercept": 10.0,
-        "alpha": 1.0,
-        "n_meals": 100, "n_subjects": 20,
-        "heldout_mae_m3": 30.0, "heldout_mae_m2": 31.0,
-        "bootstrap_ci": [0.1, 1.0], "permutation_p": 0.01,
-    }
-    assert not os.path.exists(ARTIFACT_PATH), (
-        "refusing to overwrite a real artifact that shouldn't exist yet "
-        "in this dev environment"
-    )
-    with open(ARTIFACT_PATH, "w") as fh:
-        json.dump(blob, fh)
+
+def test_autoload_nlp_dish_identity_predictor_none_when_artifact_missing():
+    """The no-op path still works when nobody has trained a model yet.
+
+    load()'s default path is bound to ARTIFACT_PATH at function-definition
+    time, so this can't be exercised by monkeypatching the module attribute
+    -- it has to move the real file aside and put it back."""
+    from nlp.models.dish_identity_ridge import ARTIFACT_PATH
+    assert os.path.exists(ARTIFACT_PATH)
+    moved = ARTIFACT_PATH + ".movedfortest"
+    os.rename(ARTIFACT_PATH, moved)
     try:
-        est = predictor.autoload_nlp_dish_identity_predictor()
-        assert isinstance(est, NLPDishIdentityPredictor)
-        assert est.model_version == "test-autoload-v1"
+        assert predictor.autoload_nlp_dish_identity_predictor() is None
     finally:
-        os.remove(ARTIFACT_PATH)
+        os.rename(moved, ARTIFACT_PATH)
