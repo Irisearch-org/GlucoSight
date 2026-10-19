@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime, timezone
 
 from nlp.data.derive_labels import FEATURE_SOURCE, MODEL_VERSION, _is_fried, _is_large, _total_grams
+from nlp.data.diet_items import meal_items
 
 MODALITY = "meal_context"
 
@@ -48,11 +49,16 @@ def predict(input_payload: dict) -> dict:
             "nlp_model_version": MODEL_VERSION,
             "feature_status": "missing_input",
             "created_at": created_at,
+            "total_grams": 0.0,
+            "dish_names": [],
         }
 
     is_fried = _is_fried(text_en, text_cn)
     is_large = _is_large(text_en, text_cn)
     total = _total_grams(text_en) or _total_grams(text_cn)
+    dish_names = sorted(
+        {name for name, _ in meal_items(text_en)} | {name for name, _ in meal_items(text_cn)}
+    )
     conf = 0.0
 
     if not meal_id:
@@ -71,6 +77,8 @@ def predict(input_payload: dict) -> dict:
         "nlp_model_version": MODEL_VERSION,
         "feature_status": "valid",
         "created_at": created_at,
+        "total_grams": total,
+        "dish_names": dish_names,
     }
 
 
