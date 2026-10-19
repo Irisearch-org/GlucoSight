@@ -82,6 +82,20 @@ def test_c2_assemble_silently_drops_nothing_it_does_not_report():
     assert meal["g0"] == 120.0
 
 
+def test_nlp_total_grams_and_dish_names_reach_provenance_and_validate():
+    """nlp_total_grams/nlp_dish_names are provenance, not contract fields —
+    assemble() must route them to _provenance without tripping the strict
+    unknown-field check, so a Predictor can read them post-assemble()."""
+    meal = _assemble(nlp_record={
+        "is_fried_cooking": 0, "is_large_portion": 0, "nlp_confidence": 0.91,
+        "nlp_present": 1, "nlp_feature_source": "rule_based",
+        "nlp_model_version": "nlp-baseline-v0.1",
+        "total_grams": 170.0, "dish_names": ["rice", "cabbage"],
+    })
+    assert meal["_provenance"]["nlp_total_grams"] == 170.0
+    assert meal["_provenance"]["nlp_dish_names"] == ["rice", "cabbage"]
+
+
 def test_c2_derived_features_use_only_causal_readings():
     """The whole point: g0 must never be a post-t0 reading."""
     meal = _assemble(glucose_history=[

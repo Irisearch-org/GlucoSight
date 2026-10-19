@@ -34,6 +34,10 @@ _PROVENANCE = (
     # cv_items_to_contract / nlp_to_contract's cooking-method correction
     # (docs/SPEC_DISH_IDENTIFICATION.md) — audit trail, not contract fields.
     "cv_item_count", "cv_items_unmatched", "nlp_cooking_method_redundant_with_cv",
+    # Feeds nlp/models/dish_identity_ridge.py's gated Predictor. Not a
+    # contract field (v1.2 is final until v2.0) — read from
+    # meal["_provenance"] by any Predictor that wants it.
+    "nlp_total_grams", "nlp_dish_names",
 )
 
 

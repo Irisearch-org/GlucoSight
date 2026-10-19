@@ -305,6 +305,25 @@ def test_nlp_rejects_unknown_feature_source():
              "nlp_feature_source": "guessing", "nlp_model_version": "v0"}, "m1")
 
 
+def test_nlp_to_contract_carries_total_grams_and_dish_names():
+    """nlp_total_grams/nlp_dish_names feed the gated dish-identity model
+    (nlp/models/dish_identity_ridge.py) via fusion's provenance escape
+    hatch — not contract fields (v1.2 is final until v2.0)."""
+    block = nlp_to_contract(
+        {"is_fried_cooking": 0, "is_large_portion": 0, "nlp_confidence": 0.0,
+         "nlp_present": 1, "nlp_feature_source": "rule_based",
+         "nlp_model_version": "v0.1", "total_grams": 170.0,
+         "dish_names": ["rice", "cabbage"]}, "m1")
+    assert block["nlp_total_grams"] == 170.0
+    assert block["nlp_dish_names"] == ["rice", "cabbage"]
+
+
+def test_nlp_to_contract_absent_record_has_no_grams_or_dishes():
+    block = nlp_to_contract(None, "m1")
+    assert block["nlp_total_grams"] is None
+    assert block["nlp_dish_names"] == []
+
+
 def test_nlp_real_predict_output_translates():
     """Round-trip through the NLP track's actual predict()."""
     pytest.importorskip("pandas")

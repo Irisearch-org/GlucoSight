@@ -71,6 +71,8 @@ def nlp_to_contract(
             "nlp_model_version": "absent",
             "nlp_calibrated": False,
             "nlp_cooking_method_redundant_with_cv": None,
+            "nlp_total_grams": None,
+            "nlp_dish_names": [],
         })
         return block
 
@@ -131,4 +133,6 @@ def nlp_to_contract(
         "nlp_calibrated": False,
         "nlp_calibration_status": record.get("nlp_calibration_status", "unavailable"),
         "nlp_cooking_method_redundant_with_cv": redundant_with_cv,
+        "nlp_total_grams": record.get("total_grams"),
+        "nlp_dish_names": record.get("dish_names", []),
     }
