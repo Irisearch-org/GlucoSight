@@ -14,18 +14,18 @@ PPG-glucose model must beat.
 
 | Fold | N_test | N_subjects | MAE (mg/dL) | RMSE (mg/dL) | Train mean |
 |------|--------|------------|-------------|--------------|------------|
-| 1 | 14 | 4 | 13.87 | 15.09 | 113.9 |
-| 2 | 13 | 4 | 15.59 | 16.62 | 115.9 |
-| 3 | 14 | 5 | 15.74 | 22.72 | 114.1 |
-| 4 | 13 | 5 | 14.32 | 22.34 | 115.4 |
+| 1 | 14 | 4 | 14.79 | 16.25 | 114.2 |
+| 2 | 13 | 4 | 14.23 | 15.10 | 115.7 |
+| 3 | 14 | 5 | 17.74 | 28.15 | 113.2 |
+| 4 | 13 | 5 | 12.62 | 15.41 | 116.3 |
 | 5 | 13 | 5 | 13.19 | 15.48 | 115.7 |
 
 ## Summary
 
-- **MAE:** 14.54 ± 1.10 mg/dL
-- **RMSE:** 18.45 ± 3.77 mg/dL
+- **MAE:** 14.51 ± 2.00 mg/dL
+- **RMSE:** 18.08 ± 5.65 mg/dL
 - **Effective n:** 23 held-out subjects
-- **Pooled Clarke Zone A:** 83.6% (n=67 recordings, 23 subjects)
+- **Pooled Clarke Zone A:** 85.1% (n=67 recordings, 23 subjects)
 
 ## Interpretation
 
