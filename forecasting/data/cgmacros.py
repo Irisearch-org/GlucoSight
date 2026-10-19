@@ -41,12 +41,15 @@ class AuditReport:
     dataset_version: str
     participant_files: int
     participant_ids: tuple[int, ...]
-    bio_rows: int
-    bio_subjects: tuple[int, ...]
-    gut_rows: int
-    gut_subjects: tuple[int, ...]
-    unmatched_bio_subjects: tuple[int, ...]
-    extra_gut_subjects: tuple[int, ...]
+    # None, not 0/(), when require_metadata=False and bio.csv/gut_health_test.csv
+    # are absent -- a 0 would read as "audited, found empty", a different claim.
+    metadata_available: bool
+    bio_rows: int | None
+    bio_subjects: tuple[int, ...] | None
+    gut_rows: int | None
+    gut_subjects: tuple[int, ...] | None
+    unmatched_bio_subjects: tuple[int, ...] | None
+    extra_gut_subjects: tuple[int, ...] | None
     source_events: int
     events_by_participant: dict[str, int]
     missingness: dict[str, int]
@@ -288,7 +291,18 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def audit_dataset(root: str | Path) -> AuditReport:
+def audit_dataset(root: str | Path, *, require_metadata: bool = True) -> AuditReport:
+    """Audit a local CGMacros copy.
+
+    `require_metadata` gates `bio.csv`/`gut_health_test.csv` only -- the
+    range-violation gate and every other deployable-tier count below never
+    read them (confirmed: they feed only the oracle-tier fields CV/Forecast
+    cannot serve from a phone, see `integration/features.py`'s own
+    ORACLE_ONLY_* lists). Default True preserves the original strict
+    behavior for existing callers; pass False where only the files that
+    exist should be used -- e.g. this environment's copy of CGMacros ships
+    without them.
+    """
     root_path = Path(root)
     files = sorted(
         p for p in root_path.glob("CGMacros-*.csv")
@@ -300,7 +314,19 @@ def audit_dataset(root: str | Path) -> AuditReport:
     if len(pids) != len(set(pids)):
         raise DatasetFormatError("duplicate participant IDs from filenames")
 
-    bio, gut, metadata = load_metadata(root_path)
+    bio_path = root_path / "bio.csv"
+    gut_path = root_path / "gut_health_test.csv"
+    metadata_available = bio_path.is_file() and gut_path.is_file()
+    if metadata_available:
+        bio, gut, metadata = load_metadata(root_path)
+    elif require_metadata:
+        missing = bio_path if not bio_path.is_file() else gut_path
+        raise DatasetFormatError(f"missing required file: {missing}")
+    else:
+        bio = gut = None
+        metadata = {"bio_ids": None, "gut_ids": None,
+                    "extra_gut_ids": None, "missing_gut_ids": None}
+
     frames = []
     for path in files:
         frame = load_participant(root_path, path)
@@ -309,7 +335,8 @@ def audit_dataset(root: str | Path) -> AuditReport:
             if optional_column not in frame:
                 frame[optional_column] = pd.NA
         frames.append(frame)
-    join_participant_metadata(pids, bio, gut)
+    if metadata_available:
+        join_participant_metadata(pids, bio, gut)
 
     event_frames = [extract_events(frame) for frame in frames]
     all_events = pd.DataFrame.from_records(
@@ -365,14 +392,16 @@ def audit_dataset(root: str | Path) -> AuditReport:
         "p90": float(intervals.quantile(0.90)),
         "max": float(intervals.max()),
     }
-    checksums = {path.name: _sha256(path) for path in [*files, root_path / "bio.csv", root_path / "gut_health_test.csv"]}
+    checksum_paths = [*files, bio_path, gut_path] if metadata_available else files
+    checksums = {path.name: _sha256(path) for path in checksum_paths}
     return AuditReport(
         dataset_version=DATASET_VERSION,
         participant_files=len(files),
         participant_ids=tuple(sorted(pids)),
-        bio_rows=len(bio),
+        metadata_available=metadata_available,
+        bio_rows=len(bio) if metadata_available else None,
         bio_subjects=metadata["bio_ids"],
-        gut_rows=len(gut),
+        gut_rows=len(gut) if metadata_available else None,
         gut_subjects=metadata["gut_ids"],
         unmatched_bio_subjects=metadata["missing_gut_ids"],
         extra_gut_subjects=metadata["extra_gut_ids"],

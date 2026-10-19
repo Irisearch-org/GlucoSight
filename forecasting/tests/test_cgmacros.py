@@ -160,6 +160,57 @@ def test_audit_report_accounts_for_real_participant_and_event_rows(tmp_path):
     assert report.csv_checksums["CGMacros-001.csv"]
 
 
+def test_audit_dataset_without_metadata_files_fails_closed_by_default(tmp_path):
+    """bio.csv/gut_health_test.csv missing (as in this environment's copy
+    of CGMacros) must still raise by default -- require_metadata is opt-in,
+    not a silent behavior change for existing callers."""
+    _participant_rows().to_csv(tmp_path / "CGMacros-001.csv", index=False)
+    with pytest.raises(DatasetFormatError, match="missing required file"):
+        audit_dataset(tmp_path)
+
+
+def test_audit_dataset_require_metadata_false_skips_missing_files(tmp_path):
+    _participant_rows().to_csv(tmp_path / "CGMacros-001.csv", index=False)
+    report = audit_dataset(tmp_path, require_metadata=False)
+    assert report.metadata_available is False
+    assert report.bio_rows is None
+    assert report.bio_subjects is None
+    assert report.gut_rows is None
+    assert report.gut_subjects is None
+    assert report.unmatched_bio_subjects is None
+    assert report.extra_gut_subjects is None
+    # The deployable-tier audit itself must be unaffected.
+    assert report.source_events == 1
+    assert report.candidate_targets == {"T+60": 1, "T+120": 1}
+    assert "bio.csv" not in report.csv_checksums
+    assert "gut_health_test.csv" not in report.csv_checksums
+
+
+def test_audit_dataset_require_metadata_false_still_uses_files_when_present(tmp_path):
+    _write_dataset(tmp_path)
+    report = audit_dataset(tmp_path, require_metadata=False)
+    assert report.metadata_available is True
+    assert report.bio_rows == 1
+    assert report.bio_subjects == (1,)
+    assert report.csv_checksums["bio.csv"]
+
+
+def test_range_violations_identical_with_and_without_metadata(tmp_path):
+    """The missing-files fix must not change the range-violation gate's
+    computation at all -- only whether oracle-tier metadata is attempted."""
+    with_meta = tmp_path / "with_meta"
+    without_meta = tmp_path / "without_meta"
+    with_meta.mkdir()
+    without_meta.mkdir()
+    _write_dataset(with_meta)
+    _participant_rows().to_csv(without_meta / "CGMacros-001.csv", index=False)
+
+    report_with = audit_dataset(with_meta, require_metadata=True)
+    report_without = audit_dataset(without_meta, require_metadata=False)
+    assert report_with.range_violations == report_without.range_violations
+    assert report_with.missingness == report_without.missingness
+
+
 def test_audit_counts_optional_source_columns_as_missing(tmp_path):
     frame = _participant_rows().drop(columns=["Fiber", "Amount Consumed", "Image path"])
     frame.to_csv(tmp_path / "CGMacros-001.csv", index=False)

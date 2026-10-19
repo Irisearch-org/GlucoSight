@@ -61,7 +61,13 @@ def _range_gate(audit: dict) -> dict:
 
 
 def run(data_root: str | Path, *, isolated_only: bool = False) -> dict:
-    audit = asdict(audit_dataset(data_root))
+    # require_metadata=False: bio.csv/gut_health_test.csv feed only the
+    # oracle-tier fields a phone can never serve (age/BMI/labs/gut panel).
+    # The range-violation gate below never reads them, so their absence
+    # (this environment's copy of CGMacros ships without them) must not
+    # block the audit itself -- audit_dataset reports what it actually
+    # found either way (see its own `metadata_available` field).
+    audit = asdict(audit_dataset(data_root, require_metadata=False))
     gate = _range_gate(audit)
     events = build_event_table(data_root)
     if events["participant_id"].nunique() < 2:
