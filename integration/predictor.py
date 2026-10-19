@@ -183,3 +183,24 @@ def default_predictor() -> Predictor:
     table with B0/B1/B2 beside it (C3).
     """
     return BaselineB2Predictor()
+
+
+def autoload_nlp_dish_identity_predictor() -> Optional[Predictor]:
+    """Load nlp.models.dish_identity_ridge's gated artifact if one exists.
+
+    Mirrors integration.glucose_source.autoload_ppg_g0_estimator(): the
+    trainer (nlp/models/dish_identity_ridge.py) writes its artifact only
+    when the same 4-criterion gate rppg's PPG estimator uses has passed
+    (ADR 0004), so the file's presence is itself the evidence. Absence is
+    the expected state until someone has run the trainer and it earned
+    the artifact — returns None, never raises, so api.py can treat this
+    exactly like the PPG g0 path: a mode that is simply unavailable.
+
+    This does NOT change default_predictor() — the mode this feeds
+    (`nlp_dish_identity_forecast`) is explicit opt-in, never the default.
+    """
+    try:
+        from nlp.models.dish_identity_ridge import NLPDishIdentityPredictor
+        return NLPDishIdentityPredictor.load()
+    except (ImportError, FileNotFoundError, KeyError, ValueError):
+        return None

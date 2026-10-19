@@ -194,6 +194,21 @@ def test_trained_mode_fails_closed_when_artifact_is_not_configured():
     assert "No trained forecasting artifact" in r.json()["detail"]
 
 
+def test_nlp_dish_identity_mode_fails_closed_when_artifact_is_not_configured():
+    """nlp/models/dish_identity_ridge.json has not been trained against the
+    real ShanghaiT2DM data in this environment, so this mode stays off,
+    same fail-closed shape as any other unconfigured mode."""
+    r = client.post("/predict", json=_payload(prediction_mode="nlp_dish_identity_forecast"))
+    assert r.status_code == 409
+    assert "No trained forecasting artifact" in r.json()["detail"]
+
+
+def test_health_reports_nlp_dish_identity_mode_status():
+    body = client.get("/health").json()
+    assert "nlp_dish_identity_mode" in body
+    assert "UNAVAILABLE" in body["nlp_dish_identity_mode"]
+
+
 def test_out_of_range_delta_t_is_rejected_by_validation():
     r = client.post("/predict", json=_payload(delta_t_minutes=999.0))
     assert r.status_code == 422

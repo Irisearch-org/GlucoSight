@@ -58,7 +58,29 @@ _predictor = predictor.default_predictor()
 # artifact exists unless `rppg.models.glucose_estimator`'s evidence gate
 # passed, so this is a no-op until a model has earned the finger-scan path.
 _ppg_g0 = gsrc.autoload_ppg_g0_estimator()
+
+# Same shape, for the gated NLP dish-identity forecaster (ADR 0004). No
+# artifact exists unless nlp.models.dish_identity_ridge's gate passed, so
+# this is a no-op until someone has trained one against the real data.
+# Reachable only via the explicit prediction_mode below -- never swaps
+# out `_predictor`, which stays B2 (see integration/predictor.py).
+_nlp_dish_predictor = predictor.autoload_nlp_dish_identity_predictor()
+
+_UNAVAILABLE_FORECAST_DETAIL = (
+    "No trained forecasting artifact is configured; only baseline_demo is available."
+)
+
 _WEB = Path(__file__).parent / "web"
+
+
+def _active_predictor(prediction_mode: str):
+    """Which Predictor serves this request, or None if the mode is
+    unknown or its artifact hasn't earned its gate yet."""
+    if prediction_mode == "baseline_demo":
+        return _predictor
+    if prediction_mode == "nlp_dish_identity_forecast" and _nlp_dish_predictor is not None:
+        return _nlp_dish_predictor
+    return None
 
 
 class GlucoseReading(BaseModel):
@@ -286,6 +308,14 @@ def health() -> Dict[str, Any]:
             ),
             "population_fallback": "always available, not personalised",
         },
+        "nlp_dish_identity_mode": (
+            "UNAVAILABLE — nlp.models.dish_identity_ridge's gate has not "
+            "passed (no artifact configured); prediction_mode="
+            "'nlp_dish_identity_forecast' stays off"
+            if _nlp_dish_predictor is None
+            else f"available as prediction_mode='nlp_dish_identity_forecast' "
+                 f"— {_nlp_dish_predictor.model_version}"
+        ),
         "disclaimer": DISCLAIMER,
     }
 
@@ -317,11 +347,9 @@ def contract_spec() -> Dict[str, Any]:
 
 @app.post("/predict")
 def predict(req: PredictRequest) -> JSONResponse:
-    if req.prediction_mode != "baseline_demo":
-        raise HTTPException(
-            status_code=409,
-            detail="No trained forecasting artifact is configured; only baseline_demo is available.",
-        )
+    active_predictor = _active_predictor(req.prediction_mode)
+    if active_predictor is None:
+        raise HTTPException(status_code=409, detail=_UNAVAILABLE_FORECAST_DETAIL)
     if req.delta_t_minutes not in (60.0, 120.0):
         raise HTTPException(
             status_code=422,
@@ -355,18 +383,34 @@ def predict(req: PredictRequest) -> JSONResponse:
         # server fault, and the message names the rule that was broken.
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-    forecast = _predictor.predict(meal)
+    forecast = active_predictor.predict(meal)
     provenance = meal.pop("_provenance", {})
 
-    body = {
-        "meal_id": meal_id,
-        "prediction_mode": "baseline_demo",
-        "forecast": forecast,
-        "forecast_input_usage": {
+    if active_predictor is _predictor:
+        forecast_input_usage = {
             "used_for_glucose_value": ["g0_mgdl", "versioned_B2_mean_excursion"],
             "not_used_for_glucose_value": ["cv", "nlp", "ppg", "meal_context"],
             "message": "CV/NLP/PPG outputs are diagnostics only; they do not affect this baseline glucose value.",
-        },
+        }
+    else:
+        forecast_input_usage = {
+            "used_for_glucose_value": [
+                "g0_mgdl", "nlp_total_grams", "nlp_dish_names",
+                "is_fried_cooking", "is_large_portion",
+            ],
+            "not_used_for_glucose_value": ["cv", "ppg"],
+            "message": (
+                "T+60 uses the gated NLP dish-identity model "
+                f"({forecast['model_version']}); T+120 still falls back to "
+                "the B2 baseline constant — no T+120 arm exists for it."
+            ),
+        }
+
+    body = {
+        "meal_id": meal_id,
+        "prediction_mode": req.prediction_mode,
+        "forecast": forecast,
+        "forecast_input_usage": forecast_input_usage,
         "modality_processing": {"cv": cv_status, "nlp": nlp_status, "ppg": ppg_status},
         "modalities": {
             "cv": {
