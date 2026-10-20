@@ -1,0 +1,241 @@
+{
+  "model_version": "experimental-fusion-v0",
+  "label": "experimental_ungated",
+  "warning": "Bypasses the project's 4-criterion evidence gate by explicit product decision (2026-10-20). Not validated. Never the default predictor -- see integration/predictor.default_predictor().",
+  "cgmacros_meal": {
+    "feature_names": [
+      "g0_mgdl",
+      "g0_age_minutes",
+      "history_n",
+      "hour_of_day_sin",
+      "hour_of_day_cos",
+      "carbs_g",
+      "protein_g",
+      "fat_g",
+      "fiber_g",
+      "amount_consumed_pct"
+    ],
+    "median": [
+      121.2,
+      132.0,
+      15.0,
+      -0.2714404498650743,
+      -0.6293203910498373,
+      66.0,
+      22.0,
+      15.0,
+      4.0,
+      100.0
+    ],
+    "mean": [
+      128.78913580246916,
+      202.85432098765432,
+      14.750617283950618,
+      -0.16370233358792494,
+      -0.4267924189596706,
+      54.81481481481482,
+      33.83456790123457,
+      20.910370370370373,
+      5.207407407407407,
+      76.07407407407408
+    ],
+    "scale": [
+      34.775335100498,
+      692.5512868737338,
+      8.223094900487121,
+      0.6843374300496111,
+      0.5680951143334313,
+      29.448390138610804,
+      24.949624112034417,
+      14.729472968741954,
+      11.227455081159368,
+      41.484186419744255
+    ],
+    "intercept": 157.81728395061728,
+    "coef": [
+      24.618905238865516,
+      2.244664446045327,
+      1.617084195517873,
+      17.48229797515469,
+      2.3566227460243385,
+      7.730289749084073,
+      -5.362377593677174,
+      -0.327036324628363,
+      -0.917315270230853,
+      2.7393083148237776
+    ],
+    "n_rows": 405,
+    "target": "glucose_t60_mgdl_absolute",
+    "n_participants": 15,
+    "rows_excluded_range_violation": 136,
+    "held_out_mae_mgdl_grouped_by_participant": {
+      "B0": 43.59135129560785,
+      "B1": 43.124260355029584,
+      "B2": 37.458305728021465,
+      "Ridge_history_plus_meal": 38.90467932003212
+    },
+    "provenance": "CGMacros v1.0.0, ground-truth weighed macros (ADR 0004)"
+  },
+  "bigideas_meal": {
+    "feature_names": [
+      "g0_mgdl",
+      "carbs_g",
+      "is_fried_cooking"
+    ],
+    "median": [
+      107.0,
+      33.0,
+      0.0
+    ],
+    "mean": [
+      109.27327327327328,
+      43.3081081081081,
+      0.018018018018018018
+    ],
+    "scale": [
+      21.74988399624804,
+      44.668889218205464,
+      0.13301642396606667
+    ],
+    "intercept": 17.876876876876878,
+    "coef": [
+      -11.26873159394686,
+      8.081475512351442,
+      -0.2569300906193604
+    ],
+    "n_rows": 666,
+    "target": "glucose_t60_mgdl_delta_from_g0",
+    "n_participants": 15,
+    "n_meals": 666,
+    "problems": [
+      "015: no meal falls inside the Dexcom window (food log 2020-07-05..2020-07-13, Dexcom 2020-07-19..2020-07-27)"
+    ],
+    "ppg_subjects_with_real_bvp": [],
+    "ppg_evaluation_status": "no BVP data available yet; ppg_pulse_rate_bpm has no coefficient",
+    "nlp_evaluation_note": "is_fried_cooking's held-out contribution is already measured and published: docs/BIGIDEAS_MEAL_RESPONSE_FINDINGS.md finding B12 -- B4 (+is_fried) is numerically identical to B3 at this cohort's 1.7% fried-item prevalence. This fit is the serving artifact, not a re-measurement of that finding.",
+    "provenance": "BIG IDEAs PhysioNet 1.1.2, real food-log + Dexcom pairing (16 participants)"
+  },
+  "ppg_absolute": {
+    "feature_names": [
+      "pulse_rate_bpm",
+      "hrv_rmssd_ms",
+      "perfusion_index",
+      "signal_quality",
+      "rise_time_ms",
+      "pulse_width_half_ms",
+      "n_beats_detected"
+    ],
+    "median": [
+      79.50000000000001,
+      139.14466968772035,
+      57.553676548891794,
+      0.27029096977270123,
+      544.4444444444445,
+      333.3333333333333,
+      4.0
+    ],
+    "mean": [
+      82.96153846153847,
+      131.95239879282056,
+      57.66027418905868,
+      0.27022077826778046,
+      478.0250305250305,
+      324.4342694342694,
+      5.384615384615385
+    ],
+    "scale": [
+      10.886585850453296,
+      68.4057206843045,
+      1.6171078783655795,
+      0.0074914176571374055,
+      190.67465758846157,
+      124.79539216312249,
+      2.0953597649040363
+    ],
+    "intercept": 112.6923076923077,
+    "coef": [
+      3.264872838729072,
+      -0.7010906494914309,
+      -0.407419263269666,
+      2.278641927616941,
+      -2.711040724625353,
+      -1.6291325287017977,
+      0.05549942922878175
+    ],
+    "n_rows": 13,
+    "available": true,
+    "target": "glucose_absolute_mgdl_from_ppg_features_alone",
+    "n_recordings": 13,
+    "n_subjects": 8,
+    "dropped": [
+      "subject 1 rec 2: non-finite features",
+      "subject 1 rec 5: non-finite features",
+      "subject 1 rec 6: non-finite features",
+      "subject 3 rec 2: non-finite features",
+      "subject 4 rec 1: non-finite features",
+      "subject 4 rec 2: non-finite features",
+      "subject 4 rec 3: non-finite features",
+      "subject 4 rec 4: non-finite features",
+      "subject 4 rec 5: non-finite features",
+      "subject 5 rec 1: non-finite features",
+      "subject 5 rec 2: non-finite features",
+      "subject 5 rec 3: non-finite features",
+      "subject 5 rec 5: non-finite features",
+      "subject 5 rec 6: non-finite features",
+      "subject 6 rec 1: non-finite features",
+      "subject 6 rec 2: non-finite features",
+      "subject 7 rec 1: non-finite features",
+      "subject 7 rec 2: non-finite features",
+      "subject 7 rec 3: non-finite features",
+      "subject 7 rec 4: non-finite features",
+      "subject 8 rec 1: non-finite features",
+      "subject 8 rec 2: non-finite features",
+      "subject 9 rec 1: non-finite features",
+      "subject 9 rec 2: non-finite features",
+      "subject 10 rec 1: non-finite features",
+      "subject 10 rec 2: non-finite features",
+      "subject 11 rec 1: non-finite features",
+      "subject 11 rec 2: non-finite features",
+      "subject 11 rec 3: non-finite features",
+      "subject 13 rec 1: non-finite features",
+      "subject 13 rec 2: non-finite features",
+      "subject 14 rec 1: non-finite features",
+      "subject 14 rec 2: non-finite features",
+      "subject 15 rec 1: non-finite features",
+      "subject 15 rec 2: non-finite features",
+      "subject 15 rec 3: non-finite features",
+      "subject 16 rec 1: non-finite features",
+      "subject 16 rec 2: non-finite features",
+      "subject 16 rec 3: non-finite features",
+      "subject 17 rec 2: non-finite features",
+      "subject 18 rec 1: non-finite features",
+      "subject 18 rec 2: non-finite features",
+      "subject 18 rec 3: non-finite features",
+      "subject 19 rec 1: non-finite features",
+      "subject 19 rec 2: non-finite features",
+      "subject 20 rec 1: non-finite features",
+      "subject 20 rec 3: non-finite features",
+      "subject 21 rec 1: non-finite features",
+      "subject 21 rec 2: non-finite features",
+      "subject 22 rec 1: non-finite features",
+      "subject 22 rec 2: non-finite features",
+      "subject 22 rec 3: non-finite features",
+      "subject 23 rec 1: non-finite features",
+      "subject 23 rec 2: non-finite features"
+    ],
+    "held_out_gate_evaluation": {
+      "model_mae": 10.240436302236672,
+      "baseline_mae_constant_predictor": 10.054545454545453,
+      "fold_wins": 3,
+      "n_folds": 5,
+      "bootstrap_ci": [
+        -4.165780077376771,
+        3.267524830972896
+      ],
+      "permutation_p": 0.3126873126873127,
+      "passes_evidence_gate": false
+    },
+    "known_result": "ADR 0003: this exact 4-criterion gate already failed on this dataset (constant predictor wins). Reproduced here, ungated, for serving wiring only -- not a re-litigation of that finding.",
+    "provenance": "rppg/PPG_Dataset, contact PPG (finger+flash) + glucometer, 23 subjects, 67 recordings"
+  }
+}

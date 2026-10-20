@@ -111,6 +111,12 @@
         <option value="14">14 s — gives 1 window (minimum the API accepts)</option>
       </select>
 
+      <label>Prediction mode</label>
+      <select id="mode">
+        <option value="baseline_demo" selected>baseline_demo — B2 only, PPG is diagnostic</option>
+        <option value="experimental_fusion">experimental_fusion — EXPERIMENTAL, ungated, PPG affects the number</option>
+      </select>
+
       <div id="capstatus" class="muted" style="margin-top:10px">idle</div>
       <div class="row" style="margin-top:10px">
         <button id="synth" class="ghost">No camera? inject a synthetic 33 s capture</button>
@@ -714,7 +720,7 @@ async function send(){
     meal_id: 'ppg-' + Date.now(),
     t0_timestamp: new Date().toISOString().slice(0,19),
     delta_t_minutes: 60,
-    prediction_mode: 'baseline_demo',
+    prediction_mode: $('mode').value,
     source_dataset: 'live_capture',
     ppg_capture: lastCapture
   };
@@ -745,7 +751,8 @@ async function send(){
       ['ppg_clip_fraction', p.clip_fraction.toFixed(4)],
       ['ppg_n_windows', p.n_windows],
       ['ppg_glucose_estimate', p.ppg_glucose_estimate === null ? 'null (ring-fenced E1)' : p.ppg_glucose_estimate],
-      ['\u2003 glucose_t60 (B2 baseline)', f.glucose_t60],
+      ['\u2003 prediction_mode', j.prediction_mode],
+      ['\u2003 glucose_t60', f.glucose_t60],
       ['\u2003 g0 source', f.g0_source]
     ];
     $('outtbl').innerHTML = rows.map(([k,v]) =>
@@ -793,6 +800,7 @@ $('start').onclick = startCamera;
 $('rec').onclick = startRecording;
 $('stop').onclick = stopRecording;
 $('synth').onclick = synthetic;
+$('mode').onchange = () => { if (lastCapture) send(); };
 function syncRecLabel(){ $('rec').textContent = `Record ${$('dur').value} s`; }
 $('dur').onchange = syncRecLabel;
 syncRecLabel();

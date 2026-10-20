@@ -82,6 +82,14 @@
       <label>Baseline target horizon</label>
       <select id="dt"><option value="60">T+60</option><option value="120">T+120</option></select>
 
+      <label>Prediction mode</label>
+      <select id="mode">
+        <option value="baseline_demo" selected>baseline_demo — B2 only, modalities are diagnostic</option>
+        <option value="experimental_fusion">experimental_fusion — EXPERIMENTAL, ungated, CV+NLP+PPG affect the number</option>
+        <option value="nlp_dish_identity_forecast">nlp_dish_identity_forecast — gated, NLP only</option>
+      </select>
+      <p class="muted" id="modewarn"></p>
+
       <label>Meal image</label>
       <input id="img" type="file" accept="image/jpeg,image/png,image/webp">
 
@@ -95,15 +103,23 @@
         <option value="2">2 — besar</option>
       </select>
 
-      <label>Contact PPG capture (simulated diagnostic only)</label>
+      <label>Contact PPG capture</label>
       <div class="row" style="margin-bottom:6px">
-        <a href="/ppg" style="font-size:13px">→ capture real PPG from your camera</a>
+        <video id="ppgvideo" playsinline muted style="width:110px;border-radius:6px;background:#000;display:none"></video>
+        <div>
+          <div class="row">
+            <button class="ghost" id="ppgstart">Start camera</button>
+            <button class="ghost" id="ppgrecord" disabled>Record 20s</button>
+            <button class="ghost" id="ppgstop" disabled>Stop early</button>
+          </div>
+          <div class="row" style="margin-top:6px">
+            <button class="ghost" id="synth">No camera? simulate instead</button>
+            <button class="ghost" id="clearppg">Clear capture</button>
+            <span class="muted" id="ppgstate">no capture</span>
+          </div>
+        </div>
       </div>
-      <div class="row">
-        <button class="ghost" id="synth">Simulate timestamped 33.1 s capture</button>
-        <button class="ghost" id="clearppg">No capture</button>
-        <span class="muted" id="ppgstate">no capture</span>
-      </div>
+      <p class="muted" style="font-size:12px">Finger fully covering the lens, flash on. <a href="/ppg">→ advanced capture diagnostics</a> (drift, clipping, channel choice) on a separate page.</p>
 
       <label>Pre-event glucose source</label>
       <div class="row" style="margin-bottom:6px">
@@ -111,6 +127,8 @@
           Fingerstick</label>
         <label class="opt"><input type="radio" name="gsrc" value="cgm">
           Supplied history</label>
+        <label class="opt"><input type="radio" name="gsrc" value="ppg">
+          PPG capture (experimental)</label>
       </div>
 
       <div id="src-fingerstick">
@@ -130,18 +148,14 @@
 
       <div id="src-ppg" hidden>
         <div class="err" style="margin-top:6px">
-          <b>This path is disabled.</b> Two independent reasons, both in
-          <code>integration/glucose_source.py</code>:
-          <ol style="margin:6px 0 0 18px;padding:0">
-            <li>Ring-fence rule <b>E1.2</b> — <code>ppg_glucose_estimate</code> is
-                "never used as a sole prediction and never surfaced to a user".
-                Using it as pre-meal glucose makes it exactly that. Needs a
-                contract v2.0 amendment.</li>
-            <li>The only committed PPG-glucose model predicts one constant for
-                everyone (MAE 14.54 mg/dL, n=23 subjects), so it carries no more
-                information than the population fallback.</li>
-          </ol>
-          Selecting it shows what the request does today: falls back, and says why.
+          <b>Switches Prediction mode to experimental_fusion automatically</b> —
+          PPG-as-current-glucose only exists there; the real default
+          (<code>baseline_demo</code>) keeps this ring-fenced off (rule E1.2).
+          Capture above feeds <code>g0</code> directly: T+60/T+120 =
+          that estimate + the usual adjustments. <b>Known to underperform</b> a
+          fingerstick — it fails the project's own evidence gate (ADR 0003,
+          MAE 10.24 vs a constant's 10.05). Used anyway, honestly labelled in
+          <code>forecast.basis</code> below.
         </div>
       </div>
 
@@ -184,8 +198,107 @@ document.querySelectorAll('input[name="gsrc"]').forEach(r => {
     const v = currentSource();
     $('src-fingerstick').hidden = v !== 'fingerstick';
     $('src-cgm').hidden = v !== 'cgm';
+    $('src-ppg').hidden = v !== 'ppg';
+    if (v === 'ppg'){ $('mode').value = 'experimental_fusion'; updateModeWarning(); }
   };
 });
+
+// ------------------------------------------------------------------
+// Real camera PPG capture (trimmed port of /ppg's capture engine —
+// the full diagnostics, torch verification, channel/ROI choice and
+// drift readouts live on that page; this just needs a valid capture).
+// ------------------------------------------------------------------
+let ppgStream = null, ppgTrack = null, ppgSamples = [], ppgRunning = false;
+const ppgVideo = $('ppgvideo');
+const ppgWork = document.createElement('canvas');
+const ppgWctx = ppgWork.getContext('2d', { willReadFrequently: true });
+
+function ppgMeanRGB(){
+  const W = 64, H = 48;
+  if (ppgWork.width !== W){ ppgWork.width = W; ppgWork.height = H; }
+  ppgWctx.drawImage(ppgVideo, 0, 0, W, H);
+  const d = ppgWctx.getImageData(0, 0, W, H).data;
+  let r=0,g=0,b=0,n=0;
+  for (let i=0;i<d.length;i+=4){ r+=d[i]; g+=d[i+1]; b+=d[i+2]; n++; }
+  return [r/n/255, g/n/255, b/n/255];
+}
+function ppgBrightestChannel(recs){
+  const mean = k => recs.reduce((a,p)=>a+p[k],0)/recs.length;
+  const mr=mean('r'), mg=mean('g'), mb=mean('b');
+  return mr>=mg && mr>=mb ? 'r' : (mg>=mb ? 'g' : 'b');
+}
+function ppgOnFrame(now){
+  if (!ppgRunning) return;
+  const [r,g,b] = ppgMeanRGB();
+  ppgSamples.push({ t: now/1000, r, g, b });
+  $('ppgstate').textContent = `recording… ${ppgSamples.length} frames`;
+  ppgVideo.requestVideoFrameCallback(ppgOnFrame);
+}
+
+$('ppgstart').onclick = async e => {
+  e.preventDefault();
+  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia){
+    $('ppgstate').innerHTML = `<span style="color:var(--bad)">No camera: this origin is not a secure context (need https:// or localhost).</span>`;
+    return;
+  }
+  try {
+    ppgStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width:{ideal:640}, height:{ideal:480}, frameRate:{ideal:30} },
+      audio: false
+    });
+  } catch (err) {
+    $('ppgstate').textContent = `camera failed: ${err.name}`;
+    return;
+  }
+  ppgVideo.srcObject = ppgStream; ppgVideo.style.display = 'block';
+  await ppgVideo.play().catch(()=>{});
+  ppgTrack = ppgStream.getVideoTracks()[0];
+  const caps = (ppgTrack.getCapabilities && ppgTrack.getCapabilities()) || {};
+  // Best-effort: flash on, exposure locked. No readback/verification here —
+  // see /ppg for that. A finger over an unlit lens still won't measure
+  // anything, but this page doesn't block on proving the torch lit.
+  try { if (caps.torch) await ppgTrack.applyConstraints({ advanced: [{ torch: true }] }); } catch(_){}
+  try { await ppgTrack.applyConstraints({ advanced: [{ exposureMode: 'manual' }] }); } catch(_){}
+  $('ppgstart').disabled = true; $('ppgrecord').disabled = false;
+  $('ppgstate').textContent = 'camera live — cover the lens with your fingertip';
+};
+
+$('ppgrecord').onclick = e => {
+  e.preventDefault();
+  ppgSamples = []; ppgRunning = true;
+  $('ppgrecord').disabled = true; $('ppgstop').disabled = false;
+  ppgVideo.requestVideoFrameCallback(ppgOnFrame);
+  setTimeout(() => { if (ppgRunning) ppgStopRecording(); }, 20000);
+};
+$('ppgstop').onclick = e => { e.preventDefault(); ppgStopRecording(); };
+
+function ppgStopRecording(){
+  ppgRunning = false;
+  $('ppgrecord').disabled = false; $('ppgstop').disabled = true;
+  if (ppgSamples.length < 30){
+    $('ppgstate').innerHTML = `<span style="color:var(--warn)">too few frames (${ppgSamples.length}) — try again</span>`;
+    return;
+  }
+  // Regularise onto a uniform grid, same reason /ppg does it: the API
+  // rejects >5% timestamp jitter and assumes uniform sampling.
+  const diffs = []; for (let i=1;i<ppgSamples.length;i++) diffs.push(ppgSamples[i].t - ppgSamples[i-1].t);
+  diffs.sort((a,b)=>a-b);
+  const fs = Math.round((1/diffs[Math.floor(diffs.length/2)])*100)/100;
+  const t0 = ppgSamples[0].t, t1 = ppgSamples[ppgSamples.length-1].t;
+  const n = Math.floor((t1-t0)*fs) + 1;
+  const key = ppgBrightestChannel(ppgSamples);
+  const ts = new Array(n), vals = new Array(n);
+  let j = 0;
+  for (let i=0;i<n;i++){
+    const t = t0 + i/fs;
+    while (j < ppgSamples.length - 2 && ppgSamples[j+1].t < t) j++;
+    const a = ppgSamples[j], b = ppgSamples[j+1] || a;
+    const w = b.t > a.t ? (t-a.t)/(b.t-a.t) : 0, c = Math.min(1, Math.max(0, w));
+    ts[i] = t; vals[i] = a[key] + (b[key]-a[key]) * c;
+  }
+  ppgCapture = { samples: Array.from(vals), timestamps_seconds: ts, sampling_rate_hz: fs };
+  $('ppgstate').textContent = `captured ${n} samples @ ${fs} Hz (channel ${key})`;
+}
 
 function imageDataUrl(file){
   if(!file) return Promise.resolve(null);
@@ -225,6 +338,19 @@ $('synth').onclick = e => {
 $('clearppg').onclick = e => {
   e.preventDefault(); ppgCapture = null; $('ppgstate').textContent = 'no capture';
 };
+window.addEventListener('beforeunload', () => ppgStream && ppgStream.getTracks().forEach(t => t.stop()));
+
+function updateModeWarning(){
+  const v = $('mode').value;
+  $('modewarn').textContent =
+    v === 'experimental_fusion'
+      ? '⚠ EXPERIMENTAL: bypasses the project\'s evidence gate by explicit product decision (2026-10-20). Not validated. CV (CGMacros): held-out MAE 38.90 vs B2 baseline 37.46 — worse. NLP (BIG IDEAs is_fried_cooking): no held-out re-measurement here, see docs/BIGIDEAS_MEAL_RESPONSE_FINDINGS.md B12 (no detectable gain at 1.7% prevalence). PPG (rppg/PPG_Dataset): MAE 10.24 vs constant-baseline 10.05 — worse, wins 3/5 folds, bootstrap CI includes zero, permutation p=0.31 — reproduces ADR 0003\'s already-known negative result. See forecast.basis in the raw response for the per-request numbers.'
+    : v === 'nlp_dish_identity_forecast'
+      ? 'Gated: only live if nlp.models.dish_identity_ridge cleared its evidence gate.'
+      : '';
+}
+$('mode').onchange = updateModeWarning;
+updateModeWarning();
 
 function pill(on, label){
   return `<span class="pill ${on?'on':'off'}">${label}: ${on?'present':'absent'}</span>`;
@@ -254,7 +380,7 @@ $('go').onclick = async () => {
     participant_id: $('pid').value,
     t0_timestamp: $('t0').value + ':00',
     delta_t_minutes: parseFloat($('dt').value),
-    prediction_mode: 'baseline_demo',
+    prediction_mode: $('mode').value,
     meal_image_data_url: mealImage,
     note_text: $('note').value || null,
     ppg_capture: ppgCapture,
@@ -294,8 +420,9 @@ $('go').onclick = async () => {
           <div class="muted">${f.glucose_range_t120}</div></div>
       </div>
       <div class="banner" style="margin:0 0 14px">
-        <b>Baseline demo, not a trained model.</b> ${f.basis}<br>
-        CV/NLP/PPG inputs are diagnostics only and do not change these glucose values.
+        <b>${j.prediction_mode === 'experimental_fusion' ? 'EXPERIMENTAL, UNGATED.' :
+             j.prediction_mode === 'nlp_dish_identity_forecast' ? 'Gated model.' :
+             'Baseline demo, not a trained model.'}</b> ${f.basis}
       </div>
       <div class="muted" style="margin-bottom:10px">
         Mode: ${j.prediction_mode} · requested horizon T+${f.requested_horizon_minutes} ·

@@ -66,6 +66,12 @@ _ppg_g0 = gsrc.autoload_ppg_g0_estimator()
 # out `_predictor`, which stays B2 (see integration/predictor.py).
 _nlp_dish_predictor = predictor.autoload_nlp_dish_identity_predictor()
 
+# Experimental, ungated CV+NLP+PPG blend (2026-10-20 product decision to
+# bypass the evidence gate for this mode only -- see
+# integration/predictor.py::ExperimentalFusionPredictor). Explicit opt-in,
+# never swaps out `_predictor`; `baseline_demo` stays the real default.
+_experimental_fusion_predictor = predictor.autoload_experimental_fusion_predictor()
+
 _UNAVAILABLE_FORECAST_DETAIL = (
     "No trained forecasting artifact is configured; only baseline_demo is available."
 )
@@ -80,6 +86,8 @@ def _active_predictor(prediction_mode: str):
         return _predictor
     if prediction_mode == "nlp_dish_identity_forecast" and _nlp_dish_predictor is not None:
         return _nlp_dish_predictor
+    if prediction_mode == "experimental_fusion" and _experimental_fusion_predictor is not None:
+        return _experimental_fusion_predictor
     return None
 
 
@@ -316,6 +324,15 @@ def health() -> Dict[str, Any]:
             else f"available as prediction_mode='nlp_dish_identity_forecast' "
                  f"— {_nlp_dish_predictor.model_version}"
         ),
+        "experimental_fusion_mode": (
+            "UNAVAILABLE — no artifact at integration/models/experimental_fusion.json; "
+            "run `python -m forecasting.evaluate.fit_experimental_fusion`"
+            if _experimental_fusion_predictor is None
+            else f"available as prediction_mode='experimental_fusion' — "
+                 f"{_experimental_fusion_predictor.model_version} — "
+                 f"EXPERIMENTAL, bypasses the evidence gate by explicit "
+                 f"product decision (2026-10-20); not validated"
+        ),
         "disclaimer": DISCLAIMER,
     }
 
@@ -392,6 +409,23 @@ def predict(req: PredictRequest) -> JSONResponse:
             "not_used_for_glucose_value": ["cv", "nlp", "ppg", "meal_context"],
             "message": "CV/NLP/PPG outputs are diagnostics only; they do not affect this baseline glucose value.",
         }
+    elif active_predictor is _experimental_fusion_predictor:
+        forecast_input_usage = {
+            "used_for_glucose_value": [
+                "g0_mgdl", "carbs_g", "protein_g", "fat_g", "fiber_g",
+                "is_fried_cooking", "ppg_pulse_rate_bpm",
+            ],
+            "not_used_for_glucose_value": [],
+            "message": (
+                "EXPERIMENTAL, UNGATED: T+60 blends a CGMacros-trained carbs/"
+                "macro adjustment and a BIG IDEAs-trained is_fried_cooking/"
+                "PPG adjustment onto the B2 baseline, each weighted by that "
+                "modality's own confidence. Neither adjustment has cleared "
+                "the evidence gate the rest of this repo requires -- see "
+                "forecast.basis and docs/INTEGRATION_AUDIT.md. T+120 has no "
+                "trained arm and falls back to B2 unchanged."
+            ),
+        }
     else:
         forecast_input_usage = {
             "used_for_glucose_value": [
@@ -456,11 +490,15 @@ def predict(req: PredictRequest) -> JSONResponse:
             "max_g0_age_minutes": contract.MAX_G0_AGE_MINUTES,
         },
         "glucose_source": {
-            "value_mgdl": meal.get("g0_mgdl"),
-            "source": meal.get("g0_source"),
-            "is_direct_measurement": meal.get("g0_is_direct_measurement"),
-            "trust": meal.get("g0_trust"),
-            "detail": meal.get("g0_detail"),
+            # Sourced from `forecast`, not `meal`: a predictor
+            # (ExperimentalFusionPredictor) may resolve g0 differently from
+            # fusion.assemble()'s own pass, and this must report what
+            # actually drove the returned number.
+            "value_mgdl": forecast.get("g0_mgdl", meal.get("g0_mgdl")),
+            "source": forecast.get("g0_source", meal.get("g0_source")),
+            "is_direct_measurement": forecast.get("g0_is_direct_measurement", meal.get("g0_is_direct_measurement")),
+            "trust": forecast.get("g0_trust", meal.get("g0_trust")),
+            "detail": forecast.get("g0_detail", meal.get("g0_detail")),
             "rejected_candidates": meal.get("g0_rejected_candidates", []),
         },
         "schema_version": contract.SCHEMA_VERSION,

@@ -22,7 +22,9 @@ it, and the API picks it up with no other change.
 
 from __future__ import annotations
 
+import json
 import math
+import os
 from typing import Any, Dict, Optional, Protocol
 
 from integration import contract
@@ -167,6 +169,12 @@ class BaselineB2Predictor:
         out["g0_source"] = meal.get("g0_source")
         out["g0_is_direct_measurement"] = meal.get("g0_is_direct_measurement")
         out["used_fallback_g0"] = not has_g0
+        # So api.py can report what actually drove this number rather than
+        # the pre-predictor resolution -- the two differ exactly when a
+        # predictor (e.g. ExperimentalFusionPredictor) overrides g0 itself.
+        out["g0_mgdl"] = meal.get("g0_mgdl")
+        out["g0_trust"] = meal.get("g0_trust")
+        out["g0_detail"] = meal.get("g0_detail")
         out["modality_weights"] = {
             m: round(contract.modality_weight(meal, m), 3)
             for m in contract.MODALITY_FIELDS
@@ -183,6 +191,197 @@ def default_predictor() -> Predictor:
     table with B0/B1/B2 beside it (C3).
     """
     return BaselineB2Predictor()
+
+
+EXPERIMENTAL_FUSION_ARTIFACT = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "models", "experimental_fusion.json"
+)
+
+
+class ExperimentalFusionPredictor:
+    """CV + NLP + PPG, each actually affecting the forecast -- by explicit
+    product decision (2026-10-20 grill), NOT by the project's evidence gate.
+
+    READ THIS BEFORE QUOTING ANY NUMBER THIS CLASS PRODUCES. It deliberately
+    skips the 4-criterion gate `rppg.models.glucose_estimator` and
+    `nlp.models.dish_identity_ridge` use. It is not a single model trained
+    on CV+NLP+PPG together -- no dataset pairs all three with glucose
+    (ADR 0004) -- it is two small ridge fits, each on the one real dataset
+    that actually supports it
+    (`forecasting/evaluate/fit_experimental_fusion.py`):
+
+        cv adjustment       CGMacros ground-truth macros -> T+60 glucose
+        nlp/ppg adjustment  BIG IDEAs food-log text (+ wrist BVP once
+                            downloaded) -> T+60 excursion
+
+    blended onto the B2 baseline, each weighted by that modality's own
+    confidence (contract.modality_weight, H1 down-weight-never-exclude) so
+    an absent or low-confidence modality pulls the prediction only a
+    little, never zero and never catastrophically.
+
+    Reachable only via `prediction_mode="experimental_fusion"` -- it never
+    becomes `default_predictor()`.
+    """
+
+    model_version = "experimental-fusion-v0"
+    is_trained_model = True
+    label = "experimental_ungated"
+
+    def __init__(self, blob: Dict[str, Any]):
+        self._blob = blob
+        self._cgmacros = blob["cgmacros_meal"]
+        self._bigideas = blob["bigideas_meal"]
+        self._ppg = blob.get("ppg_absolute") if blob.get("ppg_absolute", {}).get("available") else None
+        self._b2 = BaselineB2Predictor()
+
+    @classmethod
+    def load(cls, path: str = EXPERIMENTAL_FUSION_ARTIFACT) -> "ExperimentalFusionPredictor":
+        with open(path) as fh:
+            return cls(json.load(fh))
+
+    # Any one feature's z-score is clipped before the dot product. A ridge
+    # fit on a handful of rows (the PPG block here is n=13) has near-zero
+    # training variance on some features; an unremarkable-looking input can
+    # still z-score into the thousands and extrapolate to a wild output
+    # (found while testing this class: perfusion_index=95.7 against a
+    # training scale of 0.0075 -> glucose_t60=312). Same failure shape as
+    # finding F9. Clipping bounds each feature's contribution to
+    # 5*|coefficient| regardless of how far out of distribution the input is.
+    _MAX_Z = 5.0
+
+    @classmethod
+    def _predict_block(cls, block: Dict[str, Any], values: Dict[str, Optional[float]]) -> float:
+        x = []
+        for name, median in zip(block["feature_names"], block["median"]):
+            v = values.get(name)
+            v = float(v) if v is not None and math.isfinite(float(v)) else median
+            x.append(v)
+        scaled = [
+            max(-cls._MAX_Z, min(cls._MAX_Z, (v - m) / s))
+            for v, m, s in zip(x, block["mean"], block["scale"])
+        ]
+        return float(block["intercept"] + sum(c * s for c, s in zip(block["coef"], scaled)))
+
+    def predict(self, meal: Dict[str, Any]) -> Dict[str, Any]:
+        # "Current glucose" (g0): a fingerstick or CGM reading wins if either
+        # is present (DIRECT_MEASUREMENT_SOURCES). Only when neither exists
+        # does a PPG capture get to estimate the SAME quantity -- this is
+        # g0, the thing the rest of the pipeline already builds on, not a
+        # separate number blended into the T+60 output. Scoped to this mode
+        # only (never touches glucose_source.py's global registry, so
+        # baseline_demo's g0 resolution is untouched). Known to fail the
+        # evidence gate (ADR 0003) -- used anyway only because this mode is
+        # explicitly ungated.
+        working_meal = dict(meal)
+        if (not meal.get("g0_is_direct_measurement") and self._ppg is not None
+                and meal.get("ppg_present")):
+            ppg_g0 = self._predict_block(self._ppg, {
+                "pulse_rate_bpm": meal.get("ppg_pulse_rate_bpm"),
+                "hrv_rmssd_ms": meal.get("ppg_hrv_rmssd"),
+                "perfusion_index": meal.get("ppg_perfusion_index"),
+                "signal_quality": meal.get("ppg_signal_quality"),
+                "rise_time_ms": None, "pulse_width_half_ms": None, "n_beats_detected": None,
+            })
+            from integration import glucose_source as gsrc
+            working_meal["g0"] = ppg_g0
+            working_meal["g0_mgdl"] = ppg_g0
+            working_meal["g0_source"] = gsrc.SOURCE_PPG_ESTIMATE
+            working_meal["g0_trust"] = gsrc.SOURCE_TRUST[gsrc.SOURCE_PPG_ESTIMATE]
+            working_meal["g0_detail"] = (
+                f"PPG estimate (ungated, {self._ppg['known_result']})"
+            )
+
+        b2_out = self._b2.predict(working_meal)
+        g0 = float(working_meal.get("g0_mgdl", FALLBACK_G0))
+
+        t60_cv = self._predict_block(self._cgmacros, {
+            "g0_mgdl": g0,
+            "g0_age_minutes": meal.get("g0_age_minutes"),
+            "history_n": len(meal.get("glucose_history") or []),
+            "hour_of_day_sin": meal.get("hour_of_day_sin"),
+            "hour_of_day_cos": meal.get("hour_of_day_cos"),
+            "carbs_g": meal.get("carbs_g"),
+            "protein_g": meal.get("protein_g"),
+            "fat_g": meal.get("fat_g"),
+            "fiber_g": meal.get("fiber_g"),
+            "amount_consumed_pct": None,  # not producible live; median-imputed
+        })
+        delta_nlp = self._predict_block(self._bigideas, {
+            "g0_mgdl": g0,
+            "carbs_g": meal.get("carbs_g"),
+            "is_fried_cooking": meal.get("is_fried_cooking"),
+        })
+        t60_nlp = g0 + delta_nlp
+
+        from integration import contract
+        w_cv = contract.modality_weight(meal, "cv")
+        w_nlp = contract.modality_weight(meal, "nlp")
+
+        # PPG's effect already happened above, in g0 -- it is not a second,
+        # separate pull on the output. Double-counting it here (once via g0,
+        # once as its own output blend) would silently double its weight.
+        t60 = float(b2_out["glucose_t60"])
+        t60 = t60 * (1 - w_cv) + t60_cv * w_cv
+        t60 = t60 * (1 - w_nlp) + t60_nlp * w_nlp
+        t60 = float(min(_MAX_MGDL, max(_MIN_MGDL, t60)))
+
+        requested_horizon = b2_out["requested_horizon_minutes"]
+        # No T+120 arm was fit for either adjustment (same limitation as
+        # nlp_dish_identity_forecast) -- T+120 is the untouched B2 figure.
+        selected_glucose = t60 if requested_horizon == 60.0 else b2_out["glucose_t120"]
+
+        out = dict(b2_out)
+        out["glucose_t60"] = round(t60, 1)
+        out["glucose_range_t60"] = contract.glucose_range(t60)
+        out["glucose_range"] = contract.glucose_range(selected_glucose)
+        out["model_version"] = self.model_version
+        out["is_trained_model"] = True
+        out["experimental_label"] = self.label
+        ppg_clause = (
+            f"g0 came from a PPG estimate instead of the population fallback "
+            f"(rppg/PPG_Dataset, {self._ppg['known_result']})"
+            if working_meal.get("g0_source") == "ppg_estimate" else
+            "PPG did not drive g0 this time (a direct measurement was available, "
+            "or no PPG capture/model exists)"
+        )
+        out["basis"] = (
+            f"EXPERIMENTAL, UNGATED (not the shipped default; "
+            f"prediction_mode=experimental_fusion only). g0={g0:.1f} mg/dL "
+            f"({working_meal.get('g0_detail', 'source unrecorded')}); {ppg_clause}. "
+            f"T+60 = that g0, blended with a CGMacros carbs/macro adjustment "
+            f"(weight {w_cv:.2f}, held-out MAE "
+            f"{self._cgmacros['held_out_mae_mgdl_grouped_by_participant']}) and a "
+            f"BIG IDEAs is_fried_cooking adjustment (weight {w_nlp:.2f}). None of "
+            f"these has cleared the project's evidence gate; see "
+            f"docs/INTEGRATION_AUDIT.md and the 2026-10-20 grill. T+120: no T+120 "
+            f"arm exists for any adjustment -- served by B2's cohort mean "
+            f"excursion instead."
+        )
+
+        errors = contract.validate_forecast_output({
+            **out, "glucose_t60": selected_glucose,
+            "glucose_range": contract.glucose_range(selected_glucose),
+        })
+        if errors:
+            raise contract.ContractViolation(
+                "predictor produced a non-compliant record: " + "; ".join(errors)
+            )
+        return out
+
+
+def autoload_experimental_fusion_predictor() -> Optional[Predictor]:
+    """Load the experimental_fusion artifact if one has been fit.
+
+    Unlike the PPG/NLP autoloaders this one is NOT evidence-gated -- the
+    artifact is written unconditionally by
+    forecasting/evaluate/fit_experimental_fusion.py (2026-10-20 product
+    decision to bypass the gate for this mode only). Absence just means
+    nobody has run the fitter yet.
+    """
+    try:
+        return ExperimentalFusionPredictor.load()
+    except (FileNotFoundError, KeyError, ValueError, json.JSONDecodeError):
+        return None
 
 
 def autoload_nlp_dish_identity_predictor() -> Optional[Predictor]:
