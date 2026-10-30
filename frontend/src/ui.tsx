@@ -156,7 +156,7 @@ export function BottomNav({ active, go }: { active: "home" | "prediction" | "his
     </div>
     <span className="bottom-nav__pill" ref={pill} aria-hidden="true"/>
     <button title="Beranda" className={active === "home" ? "active" : ""} onClick={() => go("home")}><Icon name="home"/><span>Beranda</span></button>
-    <button title="Prediksi" className={`bottom-nav__main ${active === "prediction" ? "active" : ""}`} onClick={() => go("prediction")}><span className="bottom-nav__main-icon"><Icon name="chart"/></span><span>Prediksi</span></button>
+    <button title="Prediksi" className={`bottom-nav__main ${active === "prediction" ? "active" : ""}`} onClick={() => go("source")}><span className="bottom-nav__main-icon"><Icon name="chart"/></span><span>Prediksi</span></button>
     <button title="Riwayat" className={`bottom-nav__history ${active === "history" ? "active" : ""}`} onClick={() => go("history")}><Icon name="clock"/><span>Riwayat</span></button>
     <button title="Profil" className={active === "profile" ? "active" : ""} onClick={() => go("profile")}><Icon name="user"/><span>Profil</span></button>
   </nav>;

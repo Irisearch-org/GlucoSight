@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   UserError, fusionAvailable, getHealth, predict,
-  type GlucoseRange, type Health, type ModalityStatus, type PpgCapturePayload, type PredictPayload, type PredictResponse,
+  type GlucoseRange, type Health, type PpgCapturePayload, type PredictPayload, type PredictResponse,
 } from "./api";
 import { DISH_CATALOG, findDish, nutritionFor, sumNutrition, type Dish, type Nutrition } from "./foodCatalog";
 import Landing from "./Landing";
@@ -49,7 +49,7 @@ const portionCards = [
 
 interface PpgResult { glucose: number; bpm: number; quality: number; capture: PpgCapturePayload }
 interface CvResult {
-  recognized: boolean; status: ModalityStatus; detail: string | null; foodClass: string | null;
+  recognized: boolean; status: string; detail: string | null; foodClass: string | null;
   confidence: number; macros: { carbs: number; protein: number; fat: number; fiber: number };
 }
 interface ManualItem { id: number; name: string; mode: "estimate" | "gram"; portion: 0 | 1 | 2; grams: string }
