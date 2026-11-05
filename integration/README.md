@@ -13,6 +13,24 @@ python -m pytest utils/tests integration/tests rppg/tests/test_glucose_estimator
 python -m uvicorn integration.api:app --reload        # http://127.0.0.1:8000
 ```
 
+## Accounts database (`glucosight`)
+
+Login/logout is backed by a MariaDB/MySQL database named `glucosight` (users
+and server-side sessions). Start MySQL (XAMPP works with its defaults), then:
+
+```bash
+pip install -r integration/requirements.txt
+python -m integration.db.init_db      # creates the database and tables, safe to re-run
+python -m uvicorn integration.api:app --reload
+```
+
+Connection settings are `GLUCOSIGHT_DB_HOST|PORT|USER|PASSWORD|NAME`
+(defaults: `127.0.0.1`, `3306`, `root`, empty, `glucosight`). Endpoints:
+`POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`.
+Each account's profile and prediction history are stored there too:
+`GET|PUT /user/profile`, `GET|POST /user/history`.
+Set `GLUCOSIGHT_COOKIE_SECURE=1` when serving over HTTPS.
+
 ## What is here
 
 | Module | Responsibility |

@@ -1,5 +1,6 @@
 """GlucoSight MVP inference endpoint.
 
+    POST /auth/*      register / login / logout / me (accounts in the glucosight DB)
     POST /predict     meal photo + Bahasa note + PPG capture -> prediction
     GET  /contract    the live contract v1.2 field spec
     GET  /health      liveness + what the service is actually serving
@@ -36,7 +37,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field as PField
 
-from integration import contract, fusion, glucose_source as gsrc, predictor
+from integration import auth, contract, fusion, glucose_source as gsrc, predictor, user_data
 from integration.adapters.ppg import strip_ringfenced
 
 log = logging.getLogger("glucosight.api")
@@ -51,6 +52,8 @@ app = FastAPI(
     version="0.1.0",
     description=DISCLAIMER,
 )
+app.include_router(auth.router)
+app.include_router(user_data.router)
 
 _predictor = predictor.default_predictor()
 

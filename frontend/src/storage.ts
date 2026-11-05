@@ -29,13 +29,16 @@ export interface HistoryRecord {
   modelVersion: string;
 }
 
+// Profile and history live in the database, per account (see api.ts). These keys are
+// what older versions of the app kept in this browser; they are read once, uploaded
+// to the signed-in account, and then removed.
 const KEY_PROFILE = "glucosight.v1.profile";
 const KEY_HISTORY = "glucosight.v1.history";
-const KEY_SIGNED_IN = "glucosight.v1.signedIn";
 
-function uuid(): string {
-  return crypto.randomUUID ? crypto.randomUUID() : `p-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
+export const EMPTY_PROFILE: Profile = {
+  participantId: "", name: "", email: "", age: "", gender: "Pria",
+  heightCm: "", weightKg: "", diabetesType: "Tipe 2", defaultSource: "meter",
+};
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -46,43 +49,15 @@ function read<T>(key: string, fallback: T): T {
   }
 }
 
-function write(key: string, value: unknown): void {
+export function peekLegacy(): { profile: Profile | null; history: HistoryRecord[] } {
+  return { profile: read<Profile | null>(KEY_PROFILE, null), history: read<HistoryRecord[]>(KEY_HISTORY, []) };
+}
+
+export function dropLegacy(): void {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    localStorage.removeItem(KEY_PROFILE);
+    localStorage.removeItem(KEY_HISTORY);
   } catch {
-    /* storage blocked (private mode, quota) */
+    /* storage blocked */
   }
-}
-
-export function loadProfile(): Profile {
-  const saved = read<Profile | null>(KEY_PROFILE, null);
-  if (saved) return saved;
-  const fresh: Profile = {
-    participantId: uuid(), name: "", email: "", age: "", gender: "Pria",
-    heightCm: "", weightKg: "", diabetesType: "Tipe 2", defaultSource: "meter",
-  };
-  write(KEY_PROFILE, fresh);
-  return fresh;
-}
-
-export function saveProfile(p: Profile): void {
-  write(KEY_PROFILE, p);
-}
-
-export function loadHistory(): HistoryRecord[] {
-  return read<HistoryRecord[]>(KEY_HISTORY, []);
-}
-
-export function addHistory(record: HistoryRecord): HistoryRecord[] {
-  const next = [record, ...loadHistory()];
-  write(KEY_HISTORY, next);
-  return next;
-}
-
-export function isSignedIn(): boolean {
-  return read<boolean>(KEY_SIGNED_IN, false);
-}
-
-export function setSignedIn(v: boolean): void {
-  write(KEY_SIGNED_IN, v);
 }

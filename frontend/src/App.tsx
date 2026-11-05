@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  UserError, fusionAvailable, getHealth, predict,
-  type GlucoseRange, type Health, type PpgCapturePayload, type PredictPayload, type PredictResponse,
+  UserError, fetchHistory, fetchProfile, fusionAvailable, getHealth, getMe, loginAccount, logoutAccount, predict,
+  registerAccount, saveHistoryRemote, saveProfileRemote,
+  type AuthUser, type GlucoseRange, type Health, type PpgCapturePayload, type PredictPayload, type PredictResponse,
 } from "./api";
 import { DISH_CATALOG, findDish, nutritionFor, sumNutrition, type Dish, type Nutrition } from "./foodCatalog";
 import Landing from "./Landing";
@@ -9,7 +10,7 @@ import { FoodIcon } from "./foodIcons";
 import { frameToDataUrl, photoToDataUrl } from "./image";
 import { cameraSupported, PPG_SECONDS, PpgRecorder, type FrameInfo } from "./ppg";
 import {
-  addHistory, isSignedIn, loadHistory, loadProfile, saveProfile, setSignedIn,
+  EMPTY_PROFILE, dropLegacy, peekLegacy,
   type HistoryRecord, type Profile, type SourceId,
 } from "./storage";
 import { ageMinutes, describeAge, formatWhen, minutesAgo, toApiTimestamp, toInputValue } from "./time";
@@ -211,13 +212,17 @@ const qualityLabel = (q: number): { text: string; tone: Tone } =>
 
 // -------------------------------------------------------------------- auth
 
-function Auth({ register, profile, go, onSignIn }: {
-  register?: boolean; profile: Profile; go: (s: Screen) => void; onSignIn: (name: string, email: string) => void;
+function Auth({ register, profile, go, onSubmit }: {
+  register?: boolean; profile: Profile; go: (s: Screen) => void;
+  /** Resolves to an error message to show, or null once signed in. */
+  onSubmit: (register: boolean, name: string, email: string, password: string) => Promise<string | null>;
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState(profile.email);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
   const emailOk = /\S+@\S+\.\S+/.test(email);
   const valid = register
@@ -235,15 +240,22 @@ function Auth({ register, profile, go, onSignIn }: {
         <h1>{register ? "Buat akun Anda" : "Selamat datang kembali"}</h1>
         <p>{register ? "Mulai memahami respons gula darah Anda setelah makan." : "Masuk untuk melanjutkan perjalanan kesehatan Anda."}</p>
       </div>
-      <form className="form-stack" onSubmit={(e) => { e.preventDefault(); if (valid) onSignIn(name.trim(), email.trim()); }}>
+      <form className="form-stack" onSubmit={async (e) => {
+        e.preventDefault();
+        if (!valid || busy) return;
+        setBusy(true);
+        setError("");
+        const message = await onSubmit(!!register, name.trim(), email.trim(), password);
+        if (message) { setError(message); setBusy(false); }
+      }}>
         {register && <Field label="Nama lengkap" value={name} onChange={setName}/>}
         <Field label="Email" type="email" value={email} onChange={setEmail}/>
         <Field label="Kata sandi" type="password" placeholder={register ? "Minimal 8 karakter" : "Kata sandi"} value={password} onChange={setPassword}/>
         {register && <Field label="Konfirmasi kata sandi" type="password" placeholder="Ulangi kata sandi" value={confirm} onChange={setConfirm}/>}
-        {hint && <p className="field-hint">{hint}</p>}
-        <button className="button button--primary" type="submit" disabled={!valid}><span>{register ? "Daftar" : "Masuk"}</span></button>
+        {(hint || error) && <p className="field-hint" role="alert">{error || hint}</p>}
+        <button className="button button--primary" type="submit" disabled={!valid || busy}><span>{busy ? "Memproses…" : register ? "Daftar" : "Masuk"}</span></button>
       </form>
-      <p className="auth-switch">{register ? "Sudah punya akun?" : "Belum punya akun?"} <button onClick={() => go(register ? "login" : "register")}>{register ? "Masuk" : "Daftar"}</button></p>
+      <p className="auth-switch">{register ? "Sudah punya akun?" : "Belum punya akun?"} <button type="button" onClick={() => go(register ? "login" : "register")}>{register ? "Masuk" : "Daftar"}</button></p>
     </main>
   </div>;
 }
@@ -821,10 +833,12 @@ function bmiOf(h: string, w: string): { value: string; label: string } | null {
 
 function ProfileScreen({ profile, historyCount, nav, go, onSave, onSignOut }: {
   profile: Profile; historyCount: number; nav: (s: Screen) => void; go: (s: Screen) => void;
-  onSave: (p: Profile) => void; onSignOut: () => void;
+  onSave: (p: Profile) => Promise<void>; onSignOut: () => void;
 }) {
   const [form, setForm] = useState(profile);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
   const set = (change: Partial<Profile>) => { setForm({ ...form, ...change }); setSaved(false); };
   const bmi = bmiOf(form.heightCm, form.weightKg);
   return <div className="shell with-nav"><AppBar title="Profil &amp; Pengaturan"/><main className="page profile-page">
@@ -843,7 +857,14 @@ function ProfileScreen({ profile, historyCount, nav, go, onSave, onSignOut }: {
       <div className="option-list">{sourceOptions.filter((o) => o.id !== "ppg").map((o) => <SourceCard key={o.id} option={o} selected={form.defaultSource === o.id} onClick={() => set({ defaultSource: o.id })}/>)}</div>
       <p className="helper" style={{ marginTop: 10 }}><Icon name="info" size={15}/> Scan Jari dipilih langsung saat memulai prediksi.</p>
     </section>
-    <Button onClick={() => { onSave(form); setSaved(true); }}>{saved ? "Tersimpan ✓" : "Simpan perubahan"}</Button>
+    {saveError && <p className="field-hint" role="alert">{saveError}</p>}
+    <Button onClick={async () => {
+      if (saving) return;
+      setSaving(true);
+      setSaveError("");
+      try { await onSave(form); setSaved(true); } catch (e) { setSaveError(errorText(e)); }
+      setSaving(false);
+    }}>{saving ? "Menyimpan…" : saved ? "Tersimpan ✓" : "Simpan perubahan"}</Button>
     <Button variant="text" onClick={onSignOut}>Keluar</Button>
   </main><BottomNav active="profile" go={nav}/></div>;
 }
@@ -853,15 +874,23 @@ function ProfileScreen({ profile, historyCount, nav, go, onSave, onSignOut }: {
 const WIZARD: Screen[] = ["source", "scan", "summary", "camera", "confirm", "manual", "result"];
 
 export default function App() {
-  const [profile, setProfile] = useState<Profile>(loadProfile);
+  const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE);
   // Every visit starts on the landing page; signed-in users go on via "Masuk".
   const [screen, setScreen] = useState<Screen>("landing");
-  const [draft, setDraft] = useState<Draft>(() => newDraft(loadProfile()));
-  const [history, setHistory] = useState<HistoryRecord[]>(loadHistory);
+  const [draft, setDraft] = useState<Draft>(() => newDraft(EMPTY_PROFILE));
+  const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [result, setResult] = useState<ResultState>({ status: "loading" });
   const [resultBack, setResultBack] = useState<Screen>("home");
   const [health, setHealth] = useState<Health | null>(null);
   const [apiState, setApiState] = useState<"loading" | "ok" | "down">("loading");
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  // Restore the server session (HttpOnly cookie) on page load.
+  useEffect(() => {
+    let cancelled = false;
+    getMe().then((u) => (!cancelled && u ? adoptUser(u) : undefined)).catch(() => { /* stay signed out */ });
+    return () => { cancelled = true; };
+  }, []);
 
   // Re-check every few seconds while the API is unreachable, so a server that
   // starts after the page loaded is picked up without a manual reload.
@@ -892,8 +921,9 @@ export default function App() {
     try {
       const res = await predict(buildPayload(draft, profile, mode));
       const record = toRecord(res, draft);
-      setHistory(addHistory(record));
+      setHistory((h) => [record, ...h.filter((x) => x.id !== record.id)]);
       setResult({ status: "ready", record, fromHistory: false });
+      saveHistoryRemote(record).catch(() => { /* shown on screen already; it will not be in history after a reload */ });
     } catch (e) {
       setResult({ status: "error", message: errorText(e) });
     }
@@ -905,28 +935,58 @@ export default function App() {
     go("result");
   };
 
-  const signIn = (name: string, email: string) => {
-    const local = email.split("@")[0];
-    const next = { ...profile, email, name: name || profile.name || local.charAt(0).toUpperCase() + local.slice(1) };
-    setProfile(next);
-    saveProfile(next);
-    setSignedIn(true);
-    go("home");
+  // Load the account's profile and history from the server. Anything an older
+  // version of the app kept in this browser is uploaded once, then removed.
+  async function adoptUser(u: AuthUser) {
+    let { profile: loaded, saved } = await fetchProfile();
+    let loadedHistory = await fetchHistory();
+    const legacy = peekLegacy();
+    const isMine = !legacy.profile?.email || legacy.profile.email.toLowerCase() === u.email.toLowerCase();
+    if (isMine && (legacy.profile || legacy.history.length)) {
+      if (!saved && legacy.profile) loaded = await saveProfileRemote({ ...legacy.profile, name: u.name, email: u.email, participantId: loaded.participantId });
+      const known = new Set(loadedHistory.map((r) => r.id));
+      await Promise.all(legacy.history.filter((r) => !known.has(r.id)).map(saveHistoryRemote));
+      loadedHistory = await fetchHistory();
+      dropLegacy();
+    }
+    setProfile(loaded);
+    setHistory(loadedHistory);
+    setDraft(newDraft(loaded));
+    setUser(u);
+  }
+
+  const authenticate = async (register: boolean, name: string, email: string, password: string): Promise<string | null> => {
+    try {
+      adoptUser(register ? await registerAccount(name, email, password) : await loginAccount(email, password));
+      go("home");
+      return null;
+    } catch (e) {
+      return errorText(e);
+    }
   };
 
-  const signOut = () => { setSignedIn(false); go("landing"); };
+  const signOut = async () => {
+    try { await logoutAccount(); } catch { /* the server session expires on its own; still sign out here */ }
+    setUser(null);
+    setProfile(EMPTY_PROFILE);
+    setHistory([]);
+    setDraft(newDraft(EMPTY_PROFILE));
+    go("landing");
+  };
 
   if (screen === "landing") {
-    return <Landing onLogin={() => go(isSignedIn() ? "home" : "login")} onRegister={() => go(isSignedIn() ? "home" : "register")}/>;
+    return <Landing onLogin={() => go(user ? "home" : "login")} onRegister={() => go(user ? "home" : "register")}/>;
   }
   if (!WIZARD.includes(screen) && ["login", "register"].includes(screen)) {
-    return <Auth register={screen === "register"} profile={profile} go={go} onSignIn={signIn}/>;
+    return <Auth register={screen === "register"} profile={profile} go={go} onSubmit={authenticate}/>;
   }
+  // Everything past landing/login/register needs an account.
+  if (!user) return <Auth profile={profile} go={go} onSubmit={authenticate}/>;
 
   switch (screen) {
     case "home": return <Home profile={profile} history={history} apiState={apiState} nav={nav} go={go} onOpen={openRecord}/>;
     case "history": return <History history={history} nav={nav} go={go} onOpen={openRecord}/>;
-    case "profile": return <ProfileScreen profile={profile} historyCount={history.length} nav={nav} go={go} onSave={(p) => { setProfile(p); saveProfile(p); }} onSignOut={signOut}/>;
+    case "profile": return <ProfileScreen profile={profile} historyCount={history.length} nav={nav} go={go} onSave={async (p) => { setProfile(await saveProfileRemote(p)); }} onSignOut={signOut}/>;
     case "source": return <Source draft={draft} patch={patch} go={go}/>;
     case "scan": return <Scan mode={mode} participantId={profile.participantId} go={go}
       onUse={(r) => { patch({ source: "ppg", ppg: r }); go("summary"); }}/>;
@@ -935,6 +995,6 @@ export default function App() {
     case "confirm": return <Confirm draft={draft} patch={patch} go={go} onPredict={runPrediction}/>;
     case "manual": return <Manual draft={draft} patch={patch} go={go} onPredict={runPrediction}/>;
     case "result": return <Result state={result} nav={nav} go={go} onRetry={runPrediction} backTo={resultBack}/>;
-    default: return <Auth profile={profile} go={go} onSignIn={signIn}/>;
+    default: return <Auth profile={profile} go={go} onSubmit={authenticate}/>;
   }
 }

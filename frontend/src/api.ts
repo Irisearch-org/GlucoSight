@@ -1,3 +1,5 @@
+import type { HistoryRecord, Profile } from "./storage";
+
 // Mirrors integration/api.py's PredictRequest / /predict / /health response shapes.
 
 export class UserError extends Error {}
@@ -109,7 +111,7 @@ export interface PredictResponse {
   generated_at: string;
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
     res = await fetch(path, init);
@@ -126,6 +128,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     }
     throw new UserError(detail);
   }
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 
@@ -140,3 +143,40 @@ export function predict(payload: PredictPayload): Promise<PredictResponse> {
     body: JSON.stringify(payload),
   });
 }
+
+// Accounts live in the `glucosight` database; the session is an HttpOnly cookie
+// set by /auth/*, so none of these calls handle a token.
+export interface AuthUser {
+  participant_id: string;
+  name: string;
+  email: string;
+}
+
+const json = (body: unknown, method = "POST"): RequestInit => ({
+  method,
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(body),
+});
+
+export const registerAccount = (name: string, email: string, password: string) =>
+  request<{ user: AuthUser }>("/auth/register", json({ name, email, password })).then((r) => r.user);
+
+export const loginAccount = (email: string, password: string) =>
+  request<{ user: AuthUser }>("/auth/login", json({ email, password })).then((r) => r.user);
+
+export const logoutAccount = () => request<void>("/auth/logout", { method: "POST" });
+
+/** The signed-in user, or null when there is no valid session (or the server is unreachable). */
+export const getMe = () =>
+  request<{ user: AuthUser }>("/auth/me").then((r) => r.user).catch(() => null);
+
+// Per-account profile and prediction history (integration/user_data.py).
+export const fetchProfile = () => request<{ profile: Profile; saved: boolean }>("/user/profile");
+
+export const saveProfileRemote = (p: Profile) =>
+  request<{ profile: Profile }>("/user/profile", json(p, "PUT")).then((r) => r.profile);
+
+export const fetchHistory = () => request<{ history: HistoryRecord[] }>("/user/history").then((r) => r.history);
+
+export const saveHistoryRemote = (record: HistoryRecord) =>
+  request<unknown>("/user/history", json(record));
