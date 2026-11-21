@@ -1,162 +1,124 @@
-# GlucoSight Integration Layer
+# GlucoSight Integration Layer (v2)
 
-The integration layer validates CV, NLP and contact-PPG diagnostic outputs and exposes a clearly labelled baseline demo endpoint. It does **not** currently serve a trained multimodal forecast.
+The backend of the website: a FastAPI app (`integration/api.py`) that serves the fixed
+three-step flow. **Research prototype, not a medical device.**
 
-**Read [`docs/INTEGRATION_AUDIT.md`](../docs/INTEGRATION_AUDIT.md) first** if
-you are about to quote a number from Sprint 2.
+1. **Current glucose** (`stages/glucose.py`): glucometer entry, CGM reading, or a finger PPG scan scored by the served ridge model.
+2. **Meal** (`stages/meal.py`, `dishes/`): photo (Gemini names the dishes, an embedding matcher maps each name to a dish-table row; items below the confidence rule must be entered manually) or manual item-by-item entry.
+3. **Forecast** (`stages/forecast.py`): glucose at T+60 and T+120 from two served LightGBM models, each with an error band.
 
-## Quick start
+Authoritative documents: [`docs/SPEC_V2_PIPELINE.md`](../docs/SPEC_V2_PIPELINE.md) (what and why),
+[`docs/interface/INTERFACE_CONTRACT_v2.md`](../docs/interface/INTERFACE_CONTRACT_v2.md) (schema and HTTP API),
+[`docs/EVALUATION_PLAN.md`](../docs/EVALUATION_PLAN.md) (which numbers the paper reports),
+[`docs/METRICS.md`](../docs/METRICS.md) (which numbers are real). Read METRICS before quoting any figure.
 
-```bash
-pip install -r integration/requirements.txt
-python -m pytest utils/tests integration/tests rppg/tests/test_glucose_estimator.py forecasting/tests nlp/tests -q
-python -m uvicorn integration.api:app --reload        # http://127.0.0.1:8000
-```
+## Run it locally
 
-## Accounts database (`glucosight`)
-
-Login/logout is backed by a MariaDB/MySQL database named `glucosight` (users
-and server-side sessions). Start MySQL (XAMPP works with its defaults), then:
+Prerequisites: the gitignored artefacts below are in place (the `served.json` paths), and the Gemini key file exists.
 
 ```bash
+# backend, from the repo root: http://127.0.0.1:8000
 pip install -r integration/requirements.txt
-python -m integration.db.init_db      # creates the database and tables, safe to re-run
 python -m uvicorn integration.api:app --reload
+
+# frontend (second terminal): Vite proxies the API paths to :8000
+cd frontend
+npm install
+npm run dev            # desktop browser
+npm run dev:phone      # phone on the same LAN: HTTPS (self-signed), required for the camera
 ```
 
-Connection settings are `GLUCOSIGHT_DB_HOST|PORT|USER|PASSWORD|NAME`
-(defaults: `127.0.0.1`, `3306`, `root`, empty, `glucosight`). Endpoints:
-`POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`.
-Each account's profile and prediction history are stored there too:
-`GET|PUT /user/profile`, `GET|POST /user/history`.
-Set `GLUCOSIGHT_COOKIE_SECURE=1` when serving over HTTPS.
+Phone browsers expose the camera (meal photo and finger scan) only on a secure context, which is why
+`dev:phone` serves HTTPS on the LAN. Open the printed `https://<LAN-IP>:5173` URL on the phone and accept
+the certificate warning.
 
-## What is here
+`GET /health` shows what is being served (`served.json`) and the dish-table build hash; a missing artefact
+makes the dependent endpoint return 503 rather than fall back to something else.
 
-| Module | Responsibility |
+### Accounts database (`glucosight`)
+
+Login and history are backed by a MariaDB/MySQL database named `glucosight` (users and server-side
+sessions). Start MySQL (XAMPP works with its defaults), then:
+
+```bash
+python -m integration.db.init_db      # creates the database and tables, safe to re-run
+```
+
+Connection settings are `GLUCOSIGHT_DB_HOST|PORT|USER|PASSWORD|NAME` (defaults `127.0.0.1`, `3306`, `root`,
+empty, `glucosight`). Set `GLUCOSIGHT_COOKIE_SECURE=1` when serving over HTTPS. Auth and user routes
+(`POST /auth/register|login|logout`, `GET /auth/me`, `GET|PUT /user/profile`, `GET|POST /user/history`) are
+unchanged from v1. History keeps dish names and macros only; photos are never stored.
+
+## Build the dish table
+
+The dish table is built locally from the TKPI 2017 PDF (Kemenkes). TKPI has no open licence and this repo
+is public, so **the table values are never committed**; git holds only the parser, aliases, recipes and
+class mapping.
+
+```bash
+python -m integration.dishes.build --tkpi-pdf /path/to/TKPI-2017.pdf --out data/dish_table/dish_table.csv
+```
+
+`data/dish_table/dish_table.csv` is covered by the root `.gitignore` (`/data/`). The API reads it through
+`DishTable.load`, and `build_hash` (first 12 hex of the CSV's sha256) is returned in `/health`,
+`/meal/photo` and `/predict` so any result can be tied to the build that produced it. One row is one food
+as eaten (`kind` = `dish` | `ingredient`), with per-100 g nutrients, nullable `fibre_g`, `serving_g` and a
+`confidence` of `exact` | `approximate` | `computed`. Ingredient serving weights cite Kemenkes
+KepDirjen HK.02.02/B/576/2025; dish `serving_g` values are assumed defaults and labelled as such.
+
+## Runtime config and gitignored artefacts
+
+`integration/models/served.json` is committed; the paths inside it point at files that are **not**:
+
+| What | Path (from `served.json`) | How to get it |
+|---|---|---|
+| PPG model (ridge, 7 handcrafted features) | `rppg/models/weights/` (`ppg_served_model.*`) | trained by `rppg/experiments/ppg_served_model` (branch `wayfinder/ppg-served-model`); `rppg/models/weights/` is gitignored |
+| Forecasters, T+60 and T+120 | `forecasting/models/gbdt_cgmacros_T60.txt`, `..._T120.txt` (+ `.json`) | trained by `forecasting/evaluate/gbdt_forecaster.py` (branch `wayfinder/gbdt-forecaster`); `forecasting/models/` is gitignored |
+| Dish table | `data/dish_table/dish_table.csv` | `python -m integration.dishes.build`, see above; `/data/` is gitignored |
+| Gemini key | `cv/experiments/vlm_vs_mobilenet/GEMINI_API_KEY.env` | a file containing `GEMINI_API_KEY=...` (paid tier); `*.env` is gitignored |
+
+The Gemini key is read by the backend only and is never sent to the browser. Never commit it or print it.
+Models used: `gemini-3.5-flash-lite` (dish naming, prompted in Indonesian) and `gemini-embedding-001`
+(matcher). Error bands in `served.json` are the 90th percentile of absolute held-out error per horizon and
+g0 source from the forecaster trial.
+
+## HTTP endpoints
+
+Full schemas are in [`INTERFACE_CONTRACT_v2.md`](../docs/interface/INTERFACE_CONTRACT_v2.md) §8. Errors are
+`{"detail": "<message in Bahasa Indonesia>"}` with 422 (invalid input), 409 (stale or invalid glucose
+capture) or 503 (model, table or VLM unavailable).
+
+| Method and path | Purpose |
 |---|---|
-| `contract.py` | Interface Contract v1.2 — the single validator for the whole repo |
-| `adapters/` | Track-native output → contract records |
-| `fusion.py` | Assemble one validated meal record; causal history features |
-| `features.py` | Three feature tiers + train-only normalization |
-| `glucose_source.py` | Where `g0` comes from: fingerstick / CGM / PPG / fallback |
-| `predictor.py` | The prediction step — **currently a labelled baseline** |
-| `report.py` | Results tables that refuse to omit B0/B1/B2 |
-| `api.py` | `POST /predict`, `GET /contract`, `GET /health` |
-| `web/` | Demo page |
+| `GET /health` | `status`, `schema_version` ("2.0"), the served config, `dish_table_build` |
+| `GET /dishes?q=&limit=10` | dish-table autocomplete (prefix and alias, case-insensitive); nutrients per 100 g |
+| `POST /glucose/ppg` | finger-scan capture (`samples`, `fs`, `torch_verified`, `clip_fraction`) → a `G0Reading`; invalid capture → 409 "Ulangi scan" |
+| `POST /meal/photo` | `image_data_url` → items `{vlm_name, accepted, row, suggestions, similarity, margin}` |
+| `POST /predict` | glucose + meal items + profile → `g0`, meal totals, `forecast.t60` / `forecast.t120` with `error_band_mgdl`, `outside_training`, disclaimer |
+| `/auth/*`, `/user/*` | accounts and history, unchanged |
 
-## Current serving behavior
+Confidence rule for photo items (one copy, in `stages/meal.py`): accept when top-1 similarity ≥ 0.80 and the
+top-1 − top-2 margin ≥ 0.05; otherwise the item is resolved manually. VLM self-reported confidence is never
+used.
 
-**No trained glucose forecaster exists in this repository.** `/predict` is an explicit `baseline_demo` mode that serves B2: the freshest eligible pre-event measurement plus fixed cohort mean excursions. It supports only T+60 and T+120. Unsupported horizons and any request for `trained_forecast` fail rather than silently receiving B2.
+## What is honest about the served models
 
-The response reports modality processing status, but CV/NLP/PPG do **not** affect the B2 glucose values. `forecast_input_usage` says exactly which inputs determine the numbers. The UI calls the output a baseline demo, not multimodal fusion.
+- **PPG glucose is not a validated estimator.** Held-out MAE 14.69 vs 14.55 for the mean (fails the ADR 0004 gate); predictions barely track glucose and high values are under-read. It is served per [ADR 0005](../docs/adr/0005-ppg-option-serves-a-real-glucose-estimate.md) and always shown as a range (±25 mg/dL, 90% of held-out errors).
+- **The forecaster beats B2** under nested cross-validation for CGM and meter g0 (T+60 28.78 vs 31.68 mg/dL; T+120 28.49 vs 32.05) but **not for PPG g0**, where it runs on a near-constant input and no benefit is claimed.
+- **No end-to-end accuracy number** is claimed (ADR 0004). Numbers: [`docs/METRICS.md`](../docs/METRICS.md).
 
-The API accepts an image data URL and a timestamped, normalized scalar PPG capture. Scalar PPG is a diagnostic approximation, not the contracted RGB-camera capture: it cannot measure per-channel clipping or validate phone-camera acquisition. NLP outputs are heuristic and currently report calibration unavailable with zero confidence. These inputs are shown as diagnostics only.
+## Tests
 
-The offline CGMacros evaluator is a separate research path. Meal-feature training remains blocked because source values violate published dataset dictionary ranges. The event timestamp is not established as first bite. No evaluated model artifact is loaded by the API.
-
-A trained mode must not be enabled until a serialized estimator, preprocessing state, schema/feature hashes, participant-held-out report and same-event paired training cohort are in place. PPG/NLP from unrelated datasets are never joined to CGMacros to simulate pairing.
+```bash
+python -m pytest -q integration/tests
+```
 
 ## Rules enforced here rather than trusted
 
-Each of these produces a clean run, a good-looking loss curve and a
-worthless result. Each has a test that fails if it regresses.
-
-- **C1 timing** — `delta_t_minutes` is carried as a feature, never assumed
-  to be 60 or 120.
-- **C2 causality** — `glucose_history` is filtered strictly before `t0`;
-  derived features use only what survives; drops are counted and reported.
-  Plus a **staleness** guard (proposed for v2.0): a causal-but-238-day-old
-  reading is not a pre-meal glucose value.
-- **C4 splits** — `participant_id` is mandatory so the grouping key always
-  exists downstream.
-- **C3 baselines** — `report.py` raises `MissingBaseline` rather than build
-  a table with a model and no B0/B1/B2, and raises `ValueError` when rows
-  cover different sample counts.
-- **H1 missingness** — every modality has a `*_present` mask separate from
-  its confidence; contradictory combinations are rejected.
-- **H1 down-weighting** — low confidence scales a modality toward its
-  fallback; it never removes a column, and the weight never reaches 0.
-- **H7 encoding** — `gi_category` and `portion_reported` are one-hot.
-- **H7 leakage** — `TrainOnlyScaler` refuses a second `fit` and refuses
-  `transform` before `fit`.
-- **E1 ring-fence** — `ppg_glucose_estimate` is excluded from every default
-  feature tier and stripped from every API response.
-
-## Where pre-meal glucose comes from
-
-A user with a glucometer types their reading in; a user with a CGM supplies
-a trace; a user with neither gets the population fallback. Each is a
-different epistemic situation and `glucose_source.py` keeps them distinct.
-
-| Source | Trust | Status |
-|---|---|---|
-| `fingerstick` | 1.00 | **Live.** User-entered, range-checked, C2-checked, staleness-checked |
-| `cgm` | 0.95 | **Live.** From `glucose_history` |
-| `ppg_estimate` | 0.30 | **Gated off** — see below |
-| `population_fallback` | 0.10 | Always available, not personalised |
-
-Direct measurements compete on recency: a fingerstick taken 5 minutes ago
-beats a CGM reading from an hour ago, and vice versa. A PPG estimate is
-used only when no direct measurement is available *and* the path is
-explicitly enabled *and* an informative estimator is registered.
-
-### The finger scan cannot be validated on the current dataset
-
-Before training anything, know this: **predicting one constant for every
-subject already reaches Clarke Zone A 83.6%** on the PPG glucose dataset
-(n=67 recordings, 23 subjects, GroupKFold by subject), against a project
-target of 70%. Zone A is ±20%, which at this cohort's median glucose of 110
-mg/dL is ±22 mg/dL — wider than the label SD of 18.6.
-
-A Zone A number here cannot separate a working model from a constant. So
-`rppg/models/glucose_estimator.py` reports Zone A but gates on MAE against
-the mean baseline, and requires **all four**: positive improvement, wins in
-≥4 of 5 folds, a subject-level bootstrap 95% CI excluding zero, and a
-label-permutation p ≤ 0.05.
-
-```bash
-python -m rppg.models.glucose_estimator --train
-```
-
-Gate fails → no artifact written → the finger-scan path stays off. That is
-the intended behaviour, not an error. See `docs/INTEGRATION_AUDIT.md` F15.
-
-### Why the PPG path is off by default
-
-**Ring-fence E1.2** says `ppg_glucose_estimate` is "never used as a sole
-prediction and never surfaced to a user". In `forecast = g0 + excursion`, a
-PPG-derived `g0` *is* the sole driver of a user-visible number. Enabling it
-needs a contract v2.0 amendment, not a config change.
-
-**And there is nothing to enable yet.** The only committed PPG-glucose
-model predicts the training-fold mean for every subject (MAE 14.54, n=23),
-so it carries no more information than the population fallback.
-`G0Estimator.provides_information` records that, and `resolve_g0` refuses
-to prefer a constant predictor over the fallback — so the seam cannot be
-lit up by accident with a model that does not deserve it.
-
-A trained artifact is picked up automatically —
-`glucose_source.autoload_ppg_g0_estimator()` runs at API startup and is a
-no-op when no artifact exists. To register an estimator by hand:
-
-```python
-from integration import glucose_source as gsrc
-gsrc.register_ppg_g0_estimator(MyEstimator())   # provides_information=True
-```
-
-## Feature tiers
-
-`features.py` splits features by what a phone can actually produce:
-
-| Tier | Contents | Use |
-|---|---|---|
-| `deployable` | Contract fields only — CV macros, NLP context, PPG, causal glucose history, timing | **The headline.** What the API can serve |
-| `deployable_plus_askable` | + age, BMI, sex | A product decision away |
-| `oracle` | + venous labs + commercial gut panel + dataset-weighed macros | **Upper bound**, never fusion |
-
-The gap between `deployable` and `oracle` separates what CV can approximate
-from what participant physiology contributes. Report all three.
+- **C2 causality, C3 baselines, C4 grouped splits** stand (root `CLAUDE.md`). C1 is met by fixed T+60 / T+120 horizons, with no Δt input.
+- **Missing ≠ zero:** unknown nutrient values are `null`, never a fallback constant; meal `fibre_g` is `null` when any item's row lacks it.
+- **Every stage serves a real model;** B0/B1/B2 and the PPG mean are comparison rows in evaluation only.
+- Contract v1's `*_present` masks, modality down-weighting and ring-fence E1.2 for the PPG-glucose path are superseded by contract v2.
 
 ## Not a medical device
 

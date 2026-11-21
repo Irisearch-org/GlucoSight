@@ -3,13 +3,14 @@ docs/PPG_CAMERA_CAPTURE_FINDINGS.md.
 
 Covers:
   P1  a near-zero DC manufactures a large perfusion index out of nothing
-  P2  the quality-gate arithmetic that down-weighted the paper control to 0.493
   P3  `pulse_rate_bpm` is quantised to the FFT grid (1.5 bpm at 30.3 Hz / 10 s)
-  P6  the contract's declared range for `ppg_perfusion_index` is in the wrong
-      units, so an impossible value passes validation
 
-These import the shipped code (`rppg.features.extractor`,
-`integration.contract`) rather than restating it. The findings marked
+P2 (quality-gate down-weighting) and P6 (contract range units) reproduced
+contract v1.2 behaviour that contract v2.0 removed (no modality weights, no
+perfusion-index field); they are retired with it.
+
+These import the shipped code (`rppg.features.extractor`) rather than
+restating it. The findings marked
 *(observation)* in the document — the five captures and the device
 capabilities — have no in-repo reproduction.
 
@@ -24,12 +25,6 @@ import numpy as np
 from rppg.features.extractor import (
     compute_perfusion_index,
     estimate_pulse_rate_bpm,
-)
-from integration.contract import (
-    CONFIDENCE_FLOOR,
-    MIN_MODALITY_WEIGHT,
-    PPG_FIELDS,
-    modality_weight,
 )
 
 FS = 30.3          # observed sampling rate of the browser capture, Hz
@@ -83,24 +78,6 @@ def p1_dark_frame_inflates_the_ratio() -> None:
 
 
 # --------------------------------------------------------------------------
-# P2 — the quality gate down-weights but never excludes
-# --------------------------------------------------------------------------
-def p2_paper_was_downweighted_not_dropped() -> None:
-    heading("P2  the paper control was down-weighted, never excluded (H1)")
-    quality = 0.1309   # measured ppg_signal_quality for a folded sheet of paper
-    record = {"ppg_present": 1, "ppg_signal_quality": quality}
-    weight = modality_weight(record, "ppg")
-    expected = MIN_MODALITY_WEIGHT + (1.0 - MIN_MODALITY_WEIGHT) * (quality / CONFIDENCE_FLOOR)
-    print(f"  quality {quality} < floor {CONFIDENCE_FLOOR}")
-    print(f"  weight = {MIN_MODALITY_WEIGHT} + {1.0 - MIN_MODALITY_WEIGHT} "
-          f"* ({quality}/{CONFIDENCE_FLOOR}) = {weight:.4f}")
-    check("P2 weight matches the documented 0.493", abs(weight - 0.493) < 0.001,
-          f"{weight:.3f}")
-    check("P2 an inert sample is never dropped", weight > 0.0,
-          "H1: a hard zero is indistinguishable from a real zero")
-
-
-# --------------------------------------------------------------------------
 # P3 — the pulse rate is quantised to the FFT grid
 # --------------------------------------------------------------------------
 def p3_pulse_rate_is_quantised() -> None:
@@ -124,42 +101,11 @@ def p3_pulse_rate_is_quantised() -> None:
           f"grid step {step_bpm:.3f} bpm; no sub-bin interpolation")
 
 
-# --------------------------------------------------------------------------
-# P6 — the declared range is in different units from the emitted value
-# --------------------------------------------------------------------------
-def p6_units_disagree_between_producer_and_contract() -> None:
-    heading("P6  ppg_perfusion_index: contract range vs emitted units")
-    field = next(f for f in PPG_FIELDS if f.name == "ppg_perfusion_index")
-    print(f"  contract: lo={field.lo} hi={field.hi} fallback={field.fallback}")
-    print(f"  extractor.compute_perfusion_index returns percent "
-          f"(`ac_pp / dc * 100`)")
-    print(f"  integration/api.py:239 divides by 100 -> ratio")
-
-    # The capture from P1 in the document, as the service emitted it.
-    emitted = 0.5319
-    problem = field.check(emitted)
-    check("P6 an impossible perfusion index passes validation",
-          problem is None, f"{emitted} -> {problem!r}")
-    # hi=20.0 read as a ratio means an AC/DC of 2000 %.
-    also_passes = field.check(20.0)
-    check("P6 the declared ceiling permits a 2000 % AC/DC ratio",
-          also_passes is None, "hi=20.0 is a percent bound applied to a ratio")
-    # And the extractor-side value, in the units the extractor actually uses.
-    n = int(FS * WINDOW_S)
-    rng = np.random.default_rng(0)
-    raw = GREEN_DC + rng.normal(0.0, 0.00020, n)
-    extractor_value = compute_perfusion_index(raw - raw.mean(), raw)
-    print(f"  same dark frame, extractor units: {extractor_value:.2f} (percent)")
-    print(f"  same dark frame, service units:   {extractor_value / 100:.4f} (ratio)")
-
-
 def main() -> int:
     print("PPG capture findings - reproduction")
     print("See docs/PPG_CAMERA_CAPTURE_FINDINGS.md")
     p1_dark_frame_inflates_the_ratio()
-    p2_paper_was_downweighted_not_dropped()
     p3_pulse_rate_is_quantised()
-    p6_units_disagree_between_producer_and_contract()
     print()
     if _failures:
         print(f"{len(_failures)} check(s) FAILED: {', '.join(_failures)}")

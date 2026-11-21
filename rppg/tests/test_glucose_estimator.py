@@ -155,32 +155,3 @@ def test_provides_information_comes_from_the_artifact_not_by_hand():
 def test_load_missing_artifact_explains_the_gate():
     with pytest.raises(FileNotFoundError, match="evidence gate"):
         PPGGlucoseEstimator.load("/nonexistent/model.json")
-
-
-def test_a_failed_gate_estimator_is_refused_by_glucose_source():
-    """End to end: even a loaded model with provides_information=False must
-    not be preferred over the population fallback."""
-    from integration import glucose_source as gsrc
-    est = PPGGlucoseEstimator(_blob(provides=False))
-    gsrc.register_ppg_g0_estimator(est)
-    try:
-        r = gsrc.resolve_g0(
-            t0_timestamp="2026-01-15T19:30:00",
-            ppg_block=_ppg_block(), allow_ppg_estimate=True)
-        assert r.source == gsrc.SOURCE_POPULATION_FALLBACK
-    finally:
-        gsrc.register_ppg_g0_estimator(None)
-
-
-def test_a_passed_gate_estimator_is_used_by_glucose_source():
-    from integration import glucose_source as gsrc
-    est = PPGGlucoseEstimator(_blob(provides=True))
-    gsrc.register_ppg_g0_estimator(est)
-    try:
-        r = gsrc.resolve_g0(
-            t0_timestamp="2026-01-15T19:30:00",
-            ppg_block=_ppg_block(), allow_ppg_estimate=True)
-        assert r.source == gsrc.SOURCE_PPG_ESTIMATE
-        assert r.is_direct_measurement is False
-    finally:
-        gsrc.register_ppg_g0_estimator(None)

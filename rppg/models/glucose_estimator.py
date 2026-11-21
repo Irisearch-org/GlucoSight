@@ -1,7 +1,7 @@
 """PPG -> glucose estimator: train, evaluate against the baseline, and gate.
 
 This is the thing that has to work before the app can offer a finger scan to
-a user with no glucometer (`integration/glucose_source.py`).
+a user with no glucometer (served path: `integration/stages/glucose.py`).
 
 Read the dataset-adequacy warning before running it
 ---------------------------------------------------
@@ -362,11 +362,11 @@ def evaluate(
 
 
 # ---------------------------------------------------------------------
-# The estimator that plugs into integration/glucose_source.py
+# The gated estimator persisted by `--train` (JSON artifact)
 # ---------------------------------------------------------------------
 
 class PPGGlucoseEstimator:
-    """Satisfies `integration.glucose_source.G0Estimator`.
+    """Gated ridge loaded from the `--train` JSON artifact.
 
     `provides_information` is read from the persisted artifact, which is
     only written when `evaluate().passes_gate()` returned True. It is never

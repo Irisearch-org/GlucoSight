@@ -1,11 +1,11 @@
-"""GlucoSight integration layer — the PM-owned fusion spine.
+"""GlucoSight integration layer (contract v2.0).
 
-    integration.contract   Interface Contract v1.2: the single validator.
-    integration.adapters   Track-native output -> contract records.
-    integration.fusion     Assemble one validated meal record.
-    integration.features   Feature tiers + train-only normalization.
-    integration.predictor  The prediction step (currently a labelled baseline).
-    integration.api        FastAPI MVP endpoint.
+    integration.api         HTTP only: /health /dishes /glucose/ppg /meal/photo /predict, auth, user data.
+    integration.pipeline    forecast_meal + the step operations; `Deps` holds the served components.
+    integration.stages      glucose (step 1), meal (step 2), forecast (step 3).
+    integration.dishes      the dish table and the embedding matcher.
+    integration.contract    the schema: domain dataclasses and HTTP bodies.
+    integration.models      served.json: what is served, with versions and error bands.
 """
 
-__version__ = "0.1.0"
+__version__ = "2.0.0"

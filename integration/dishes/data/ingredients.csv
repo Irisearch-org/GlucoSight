@@ -1,0 +1,22 @@
+code,name,aliases,serving_g,serving_source,confidence
+AP001,Nasi putih,nasi|nasi putih hangat|nasi hangat|rice|white rice,100,KepDirjen HK.02.02/B/576/2025: nasi 3/4 gelas,exact
+AP021,Mi basah,mie basah|mie|mi|mie kuning|noodle,200,KepDirjen HK.02.02/B/576/2025: mi basah 2 gelas,exact
+BP011,Ubi jalar kukus,ubi|ubi jalar|ubi kukus|ubi rebus|sweet potato,135,KepDirjen HK.02.02/B/576/2025: ubi jalar 1 biji sedang,exact
+BP008,Singkong kukus,singkong|singkong rebus|ketela pohon|ubi kayu|cassava,120,Kemenkes DBMP: singkong,exact
+BR013,Kentang rebus,kentang|potato|boiled potato,210,KepDirjen HK.02.02/B/576/2025: kentang 2 buah sedang,approximate
+HR002,Telur ayam,telur|telur rebus|telur ayam rebus|egg|boiled egg,55,KepDirjen HK.02.02/B/576/2025: telur ayam 1 butir,approximate
+FR005,Daging ayam,ayam|ayam rebus|chicken,35,KepDirjen HK.02.02/B/576/2025: ayam 1 potong sedang dengan kulit,approximate
+FR026,Daging sapi,sapi|daging sapi rebus|beef,35,KepDirjen HK.02.02/B/576/2025: daging sapi 1 potong sedang,approximate
+FR019,Daging kambing,kambing|mutton|goat,40,Kemenkes DBMP: daging kambing,approximate
+FR031,Hati sapi,hati|liver|beef liver,35,Kemenkes DBMP: hati sapi,approximate
+GR007,Ikan bandeng,bandeng|milkfish,40,KepDirjen HK.02.02/B/576/2025: ikan segar 1 potong sedang,approximate
+GR046,Ikan mas,mas|carp,45,KepDirjen HK.02.02/B/576/2025: ikan mas 1/3 ekor,approximate
+GR048,Ikan nila,nila|mujahir|tilapia,40,KepDirjen HK.02.02/B/576/2025: ikan segar 1 potong sedang,approximate
+GR070,Ikan tongkol,tongkol|tuna,40,KepDirjen HK.02.02/B/576/2025: ikan segar 1 potong sedang,approximate
+GR084,Udang,udang rebus|shrimp|prawn,35,Kemenkes DBMP: udang 5 ekor,approximate
+CP061,Tahu,tahu putih|tofu,110,KepDirjen HK.02.02/B/576/2025: tahu 2 potong sedang,approximate
+CP077,Tempe,tempe kedelai|tempeh,50,KepDirjen HK.02.02/B/576/2025: tempe 2 potong sedang,approximate
+CP051,Oncom,,40,Kemenkes DBMP: oncom 2 potong kecil,exact
+ER074,Pisang ambon,pisang|banana,50,KepDirjen HK.02.02/B/576/2025: pisang ambon 1 buah sedang,exact
+ER081,Pisang kepok,pisang kepok,45,KepDirjen HK.02.02/B/576/2025: pisang kepok 1 buah,exact
+KP003,Santan,santan encer|coconut milk,40,KepDirjen HK.02.02/B/576/2025: santan 1/3 gelas,exact

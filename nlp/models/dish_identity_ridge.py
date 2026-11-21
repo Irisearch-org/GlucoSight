@@ -1,15 +1,13 @@
 """Promotes nlp/eval_dish_identity.py's M3_dish result -- M3 MAE 30.500 vs
 M2_shipped's 31.148 mg/dL on ShanghaiT2DM, a gain that survives the M3p
 permutation control at 31.252 -- from an offline eval script into a
-servable `Predictor`.
+gated artifact. Contract v2 does not serve it (the NLP path is retired).
 
 Gated the same way `rppg/models/glucose_estimator.py` gates the PPG
 estimator (ADR 0004: reuse that gate, don't invent a new evaluation
 standard): a positive improvement, winning most folds, a bootstrap CI
 over SUBJECTS excluding zero, and a subject-grouped label-permutation
-test. If the gate fails, nothing is persisted and the
-`nlp_dish_identity_forecast` prediction_mode stays unavailable, by
-design -- same contract as the PPG finger-scan path.
+test. If the gate fails, nothing is persisted.
 
 Usage
 -----
@@ -329,101 +327,6 @@ def train_and_persist(
         artifact_path=artifact_path, report_path=report_path,
         n_bootstrap=n_bootstrap, n_permutations=n_permutations,
     )
-
-
-# ---------------------------------------------------------------------
-# the predictor that plugs into integration/predictor.py
-# ---------------------------------------------------------------------
-
-class NLPDishIdentityPredictor:
-    """Satisfies `integration.predictor.Predictor`.
-
-    Serves T+60 from its own ridge coefficients; T+120 always falls back
-    to a composed `BaselineB2Predictor`'s cohort-mean-excursion constant —
-    there is no T+120 arm for this model anywhere in this repo.
-    """
-
-    is_trained_model = True
-
-    def __init__(self, blob: Dict[str, Any]):
-        self._blob = blob
-        self.model_version = blob["model_version"]
-        self._continuous_names = list(blob["continuous_names"])
-        self._flag_names = list(blob["flag_names"])
-        self._dish_vocabulary = list(blob["dish_vocabulary"])
-        self._mean = np.asarray(blob["scaler_mean"], dtype=float)
-        self._scale = np.asarray(blob["scaler_scale"], dtype=float)
-        self._coef = np.asarray(blob["coef"], dtype=float)
-        self._intercept = float(blob["intercept"])
-        from integration.predictor import BaselineB2Predictor, _MAX_MGDL, _MIN_MGDL
-        self._b2 = BaselineB2Predictor()
-        self._min_mgdl = _MIN_MGDL
-        self._max_mgdl = _MAX_MGDL
-
-    @classmethod
-    def load(cls, path: str = ARTIFACT_PATH) -> "NLPDishIdentityPredictor":
-        if not os.path.exists(path):
-            raise FileNotFoundError(
-                f"no NLP dish-identity model at {path}. Train one with "
-                f"`python -m nlp.models.dish_identity_ridge --train`. If the "
-                f"evidence gate failed, no artifact is written — which means "
-                f"the nlp_dish_identity_forecast mode stays off, by design."
-            )
-        with open(path) as fh:
-            return cls(json.load(fh))
-
-    def predict(self, meal: Dict[str, Any]) -> Dict[str, Any]:
-        from integration import contract
-
-        b2_out = self._b2.predict(meal)
-
-        g0 = float(meal.get("g0_mgdl", 120.0))
-        provenance = meal.get("_provenance") or {}
-        total_grams = provenance.get("nlp_total_grams")
-        continuous = np.array(
-            [g0, float(total_grams) if total_grams is not None else 0.0]
-        )
-        scaled = (continuous - self._mean) / self._scale
-        flags = np.array([
-            float(meal.get("is_fried_cooking", 0)),
-            float(meal.get("is_large_portion", 0)),
-        ])
-        dish_names = set(provenance.get("nlp_dish_names") or [])
-        onehot = np.array([
-            1.0 if name in dish_names else 0.0 for name in self._dish_vocabulary
-        ])
-        x = np.concatenate([scaled, flags, onehot])
-        rise = float(x @ self._coef + self._intercept)
-        t60 = float(min(self._max_mgdl, max(self._min_mgdl, g0 + rise)))
-
-        requested_horizon = b2_out["requested_horizon_minutes"]
-        selected_glucose = t60 if requested_horizon == 60.0 else b2_out["glucose_t120"]
-
-        out = dict(b2_out)
-        out["glucose_t60"] = round(t60, 1)
-        out["glucose_range_t60"] = contract.glucose_range(t60)
-        out["glucose_range"] = contract.glucose_range(selected_glucose)
-        out["model_version"] = self.model_version
-        out["is_trained_model"] = True
-        out["basis"] = (
-            f"T+60: NLP dish-identity ridge (g0 + total_grams + cooking "
-            f"flags + {len(self._dish_vocabulary)} dish indicators), "
-            f"held-out MAE {self._blob['heldout_mae_m3']:.2f} mg/dL vs the "
-            f"shipped pipeline's {self._blob['heldout_mae_m2']:.2f} "
-            f"(ShanghaiT2DM, n={self._blob['n_subjects']} subjects). "
-            f"T+120: no T+120 arm exists for this model — served by B2's "
-            f"cohort mean excursion instead. {b2_out['basis']}"
-        )
-
-        errors = contract.validate_forecast_output({
-            **out, "glucose_t60": selected_glucose,
-            "glucose_range": contract.glucose_range(selected_glucose),
-        })
-        if errors:
-            raise contract.ContractViolation(
-                "predictor produced a non-compliant record: " + "; ".join(errors)
-            )
-        return out
 
 
 def main():

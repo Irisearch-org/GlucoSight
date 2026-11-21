@@ -1,0 +1,24 @@
+{
+  "ppg_model": {
+    "path": "rppg/models/weights/ppg_served_model.joblib",
+    "version": "ppg-ridge-handcrafted-nested-v1",
+    "error_range_mgdl": 25.0,
+    "trained_artifact": "rppg/models/weights/ppg_served_model.pt",
+    "note": "The joblib file is the sklearn pipeline (StandardScaler + Ridge on the 7 handcrafted features) re-saved from the torch artifact by rppg/experiments/ppg_served_model/export_joblib.py, so the server needs no torch."
+  },
+  "forecaster": {
+    "t60": {"path": "forecasting/models/gbdt_cgmacros_T60.txt", "version": "gbdt-cgmacros-T60-full-v1"},
+    "t120": {"path": "forecasting/models/gbdt_cgmacros_T120.txt", "version": "gbdt-cgmacros-T120-full-v1"},
+    "error_bands_mgdl": {
+      "t60": {"meter": 62.8, "cgm": 60.8, "ppg": 77.9},
+      "t120": {"meter": 64.0, "cgm": 62.6, "ppg": 69.1}
+    },
+    "error_bands_provenance": "90th percentile of absolute held-out error (mg/dL) per horizon and g0 source, nested CV (GroupKFold(5) x 5 by participant), pooled over test meals and noise draws. The committed gbdt_results hold no residuals, so they were recomputed without permutations (MAE reproduces the committed trial exactly: T+60 CGM 28.78, meter 29.69, PPG 36.02). meter/cgm: `python -m forecasting.evaluate.gbdt_forecaster --data-root <CGMacros> --permutations 0 --out /tmp/gbdt_bands_main`; ppg: same with `--ppg-residuals rppg/models/reports/ppg_served_residuals.csv --out /tmp/gbdt_bands_ppg` (trial's simulated PPG g0; those models also saw PPG rows, the served models did not, so the PPG band is optimistic for the served models); then `python -m forecasting.evaluate.error_bands --cgm-meter /tmp/gbdt_bands_main --ppg /tmp/gbdt_bands_ppg`."
+  },
+  "vlm": {
+    "model": "gemini-3.5-flash-lite",
+    "embedding_model": "gemini-embedding-001",
+    "key_file": "cv/experiments/vlm_vs_mobilenet/GEMINI_API_KEY.env"
+  },
+  "dish_table": {"path": "data/dish_table/dish_table.csv"}
+}
