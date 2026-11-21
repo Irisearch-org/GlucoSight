@@ -1,0 +1,24 @@
+{
+  "meal_events_total": 1706,
+  "fibre_gt_carbs_raw_rows": 33,
+  "dropped_all_zero_marker": 44,
+  "dropped_missing_composition": 0,
+  "atwater_deviation_counts": {
+    "gt_20pct": 107,
+    "gt_30pct": 85,
+    "gt_50pct": 58
+  },
+  "dropped_atwater_primary": 85,
+  "dropped_atwater_primary_participants": 33,
+  "median_atwater_ratio_kept": 1.0071942446043165,
+  "fibre_gt_carbs_set_nan": 24,
+  "fibre_gt_carbs_by_participant": {
+    "19": 14,
+    "16": 9,
+    "10": 1
+  },
+  "meal_events_kept": 1577,
+  "participants_kept": 45,
+  "contour_unparsed_times": 0,
+  "n_participants_with_meals": 45
+}

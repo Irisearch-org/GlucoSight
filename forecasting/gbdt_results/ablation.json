@@ -1,0 +1,408 @@
+{
+  "T60": {
+    "g0_hour": {
+      "features": [
+        "g0_mgdl",
+        "src_meter",
+        "src_ppg",
+        "hour_sin",
+        "hour_cos"
+      ],
+      "metrics_cgm": {
+        "gbdt": {
+          "mae": 31.247013096187437,
+          "rmse": 39.897264465669195
+        },
+        "b0": {
+          "mae": 38.413080859236096,
+          "rmse": 50.48329748158078
+        },
+        "b1": {
+          "mae": 37.9135593220339,
+          "rmse": 51.63562816970267
+        },
+        "b2": {
+          "mae": 31.576592160531003,
+          "rmse": 41.39893327245095
+        }
+      },
+      "gbdt_zone_a_pooled_pct": 55.74,
+      "gbdt_zone_a_participant_median": 59.38,
+      "improvement_vs_b2_mgdl": 0.3295790643435659,
+      "fold_wins_vs_b2": 2,
+      "fold_params": {
+        "1": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        },
+        "2": {
+          "offset": true,
+          "num_leaves": 8,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        },
+        "3": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        },
+        "4": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        },
+        "5": {
+          "offset": false,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 300
+        }
+      }
+    },
+    "g0_hour_macros": {
+      "features": [
+        "g0_mgdl",
+        "src_meter",
+        "src_ppg",
+        "hour_sin",
+        "hour_cos",
+        "carbs_g",
+        "protein_g",
+        "fat_g",
+        "fibre_g"
+      ],
+      "metrics_cgm": {
+        "gbdt": {
+          "mae": 29.301510867922385,
+          "rmse": 38.140855333535946
+        },
+        "b0": {
+          "mae": 38.413080859236096,
+          "rmse": 50.48329748158078
+        },
+        "b1": {
+          "mae": 37.9135593220339,
+          "rmse": 51.63562816970267
+        },
+        "b2": {
+          "mae": 31.576592160531003,
+          "rmse": 41.39893327245095
+        }
+      },
+      "gbdt_zone_a_pooled_pct": 60.76,
+      "gbdt_zone_a_participant_median": 65.0,
+      "improvement_vs_b2_mgdl": 2.2750812926086184,
+      "fold_wins_vs_b2": 5,
+      "fold_params": {
+        "1": {
+          "offset": false,
+          "num_leaves": 8,
+          "min_child_samples": 60,
+          "n_estimators": 100
+        },
+        "2": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 60,
+          "n_estimators": 300
+        },
+        "3": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 300
+        },
+        "4": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 300
+        },
+        "5": {
+          "offset": false,
+          "num_leaves": 8,
+          "min_child_samples": 60,
+          "n_estimators": 100
+        }
+      }
+    },
+    "full": {
+      "features": [
+        "g0_mgdl",
+        "src_meter",
+        "src_ppg",
+        "hour_sin",
+        "hour_cos",
+        "carbs_g",
+        "protein_g",
+        "fat_g",
+        "fibre_g",
+        "age_y",
+        "female",
+        "bmi",
+        "dm_band"
+      ],
+      "metrics_cgm": {
+        "gbdt": {
+          "mae": 31.77406615658366,
+          "rmse": 41.14944890329353
+        },
+        "b0": {
+          "mae": 38.413080859236096,
+          "rmse": 50.48329748158078
+        },
+        "b1": {
+          "mae": 37.9135593220339,
+          "rmse": 51.63562816970267
+        },
+        "b2": {
+          "mae": 31.576592160531003,
+          "rmse": 41.39893327245095
+        }
+      },
+      "gbdt_zone_a_pooled_pct": 56.84,
+      "gbdt_zone_a_participant_median": 60.0,
+      "improvement_vs_b2_mgdl": -0.1974739960526577,
+      "fold_wins_vs_b2": 3,
+      "fold_params": {
+        "1": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 60,
+          "n_estimators": 100
+        },
+        "2": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 60,
+          "n_estimators": 100
+        },
+        "3": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        },
+        "4": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        },
+        "5": {
+          "offset": true,
+          "num_leaves": 8,
+          "min_child_samples": 60,
+          "n_estimators": 100
+        }
+      }
+    }
+  },
+  "T120": {
+    "g0_hour": {
+      "features": [
+        "g0_mgdl",
+        "src_meter",
+        "src_ppg",
+        "hour_sin",
+        "hour_cos"
+      ],
+      "metrics_cgm": {
+        "gbdt": {
+          "mae": 32.00863306742804,
+          "rmse": 42.13151258406944
+        },
+        "b0": {
+          "mae": 37.2983684169546,
+          "rmse": 50.1813849994759
+        },
+        "b1": {
+          "mae": 36.50019595035924,
+          "rmse": 51.2917458024113
+        },
+        "b2": {
+          "mae": 32.14272235723649,
+          "rmse": 44.07512167666366
+        }
+      },
+      "gbdt_zone_a_pooled_pct": 53.43,
+      "gbdt_zone_a_participant_median": 52.5,
+      "improvement_vs_b2_mgdl": 0.13408928980844337,
+      "fold_wins_vs_b2": 2,
+      "fold_params": {
+        "1": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        },
+        "2": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 60,
+          "n_estimators": 100
+        },
+        "3": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        },
+        "4": {
+          "offset": false,
+          "num_leaves": 4,
+          "min_child_samples": 60,
+          "n_estimators": 100
+        },
+        "5": {
+          "offset": true,
+          "num_leaves": 8,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        }
+      }
+    },
+    "g0_hour_macros": {
+      "features": [
+        "g0_mgdl",
+        "src_meter",
+        "src_ppg",
+        "hour_sin",
+        "hour_cos",
+        "carbs_g",
+        "protein_g",
+        "fat_g",
+        "fibre_g"
+      ],
+      "metrics_cgm": {
+        "gbdt": {
+          "mae": 29.65747945452354,
+          "rmse": 39.87614669063665
+        },
+        "b0": {
+          "mae": 37.2983684169546,
+          "rmse": 50.1813849994759
+        },
+        "b1": {
+          "mae": 36.50019595035924,
+          "rmse": 51.2917458024113
+        },
+        "b2": {
+          "mae": 32.14272235723649,
+          "rmse": 44.07512167666366
+        }
+      },
+      "gbdt_zone_a_pooled_pct": 58.65,
+      "gbdt_zone_a_participant_median": 60.0,
+      "improvement_vs_b2_mgdl": 2.4852429027129475,
+      "fold_wins_vs_b2": 5,
+      "fold_params": {
+        "1": {
+          "offset": false,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        },
+        "2": {
+          "offset": true,
+          "num_leaves": 8,
+          "min_child_samples": 60,
+          "n_estimators": 100
+        },
+        "3": {
+          "offset": true,
+          "num_leaves": 8,
+          "min_child_samples": 60,
+          "n_estimators": 100
+        },
+        "4": {
+          "offset": true,
+          "num_leaves": 8,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        },
+        "5": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 300
+        }
+      }
+    },
+    "full": {
+      "features": [
+        "g0_mgdl",
+        "src_meter",
+        "src_ppg",
+        "hour_sin",
+        "hour_cos",
+        "carbs_g",
+        "protein_g",
+        "fat_g",
+        "fibre_g",
+        "age_y",
+        "female",
+        "bmi",
+        "dm_band"
+      ],
+      "metrics_cgm": {
+        "gbdt": {
+          "mae": 31.74216640483388,
+          "rmse": 42.527728056213896
+        },
+        "b0": {
+          "mae": 37.2983684169546,
+          "rmse": 50.1813849994759
+        },
+        "b1": {
+          "mae": 36.50019595035924,
+          "rmse": 51.2917458024113
+        },
+        "b2": {
+          "mae": 32.14272235723649,
+          "rmse": 44.07512167666366
+        }
+      },
+      "gbdt_zone_a_pooled_pct": 55.13,
+      "gbdt_zone_a_participant_median": 55.56,
+      "improvement_vs_b2_mgdl": 0.40055595240260544,
+      "fold_wins_vs_b2": 3,
+      "fold_params": {
+        "1": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        },
+        "2": {
+          "offset": true,
+          "num_leaves": 4,
+          "min_child_samples": 20,
+          "n_estimators": 300
+        },
+        "3": {
+          "offset": true,
+          "num_leaves": 8,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        },
+        "4": {
+          "offset": true,
+          "num_leaves": 8,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        },
+        "5": {
+          "offset": false,
+          "num_leaves": 8,
+          "min_child_samples": 20,
+          "n_estimators": 100
+        }
+      }
+    }
+  }
+}

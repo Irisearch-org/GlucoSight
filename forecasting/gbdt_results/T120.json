@@ -1,0 +1,1050 @@
+{
+  "horizon_min": 120,
+  "n_meals_cohort": 1531,
+  "n_participants_cohort": 45,
+  "n_participants_eval_cgm": 45,
+  "n_t2d_participants": 14,
+  "n_folds": 5,
+  "fold_sizes_participants": {
+    "1": 9,
+    "2": 9,
+    "3": 9,
+    "4": 9,
+    "5": 9
+  },
+  "fold_params": {
+    "1": {
+      "offset": true,
+      "num_leaves": 4,
+      "min_child_samples": 20,
+      "n_estimators": 100
+    },
+    "2": {
+      "offset": true,
+      "num_leaves": 4,
+      "min_child_samples": 20,
+      "n_estimators": 300
+    },
+    "3": {
+      "offset": true,
+      "num_leaves": 8,
+      "min_child_samples": 20,
+      "n_estimators": 100
+    },
+    "4": {
+      "offset": true,
+      "num_leaves": 8,
+      "min_child_samples": 20,
+      "n_estimators": 100
+    },
+    "5": {
+      "offset": false,
+      "num_leaves": 8,
+      "min_child_samples": 20,
+      "n_estimators": 100
+    }
+  },
+  "metrics_by_source": {
+    "CGM": {
+      "gbdt": {
+        "mae": 31.74216640483388,
+        "rmse": 42.527728056213896
+      },
+      "b0": {
+        "mae": 37.2983684169546,
+        "rmse": 50.1813849994759
+      },
+      "b1": {
+        "mae": 36.50019595035924,
+        "rmse": 51.2917458024113
+      },
+      "b2": {
+        "mae": 32.14272235723649,
+        "rmse": 44.07512167666366
+      }
+    },
+    "meter": {
+      "gbdt": {
+        "mae": 33.02093073176025,
+        "rmse": 44.34139614055351
+      },
+      "b0": {
+        "mae": 37.2983684169546,
+        "rmse": 50.1813849994759
+      },
+      "b1": {
+        "mae": 61.59344219464402,
+        "rmse": 79.15245169960805
+      },
+      "b2": {
+        "mae": 51.17624894390705,
+        "rmse": 67.81831081117778
+      }
+    }
+  },
+  "metrics_cgm": {
+    "gbdt": {
+      "mae": 31.74216640483388,
+      "rmse": 42.527728056213896
+    },
+    "b0": {
+      "mae": 37.2983684169546,
+      "rmse": 50.1813849994759
+    },
+    "b1": {
+      "mae": 36.50019595035924,
+      "rmse": 51.2917458024113
+    },
+    "b2": {
+      "mae": 32.14272235723649,
+      "rmse": 44.07512167666366
+    }
+  },
+  "metrics_t2d_cgm": {
+    "gbdt": {
+      "mae": 44.523346144332365,
+      "rmse": 56.46168152782315
+    },
+    "b0": {
+      "mae": 51.502536020011476,
+      "rmse": 71.24951789035715
+    },
+    "b1": {
+      "mae": 55.09073170731707,
+      "rmse": 71.96044170745276
+    },
+    "b2": {
+      "mae": 45.77481337324031,
+      "rmse": 60.929517452179
+    }
+  },
+  "clarke_cgm": {
+    "gbdt": {
+      "zones_count": {
+        "A": 844,
+        "B": 641,
+        "C": 4,
+        "D": 42,
+        "E": 0
+      },
+      "zones_pct": {
+        "A": 55.13,
+        "B": 41.87,
+        "C": 0.26,
+        "D": 2.74,
+        "E": 0.0
+      },
+      "per_participant_zone_a": {
+        "median_zone_a": 55.56,
+        "iqr_zone_a": 25.64,
+        "min_zone_a": 9.09,
+        "max_zone_a": 96.43,
+        "n_participants": 45,
+        "n_participants_excluded": 0,
+        "min_meals": 5
+      },
+      "zone_a_by_reference_range": [
+        {
+          "range": "[0, 100)",
+          "n": 117,
+          "zone_a_pct": 9.4,
+          "zone_ab_pct": 95.72
+        },
+        {
+          "range": "[100, 140)",
+          "n": 643,
+          "zone_a_pct": 53.81,
+          "zone_ab_pct": 99.53
+        },
+        {
+          "range": "[140, 180)",
+          "n": 449,
+          "zone_a_pct": 77.28,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[180, 250)",
+          "n": 249,
+          "zone_a_pct": 49.4,
+          "zone_ab_pct": 95.99
+        },
+        {
+          "range": "[250, 10000)",
+          "n": 73,
+          "zone_a_pct": 23.29,
+          "zone_ab_pct": 61.65
+        }
+      ],
+      "per_participant_zone_a_by_range_min3": {
+        "0-100": {
+          "median_zone_a": 0.0,
+          "iqr_zone_a": 0.0,
+          "min_zone_a": 0.0,
+          "max_zone_a": 44.44,
+          "n_participants": 15,
+          "n_participants_excluded": 14,
+          "min_meals": 3
+        },
+        "100-140": {
+          "median_zone_a": 57.5,
+          "iqr_zone_a": 50.58,
+          "min_zone_a": 0.0,
+          "max_zone_a": 96.15,
+          "n_participants": 39,
+          "n_participants_excluded": 5,
+          "min_meals": 3
+        },
+        "140-180": {
+          "median_zone_a": 85.71,
+          "iqr_zone_a": 33.33,
+          "min_zone_a": 14.29,
+          "max_zone_a": 100.0,
+          "n_participants": 41,
+          "n_participants_excluded": 3,
+          "min_meals": 3
+        },
+        "180-250": {
+          "median_zone_a": 71.88,
+          "iqr_zone_a": 63.58,
+          "min_zone_a": 0.0,
+          "max_zone_a": 100.0,
+          "n_participants": 26,
+          "n_participants_excluded": 9,
+          "min_meals": 3
+        },
+        "250-10000": {
+          "median_zone_a": 14.54,
+          "iqr_zone_a": 34.38,
+          "min_zone_a": 0.0,
+          "max_zone_a": 66.67,
+          "n_participants": 10,
+          "n_participants_excluded": 4,
+          "min_meals": 3
+        }
+      }
+    },
+    "b0": {
+      "zones_count": {
+        "A": 719,
+        "B": 716,
+        "C": 0,
+        "D": 96,
+        "E": 0
+      },
+      "zones_pct": {
+        "A": 46.96,
+        "B": 46.77,
+        "C": 0.0,
+        "D": 6.27,
+        "E": 0.0
+      },
+      "per_participant_zone_a": {
+        "median_zone_a": 50.0,
+        "iqr_zone_a": 33.59,
+        "min_zone_a": 9.76,
+        "max_zone_a": 92.5,
+        "n_participants": 45,
+        "n_participants_excluded": 0,
+        "min_meals": 5
+      },
+      "zone_a_by_reference_range": [
+        {
+          "range": "[0, 100)",
+          "n": 117,
+          "zone_a_pct": 0.0,
+          "zone_ab_pct": 96.58
+        },
+        {
+          "range": "[100, 140)",
+          "n": 643,
+          "zone_a_pct": 34.21,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[140, 180)",
+          "n": 449,
+          "zone_a_pct": 100.0,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[180, 250)",
+          "n": 249,
+          "zone_a_pct": 20.08,
+          "zone_ab_pct": 92.37
+        },
+        {
+          "range": "[250, 10000)",
+          "n": 73,
+          "zone_a_pct": 0.0,
+          "zone_ab_pct": 0.0
+        }
+      ],
+      "per_participant_zone_a_by_range_min3": {
+        "0-100": {
+          "median_zone_a": 0.0,
+          "iqr_zone_a": 0.0,
+          "min_zone_a": 0.0,
+          "max_zone_a": 0.0,
+          "n_participants": 15,
+          "n_participants_excluded": 14,
+          "min_meals": 3
+        },
+        "100-140": {
+          "median_zone_a": 33.33,
+          "iqr_zone_a": 29.59,
+          "min_zone_a": 0.0,
+          "max_zone_a": 93.33,
+          "n_participants": 39,
+          "n_participants_excluded": 5,
+          "min_meals": 3
+        },
+        "140-180": {
+          "median_zone_a": 100.0,
+          "iqr_zone_a": 0.0,
+          "min_zone_a": 100.0,
+          "max_zone_a": 100.0,
+          "n_participants": 41,
+          "n_participants_excluded": 3,
+          "min_meals": 3
+        },
+        "180-250": {
+          "median_zone_a": 15.48,
+          "iqr_zone_a": 23.73,
+          "min_zone_a": 0.0,
+          "max_zone_a": 80.0,
+          "n_participants": 26,
+          "n_participants_excluded": 9,
+          "min_meals": 3
+        },
+        "250-10000": {
+          "median_zone_a": 0.0,
+          "iqr_zone_a": 0.0,
+          "min_zone_a": 0.0,
+          "max_zone_a": 0.0,
+          "n_participants": 10,
+          "n_participants_excluded": 4,
+          "min_meals": 3
+        }
+      }
+    },
+    "b1": {
+      "zones_count": {
+        "A": 798,
+        "B": 665,
+        "C": 3,
+        "D": 64,
+        "E": 1
+      },
+      "zones_pct": {
+        "A": 52.12,
+        "B": 43.44,
+        "C": 0.2,
+        "D": 4.18,
+        "E": 0.07
+      },
+      "per_participant_zone_a": {
+        "median_zone_a": 54.55,
+        "iqr_zone_a": 27.57,
+        "min_zone_a": 11.54,
+        "max_zone_a": 87.8,
+        "n_participants": 45,
+        "n_participants_excluded": 0,
+        "min_meals": 5
+      },
+      "zone_a_by_reference_range": [
+        {
+          "range": "[0, 100)",
+          "n": 117,
+          "zone_a_pct": 64.96,
+          "zone_ab_pct": 96.58
+        },
+        {
+          "range": "[100, 140)",
+          "n": 643,
+          "zone_a_pct": 73.72,
+          "zone_ab_pct": 99.85
+        },
+        {
+          "range": "[140, 180)",
+          "n": 449,
+          "zone_a_pct": 44.99,
+          "zone_ab_pct": 99.78
+        },
+        {
+          "range": "[180, 250)",
+          "n": 249,
+          "zone_a_pct": 17.27,
+          "zone_ab_pct": 94.78
+        },
+        {
+          "range": "[250, 10000)",
+          "n": 73,
+          "zone_a_pct": 4.11,
+          "zone_ab_pct": 32.88
+        }
+      ],
+      "per_participant_zone_a_by_range_min3": {
+        "0-100": {
+          "median_zone_a": 66.67,
+          "iqr_zone_a": 30.91,
+          "min_zone_a": 0.0,
+          "max_zone_a": 92.31,
+          "n_participants": 15,
+          "n_participants_excluded": 14,
+          "min_meals": 3
+        },
+        "100-140": {
+          "median_zone_a": 75.86,
+          "iqr_zone_a": 22.8,
+          "min_zone_a": 16.67,
+          "max_zone_a": 93.33,
+          "n_participants": 39,
+          "n_participants_excluded": 5,
+          "min_meals": 3
+        },
+        "140-180": {
+          "median_zone_a": 41.67,
+          "iqr_zone_a": 36.54,
+          "min_zone_a": 0.0,
+          "max_zone_a": 100.0,
+          "n_participants": 41,
+          "n_participants_excluded": 3,
+          "min_meals": 3
+        },
+        "180-250": {
+          "median_zone_a": 10.64,
+          "iqr_zone_a": 27.68,
+          "min_zone_a": 0.0,
+          "max_zone_a": 72.73,
+          "n_participants": 26,
+          "n_participants_excluded": 9,
+          "min_meals": 3
+        },
+        "250-10000": {
+          "median_zone_a": 0.0,
+          "iqr_zone_a": 0.0,
+          "min_zone_a": 0.0,
+          "max_zone_a": 16.67,
+          "n_participants": 10,
+          "n_participants_excluded": 4,
+          "min_meals": 3
+        }
+      }
+    },
+    "b2": {
+      "zones_count": {
+        "A": 875,
+        "B": 606,
+        "C": 11,
+        "D": 39,
+        "E": 0
+      },
+      "zones_pct": {
+        "A": 57.15,
+        "B": 39.58,
+        "C": 0.72,
+        "D": 2.55,
+        "E": 0.0
+      },
+      "per_participant_zone_a": {
+        "median_zone_a": 57.5,
+        "iqr_zone_a": 22.54,
+        "min_zone_a": 24.0,
+        "max_zone_a": 89.29,
+        "n_participants": 45,
+        "n_participants_excluded": 0,
+        "min_meals": 5
+      },
+      "zone_a_by_reference_range": [
+        {
+          "range": "[0, 100)",
+          "n": 117,
+          "zone_a_pct": 10.26,
+          "zone_ab_pct": 95.73
+        },
+        {
+          "range": "[100, 140)",
+          "n": 643,
+          "zone_a_pct": 59.25,
+          "zone_ab_pct": 98.91
+        },
+        {
+          "range": "[140, 180)",
+          "n": 449,
+          "zone_a_pct": 80.18,
+          "zone_ab_pct": 99.78
+        },
+        {
+          "range": "[180, 250)",
+          "n": 249,
+          "zone_a_pct": 46.18,
+          "zone_ab_pct": 95.18
+        },
+        {
+          "range": "[250, 10000)",
+          "n": 73,
+          "zone_a_pct": 9.59,
+          "zone_ab_pct": 65.75
+        }
+      ],
+      "per_participant_zone_a_by_range_min3": {
+        "0-100": {
+          "median_zone_a": 9.09,
+          "iqr_zone_a": 15.48,
+          "min_zone_a": 0.0,
+          "max_zone_a": 100.0,
+          "n_participants": 15,
+          "n_participants_excluded": 14,
+          "min_meals": 3
+        },
+        "100-140": {
+          "median_zone_a": 57.69,
+          "iqr_zone_a": 27.72,
+          "min_zone_a": 0.0,
+          "max_zone_a": 100.0,
+          "n_participants": 39,
+          "n_participants_excluded": 5,
+          "min_meals": 3
+        },
+        "140-180": {
+          "median_zone_a": 81.25,
+          "iqr_zone_a": 25.0,
+          "min_zone_a": 37.5,
+          "max_zone_a": 100.0,
+          "n_participants": 41,
+          "n_participants_excluded": 3,
+          "min_meals": 3
+        },
+        "180-250": {
+          "median_zone_a": 51.92,
+          "iqr_zone_a": 35.08,
+          "min_zone_a": 0.0,
+          "max_zone_a": 100.0,
+          "n_participants": 26,
+          "n_participants_excluded": 9,
+          "min_meals": 3
+        },
+        "250-10000": {
+          "median_zone_a": 0.0,
+          "iqr_zone_a": 11.65,
+          "min_zone_a": 0.0,
+          "max_zone_a": 25.0,
+          "n_participants": 10,
+          "n_participants_excluded": 4,
+          "min_meals": 3
+        }
+      }
+    }
+  },
+  "clarke_t2d_cgm": {
+    "gbdt": {
+      "zones_count": {
+        "A": 194,
+        "B": 194,
+        "C": 4,
+        "D": 18,
+        "E": 0
+      },
+      "zones_pct": {
+        "A": 47.32,
+        "B": 47.32,
+        "C": 0.98,
+        "D": 4.39,
+        "E": 0.0
+      },
+      "per_participant_zone_a": {
+        "median_zone_a": 51.56,
+        "iqr_zone_a": 18.76,
+        "min_zone_a": 9.09,
+        "max_zone_a": 66.67,
+        "n_participants": 14,
+        "n_participants_excluded": 0,
+        "min_meals": 5
+      },
+      "zone_a_by_reference_range": [
+        {
+          "range": "[0, 100)",
+          "n": 10,
+          "zone_a_pct": 0.0,
+          "zone_ab_pct": 90.0
+        },
+        {
+          "range": "[100, 140)",
+          "n": 95,
+          "zone_a_pct": 14.74,
+          "zone_ab_pct": 96.85
+        },
+        {
+          "range": "[140, 180)",
+          "n": 119,
+          "zone_a_pct": 56.3,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[180, 250)",
+          "n": 129,
+          "zone_a_pct": 74.42,
+          "zone_ab_pct": 96.13
+        },
+        {
+          "range": "[250, 10000)",
+          "n": 57,
+          "zone_a_pct": 29.82,
+          "zone_ab_pct": 77.19
+        }
+      ],
+      "per_participant_zone_a_by_range_min3": {
+        "0-100": {
+          "median_zone_a": 0.0,
+          "iqr_zone_a": 0.0,
+          "min_zone_a": 0.0,
+          "max_zone_a": 0.0,
+          "n_participants": 1,
+          "n_participants_excluded": 5,
+          "min_meals": 3
+        },
+        "100-140": {
+          "median_zone_a": 19.45,
+          "iqr_zone_a": 28.47,
+          "min_zone_a": 0.0,
+          "max_zone_a": 50.0,
+          "n_participants": 10,
+          "n_participants_excluded": 3,
+          "min_meals": 3
+        },
+        "140-180": {
+          "median_zone_a": 61.91,
+          "iqr_zone_a": 57.76,
+          "min_zone_a": 14.29,
+          "max_zone_a": 100.0,
+          "n_participants": 14,
+          "n_participants_excluded": 0,
+          "min_meals": 3
+        },
+        "180-250": {
+          "median_zone_a": 81.82,
+          "iqr_zone_a": 16.96,
+          "min_zone_a": 44.44,
+          "max_zone_a": 92.86,
+          "n_participants": 13,
+          "n_participants_excluded": 1,
+          "min_meals": 3
+        },
+        "250-10000": {
+          "median_zone_a": 25.0,
+          "iqr_zone_a": 29.2,
+          "min_zone_a": 0.0,
+          "max_zone_a": 66.67,
+          "n_participants": 7,
+          "n_participants_excluded": 3,
+          "min_meals": 3
+        }
+      }
+    },
+    "b0": {
+      "zones_count": {
+        "A": 185,
+        "B": 155,
+        "C": 0,
+        "D": 70,
+        "E": 0
+      },
+      "zones_pct": {
+        "A": 45.12,
+        "B": 37.8,
+        "C": 0.0,
+        "D": 17.07,
+        "E": 0.0
+      },
+      "per_participant_zone_a": {
+        "median_zone_a": 46.28,
+        "iqr_zone_a": 26.75,
+        "min_zone_a": 13.04,
+        "max_zone_a": 72.73,
+        "n_participants": 14,
+        "n_participants_excluded": 0,
+        "min_meals": 5
+      },
+      "zone_a_by_reference_range": [
+        {
+          "range": "[0, 100)",
+          "n": 10,
+          "zone_a_pct": 0.0,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[100, 140)",
+          "n": 95,
+          "zone_a_pct": 48.42,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[140, 180)",
+          "n": 119,
+          "zone_a_pct": 100.0,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[180, 250)",
+          "n": 129,
+          "zone_a_pct": 15.5,
+          "zone_ab_pct": 89.92
+        },
+        {
+          "range": "[250, 10000)",
+          "n": 57,
+          "zone_a_pct": 0.0,
+          "zone_ab_pct": 0.0
+        }
+      ],
+      "per_participant_zone_a_by_range_min3": {
+        "0-100": {
+          "median_zone_a": 0.0,
+          "iqr_zone_a": 0.0,
+          "min_zone_a": 0.0,
+          "max_zone_a": 0.0,
+          "n_participants": 1,
+          "n_participants_excluded": 5,
+          "min_meals": 3
+        },
+        "100-140": {
+          "median_zone_a": 41.66,
+          "iqr_zone_a": 34.31,
+          "min_zone_a": 16.67,
+          "max_zone_a": 88.89,
+          "n_participants": 10,
+          "n_participants_excluded": 3,
+          "min_meals": 3
+        },
+        "140-180": {
+          "median_zone_a": 100.0,
+          "iqr_zone_a": 0.0,
+          "min_zone_a": 100.0,
+          "max_zone_a": 100.0,
+          "n_participants": 14,
+          "n_participants_excluded": 0,
+          "min_meals": 3
+        },
+        "180-250": {
+          "median_zone_a": 12.5,
+          "iqr_zone_a": 20.13,
+          "min_zone_a": 0.0,
+          "max_zone_a": 33.33,
+          "n_participants": 13,
+          "n_participants_excluded": 1,
+          "min_meals": 3
+        },
+        "250-10000": {
+          "median_zone_a": 0.0,
+          "iqr_zone_a": 0.0,
+          "min_zone_a": 0.0,
+          "max_zone_a": 0.0,
+          "n_participants": 7,
+          "n_participants_excluded": 3,
+          "min_meals": 3
+        }
+      }
+    },
+    "b1": {
+      "zones_count": {
+        "A": 151,
+        "B": 217,
+        "C": 1,
+        "D": 41,
+        "E": 0
+      },
+      "zones_pct": {
+        "A": 36.83,
+        "B": 52.93,
+        "C": 0.24,
+        "D": 10.0,
+        "E": 0.0
+      },
+      "per_participant_zone_a": {
+        "median_zone_a": 36.61,
+        "iqr_zone_a": 29.33,
+        "min_zone_a": 11.54,
+        "max_zone_a": 60.0,
+        "n_participants": 14,
+        "n_participants_excluded": 0,
+        "min_meals": 5
+      },
+      "zone_a_by_reference_range": [
+        {
+          "range": "[0, 100)",
+          "n": 10,
+          "zone_a_pct": 50.0,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[100, 140)",
+          "n": 95,
+          "zone_a_pct": 60.0,
+          "zone_ab_pct": 98.95
+        },
+        {
+          "range": "[140, 180)",
+          "n": 119,
+          "zone_a_pct": 43.7,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[180, 250)",
+          "n": 129,
+          "zone_a_pct": 26.36,
+          "zone_ab_pct": 94.58
+        },
+        {
+          "range": "[250, 10000)",
+          "n": 57,
+          "zone_a_pct": 5.26,
+          "zone_ab_pct": 40.35
+        }
+      ],
+      "per_participant_zone_a_by_range_min3": {
+        "0-100": {
+          "median_zone_a": 80.0,
+          "iqr_zone_a": 0.0,
+          "min_zone_a": 80.0,
+          "max_zone_a": 80.0,
+          "n_participants": 1,
+          "n_participants_excluded": 5,
+          "min_meals": 3
+        },
+        "100-140": {
+          "median_zone_a": 57.14,
+          "iqr_zone_a": 38.33,
+          "min_zone_a": 16.67,
+          "max_zone_a": 87.5,
+          "n_participants": 10,
+          "n_participants_excluded": 3,
+          "min_meals": 3
+        },
+        "140-180": {
+          "median_zone_a": 40.84,
+          "iqr_zone_a": 25.33,
+          "min_zone_a": 11.11,
+          "max_zone_a": 100.0,
+          "n_participants": 14,
+          "n_participants_excluded": 0,
+          "min_meals": 3
+        },
+        "180-250": {
+          "median_zone_a": 25.0,
+          "iqr_zone_a": 30.11,
+          "min_zone_a": 0.0,
+          "max_zone_a": 72.73,
+          "n_participants": 13,
+          "n_participants_excluded": 1,
+          "min_meals": 3
+        },
+        "250-10000": {
+          "median_zone_a": 0.0,
+          "iqr_zone_a": 4.54,
+          "min_zone_a": 0.0,
+          "max_zone_a": 16.67,
+          "n_participants": 7,
+          "n_participants_excluded": 3,
+          "min_meals": 3
+        }
+      }
+    },
+    "b2": {
+      "zones_count": {
+        "A": 199,
+        "B": 184,
+        "C": 6,
+        "D": 21,
+        "E": 0
+      },
+      "zones_pct": {
+        "A": 48.54,
+        "B": 44.88,
+        "C": 1.46,
+        "D": 5.12,
+        "E": 0.0
+      },
+      "per_participant_zone_a": {
+        "median_zone_a": 45.94,
+        "iqr_zone_a": 19.81,
+        "min_zone_a": 24.0,
+        "max_zone_a": 72.73,
+        "n_participants": 14,
+        "n_participants_excluded": 0,
+        "min_meals": 5
+      },
+      "zone_a_by_reference_range": [
+        {
+          "range": "[0, 100)",
+          "n": 10,
+          "zone_a_pct": 10.0,
+          "zone_ab_pct": 90.0
+        },
+        {
+          "range": "[100, 140)",
+          "n": 95,
+          "zone_a_pct": 43.16,
+          "zone_ab_pct": 96.84
+        },
+        {
+          "range": "[140, 180)",
+          "n": 119,
+          "zone_a_pct": 69.75,
+          "zone_ab_pct": 99.16
+        },
+        {
+          "range": "[180, 250)",
+          "n": 129,
+          "zone_a_pct": 53.49,
+          "zone_ab_pct": 94.58
+        },
+        {
+          "range": "[250, 10000)",
+          "n": 57,
+          "zone_a_pct": 8.77,
+          "zone_ab_pct": 73.68
+        }
+      ],
+      "per_participant_zone_a_by_range_min3": {
+        "0-100": {
+          "median_zone_a": 0.0,
+          "iqr_zone_a": 0.0,
+          "min_zone_a": 0.0,
+          "max_zone_a": 0.0,
+          "n_participants": 1,
+          "n_participants_excluded": 5,
+          "min_meals": 3
+        },
+        "100-140": {
+          "median_zone_a": 43.65,
+          "iqr_zone_a": 10.4,
+          "min_zone_a": 0.0,
+          "max_zone_a": 66.67,
+          "n_participants": 10,
+          "n_participants_excluded": 3,
+          "min_meals": 3
+        },
+        "140-180": {
+          "median_zone_a": 66.67,
+          "iqr_zone_a": 23.14,
+          "min_zone_a": 37.5,
+          "max_zone_a": 100.0,
+          "n_participants": 14,
+          "n_participants_excluded": 0,
+          "min_meals": 3
+        },
+        "180-250": {
+          "median_zone_a": 55.56,
+          "iqr_zone_a": 16.67,
+          "min_zone_a": 11.11,
+          "max_zone_a": 81.82,
+          "n_participants": 13,
+          "n_participants_excluded": 1,
+          "min_meals": 3
+        },
+        "250-10000": {
+          "median_zone_a": 0.0,
+          "iqr_zone_a": 10.79,
+          "min_zone_a": 0.0,
+          "max_zone_a": 25.0,
+          "n_participants": 7,
+          "n_participants_excluded": 3,
+          "min_meals": 3
+        }
+      }
+    }
+  },
+  "gate": {
+    "vs_b2": {
+      "improvement_mgdl": 0.40055595240260544,
+      "fold_wins": 3,
+      "fold_win_flags": [
+        true,
+        false,
+        true,
+        true,
+        false
+      ],
+      "bootstrap_ci_95": [
+        -3.1742953057037693,
+        3.774369698198134
+      ],
+      "permutation_p": 0.004975124378109453,
+      "checks": {
+        "positive_gain": true,
+        "fold_wins": false,
+        "bootstrap_ci_excludes_zero": false,
+        "permutation_p": true
+      },
+      "passes": false,
+      "reasons": [
+        "pass: MAE gain 0.40 mg/dL vs b2",
+        "FAIL: GBDT beat b2 in 3/5 folds (need 4)",
+        "FAIL: participant bootstrap 95% CI [-3.17, 3.77]",
+        "pass: within-participant macro permutation p = 0.005"
+      ]
+    },
+    "vs_b1": {
+      "improvement_mgdl": 4.7580295455253605,
+      "fold_wins": 5,
+      "fold_win_flags": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "bootstrap_ci_95": [
+        0.6166985816917422,
+        8.787046511618831
+      ],
+      "permutation_p": null,
+      "checks": {
+        "positive_gain": true,
+        "fold_wins": true,
+        "bootstrap_ci_excludes_zero": true
+      },
+      "passes": true,
+      "reasons": [
+        "pass: MAE gain 4.76 mg/dL vs b1",
+        "pass: GBDT beat b1 in 5/5 folds (need 4)",
+        "pass: participant bootstrap 95% CI [0.62, 8.79]"
+      ]
+    },
+    "vs_b0": {
+      "improvement_mgdl": 5.556202012120721,
+      "fold_wins": 4,
+      "fold_win_flags": [
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      "bootstrap_ci_95": [
+        1.325552543816061,
+        9.810206724229015
+      ],
+      "permutation_p": null,
+      "checks": {
+        "positive_gain": true,
+        "fold_wins": true,
+        "bootstrap_ci_excludes_zero": true
+      },
+      "passes": true,
+      "reasons": [
+        "pass: MAE gain 5.56 mg/dL vs b0",
+        "pass: GBDT beat b0 in 4/5 folds (need 4)",
+        "pass: participant bootstrap 95% CI [1.33, 9.81]"
+      ]
+    }
+  },
+  "gate_passes_vs_b2": false,
+  "permutation": {
+    "n": 200,
+    "observed_gain_mgdl": 0.40055595240260544,
+    "null_gain_mean": -1.3229096080314329,
+    "null_gain_p95": -1.061458929612542,
+    "p": 0.004975124378109453
+  }
+}

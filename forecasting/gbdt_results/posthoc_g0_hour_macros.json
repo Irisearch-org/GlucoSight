@@ -1,0 +1,310 @@
+{
+  "T60": {
+    "exploratory": true,
+    "note": "post-hoc: feature set selected from ablation on the same folds",
+    "features": [
+      "g0_mgdl",
+      "src_meter",
+      "src_ppg",
+      "hour_sin",
+      "hour_cos",
+      "carbs_g",
+      "protein_g",
+      "fat_g",
+      "fibre_g"
+    ],
+    "fold_params": {
+      "1": {
+        "offset": false,
+        "num_leaves": 8,
+        "min_child_samples": 60,
+        "n_estimators": 100
+      },
+      "2": {
+        "offset": true,
+        "num_leaves": 4,
+        "min_child_samples": 60,
+        "n_estimators": 300
+      },
+      "3": {
+        "offset": true,
+        "num_leaves": 4,
+        "min_child_samples": 20,
+        "n_estimators": 300
+      },
+      "4": {
+        "offset": true,
+        "num_leaves": 4,
+        "min_child_samples": 20,
+        "n_estimators": 300
+      },
+      "5": {
+        "offset": false,
+        "num_leaves": 8,
+        "min_child_samples": 60,
+        "n_estimators": 100
+      }
+    },
+    "n_meals_cohort": 1534,
+    "n_participants_cohort": 45,
+    "metrics_cgm": {
+      "gbdt": {
+        "mae": 29.301510867922385
+      },
+      "b0": {
+        "mae": 38.413080859236096
+      },
+      "b1": {
+        "mae": 37.9135593220339
+      },
+      "b2": {
+        "mae": 31.576592160531003
+      }
+    },
+    "gate": {
+      "vs_b2": {
+        "improvement_mgdl": 2.2750812926086184,
+        "fold_wins": 5,
+        "fold_win_flags": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "bootstrap_ci_95": [
+          0.713804482505014,
+          3.825699481232695
+        ],
+        "permutation_p": 0.004975124378109453,
+        "checks": {
+          "positive_gain": true,
+          "fold_wins": true,
+          "bootstrap_ci_excludes_zero": true,
+          "permutation_p": true
+        },
+        "passes": true,
+        "reasons": [
+          "pass: MAE gain 2.28 mg/dL vs b2",
+          "pass: GBDT beat b2 in 5/5 folds (need 4)",
+          "pass: participant bootstrap 95% CI [0.71, 3.83]",
+          "pass: within-participant macro permutation p = 0.005"
+        ]
+      },
+      "vs_b1": {
+        "improvement_mgdl": 8.612048454111513,
+        "fold_wins": 5,
+        "fold_win_flags": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "bootstrap_ci_95": [
+          3.9105506652926567,
+          13.111646448276545
+        ],
+        "permutation_p": null,
+        "checks": {
+          "positive_gain": true,
+          "fold_wins": true,
+          "bootstrap_ci_excludes_zero": true
+        },
+        "passes": true,
+        "reasons": [
+          "pass: MAE gain 8.61 mg/dL vs b1",
+          "pass: GBDT beat b1 in 5/5 folds (need 4)",
+          "pass: participant bootstrap 95% CI [3.91, 13.11]"
+        ]
+      },
+      "vs_b0": {
+        "improvement_mgdl": 9.111569991313711,
+        "fold_wins": 5,
+        "fold_win_flags": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "bootstrap_ci_95": [
+          6.419441368821525,
+          12.288261417223858
+        ],
+        "permutation_p": null,
+        "checks": {
+          "positive_gain": true,
+          "fold_wins": true,
+          "bootstrap_ci_excludes_zero": true
+        },
+        "passes": true,
+        "reasons": [
+          "pass: MAE gain 9.11 mg/dL vs b0",
+          "pass: GBDT beat b0 in 5/5 folds (need 4)",
+          "pass: participant bootstrap 95% CI [6.42, 12.29]"
+        ]
+      }
+    },
+    "permutation": {
+      "n": 200,
+      "observed_gain_mgdl": 2.2750812926086184,
+      "null_gain_mean": 0.23972118220612232,
+      "p": 0.004975124378109453
+    }
+  },
+  "T120": {
+    "exploratory": true,
+    "note": "post-hoc: feature set selected from ablation on the same folds",
+    "features": [
+      "g0_mgdl",
+      "src_meter",
+      "src_ppg",
+      "hour_sin",
+      "hour_cos",
+      "carbs_g",
+      "protein_g",
+      "fat_g",
+      "fibre_g"
+    ],
+    "fold_params": {
+      "1": {
+        "offset": false,
+        "num_leaves": 4,
+        "min_child_samples": 20,
+        "n_estimators": 100
+      },
+      "2": {
+        "offset": true,
+        "num_leaves": 8,
+        "min_child_samples": 60,
+        "n_estimators": 100
+      },
+      "3": {
+        "offset": true,
+        "num_leaves": 8,
+        "min_child_samples": 60,
+        "n_estimators": 100
+      },
+      "4": {
+        "offset": true,
+        "num_leaves": 8,
+        "min_child_samples": 20,
+        "n_estimators": 100
+      },
+      "5": {
+        "offset": true,
+        "num_leaves": 4,
+        "min_child_samples": 20,
+        "n_estimators": 300
+      }
+    },
+    "n_meals_cohort": 1531,
+    "n_participants_cohort": 45,
+    "metrics_cgm": {
+      "gbdt": {
+        "mae": 29.65747945452354
+      },
+      "b0": {
+        "mae": 37.2983684169546
+      },
+      "b1": {
+        "mae": 36.50019595035924
+      },
+      "b2": {
+        "mae": 32.14272235723649
+      }
+    },
+    "gate": {
+      "vs_b2": {
+        "improvement_mgdl": 2.4852429027129475,
+        "fold_wins": 5,
+        "fold_win_flags": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "bootstrap_ci_95": [
+          0.9246790563016066,
+          4.178841003960235
+        ],
+        "permutation_p": 0.004975124378109453,
+        "checks": {
+          "positive_gain": true,
+          "fold_wins": true,
+          "bootstrap_ci_excludes_zero": true,
+          "permutation_p": true
+        },
+        "passes": true,
+        "reasons": [
+          "pass: MAE gain 2.49 mg/dL vs b2",
+          "pass: GBDT beat b2 in 5/5 folds (need 4)",
+          "pass: participant bootstrap 95% CI [0.92, 4.18]",
+          "pass: within-participant macro permutation p = 0.005"
+        ]
+      },
+      "vs_b1": {
+        "improvement_mgdl": 6.8427164958357025,
+        "fold_wins": 5,
+        "fold_win_flags": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "bootstrap_ci_95": [
+          3.718005404928837,
+          10.268553523771619
+        ],
+        "permutation_p": null,
+        "checks": {
+          "positive_gain": true,
+          "fold_wins": true,
+          "bootstrap_ci_excludes_zero": true
+        },
+        "passes": true,
+        "reasons": [
+          "pass: MAE gain 6.84 mg/dL vs b1",
+          "pass: GBDT beat b1 in 5/5 folds (need 4)",
+          "pass: participant bootstrap 95% CI [3.72, 10.27]"
+        ]
+      },
+      "vs_b0": {
+        "improvement_mgdl": 7.640888962431063,
+        "fold_wins": 5,
+        "fold_win_flags": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "bootstrap_ci_95": [
+          5.108060682686644,
+          10.232582663002745
+        ],
+        "permutation_p": null,
+        "checks": {
+          "positive_gain": true,
+          "fold_wins": true,
+          "bootstrap_ci_excludes_zero": true
+        },
+        "passes": true,
+        "reasons": [
+          "pass: MAE gain 7.64 mg/dL vs b0",
+          "pass: GBDT beat b0 in 5/5 folds (need 4)",
+          "pass: participant bootstrap 95% CI [5.11, 10.23]"
+        ]
+      }
+    },
+    "permutation": {
+      "n": 200,
+      "observed_gain_mgdl": 2.4852429027129475,
+      "null_gain_mean": 0.35547489539719235,
+      "p": 0.004975124378109453
+    }
+  }
+}
