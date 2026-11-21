@@ -1,0 +1,68 @@
+recipe_id,tkpi_code,grams,note
+ayam_betutu,FR005,800,raw chicken meat
+ayam_betutu,KR012,60,palm oil
+ayam_betutu,NR007,60,shallot
+ayam_betutu,NR008,20,garlic
+ayam_betutu,NR014,30,red chilli
+bir_pletok,MP007,40,white sugar
+bir_pletok,NR018,15,ginger
+bir_pletok,WATER,905,water
+cendol,AR001,150,rice flour (proxy for tepung beras)
+cendol,KP004,300,coconut milk
+cendol,MP005,200,palm sugar
+cendol,WATER,350,water
+es_dawet,AR001,100,rice flour (proxy)
+es_dawet,KP004,150,coconut milk
+es_dawet,MP005,150,palm sugar
+es_dawet,WATER,600,water
+kerak_telor,AR008,200,glutinous rice
+kerak_telor,HR002,200,chicken egg
+kerak_telor,KR001,100,coconut meat
+kerak_telor,MP007,20,sugar
+kerak_telor,KR012,30,palm oil
+kolak_pisang,ER074,400,ambon banana
+kolak_pisang,MP005,120,palm sugar
+kolak_pisang,KP003,300,coconut milk
+kolak_pisang,WATER,180,water
+kunyit_asam,NR005,40,tamarind pulp (proxy for asam jawa)
+kunyit_asam,MP005,120,palm sugar
+kunyit_asam,WATER,840,water (turmeric not in TKPI, omitted)
+laksa_bogor,AP084,200,cooked noodles (proxy)
+laksa_bogor,KP003,200,coconut milk
+laksa_bogor,FR005,100,chicken meat
+laksa_bogor,DP017,100,bean sprouts
+lumpia_semarang,AP025,150,wheat flour
+lumpia_semarang,HR002,100,chicken egg
+lumpia_semarang,FR005,200,chicken meat
+lumpia_semarang,DP017,100,bean sprouts
+lumpia_semarang,DR138,100,bamboo shoot
+lumpia_semarang,KR012,100,palm oil
+lumpia_semarang,MP007,50,sugar
+nagasari,AR001,150,rice flour (proxy)
+nagasari,KP003,100,coconut milk
+nagasari,MP005,40,palm sugar
+nagasari,ER074,150,ambon banana
+nasi_goreng_kampung,AP001,500,cooked rice
+nasi_goreng_kampung,HR002,100,chicken egg
+nasi_goreng_kampung,KR012,40,palm oil
+nasi_goreng_kampung,NR007,20,shallot
+nasi_goreng_kampung,NR014,10,red chilli
+sate_ayam,FR005,500,raw chicken meat
+sate_ayam,CP012,120,fried peanut
+sate_ayam,MP005,60,palm sugar
+sate_ayam,KR012,30,palm oil
+sate_ayam,NR007,30,shallot
+sate_lilit,FR005,500,raw chicken meat
+sate_lilit,KR001,120,coconut meat
+sate_lilit,NR007,40,shallot
+sate_lilit,NR014,20,red chilli
+sate_lilit,KR012,30,palm oil
+sate_maranggi,FR025,500,raw beef (lean)
+sate_maranggi,CP012,120,fried peanut
+sate_maranggi,MP005,60,palm sugar
+sate_maranggi,NR007,30,shallot
+sate_maranggi,KR012,30,palm oil
+soerabi,AR001,100,rice flour (proxy)
+soerabi,KP003,200,coconut milk
+soerabi,MP005,40,palm sugar
+soerabi,WATER,100,water

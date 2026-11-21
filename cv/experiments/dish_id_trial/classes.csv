@@ -1,0 +1,36 @@
+wibisono_class,row_name,aliases,source,source_ref,confidence,recipe_id,serving_g,serving_source,notes
+asinan-jakarta,Asinan,asinan jakarta|asinan betawi|asinan sayur,tkpi2017,DP022,approximate,,200,assumed-default,TKPI Asinan Bogor
+ayam-betutu,Ayam betutu,ayam betutu,computed,,computed,ayam_betutu,200,assumed-default,no TKPI entry
+ayam-bumbu-rujak,Ayam bumbu rujak,ayam bumbu rujak|ayam rujak,tkpi2017,FP026,approximate,,200,assumed-default,TKPI plain fried chicken
+ayam-goreng-lengkuas,Ayam goreng lengkuas,ayam goreng lengkuas|ayam lengkuas,tkpi2017,FP026,approximate,,200,assumed-default,TKPI plain fried chicken
+bika-ambon,Bika ambon,bika ambon,tkpi2017,AP035,exact,,200,assumed-default,
+bir-pletok,Bir pletok,bir pletok,computed,,computed,bir_pletok,250,assumed-default,drink
+bubur-manado,Bubur manado,bubur manado|tinutuan,tkpi2017,AP040,approximate,,250,assumed-default,TKPI Bubur tinotuan
+cendol,Cendol,cendol,computed,,computed,cendol,250,assumed-default,no TKPI entry
+es-dawet,Es dawet,es dawet|dawet ayu,computed,,computed,es_dawet,250,assumed-default,no TKPI entry
+gado-gado,Gado-gado,gado gado|gado-gado,tkpi2017,DP031,exact,,250,prior-table,
+gudeg,Gudeg,gudeg|gudeg jogja,tkpi2017,DP032,approximate,,200,prior-table,TKPI Gudeg sayur
+gulai-ikan-mas,Gulai ikan mas,gulai ikan mas|gulai ikan,tkpi2017,GP065,approximate,,200,assumed-default,TKPI Gulai ikan
+keladi,Keladi,keladi|talas,tkpi2017,BP010,approximate,,200,assumed-default,TKPI Talas bogor kukus
+kerak-telor,Kerak telor,kerak telor,computed,,computed,kerak_telor,200,assumed-default,no TKPI entry
+klappertart,Klappertart,klappertart|klapertart,tkpi2017,AP069,approximate,,200,assumed-default,TKPI Kue kelapa
+kolak,Kolak,kolak|kolak pisang,computed,,computed,kolak_pisang,250,assumed-default,no TKPI entry
+kue-lumpur,Kue lumpur,kue lumpur,tkpi2017,AP072,exact,,200,assumed-default,
+kunyit-asam,Kunyit asam,kunyit asam|es kunyit asam,computed,,computed,kunyit_asam,250,assumed-default,no TKPI entry
+laksa-bogor,Laksa bogor,laksa bogor|laksa,computed,,computed,laksa_bogor,300,assumed-default,no TKPI entry
+lumpia-semarang,Lumpia semarang,lumpia semarang|lumpia,computed,,computed,lumpia_semarang,200,assumed-default,no TKPI entry
+mie-aceh,Mie aceh,mie aceh,tkpi2017,AP084,approximate,,300,assumed-default,TKPI Mie aceh rebus
+nagasari,Nagasari,nagasari,computed,,computed,nagasari,150,assumed-default,no TKPI entry
+nasi-goreng-kampung,Nasi goreng kampung,nasi goreng kampung|nasi goreng,computed,,computed,nasi_goreng_kampung,250,prior-table,no TKPI entry
+papeda,Papeda,papeda,tkpi2017,BP054,exact,,250,assumed-default,
+pempek-palembang,Pempek palembang,pempek palembang|pempek,tkpi2017,GP082,approximate,,150,prior-table,TKPI Pempek telur
+rawon-surabaya,Rawon,rawon surabaya|rawon,tkpi2017,FP061,exact,,250,prior-table,
+rendang,Rendang,rendang|rendang sapi,tkpi2017,FP062,exact,,100,prior-table,
+rujak-cingur,Rujak cingur,rujak cingur,tkpi2017,DP046,exact,,200,assumed-default,
+sate-ayam-madura,Sate ayam madura,sate ayam madura|sate madura,computed,,computed,sate_ayam,120,prior-table,no TKPI entry
+sate-lilit,Sate lilit,sate lilit,computed,,computed,sate_lilit,120,prior-table,no TKPI entry
+sate-maranggi,Sate maranggi,sate maranggi,computed,,computed,sate_maranggi,120,prior-table,no TKPI entry
+soerabi,Serabi,soerabi|serabi,computed,,computed,soerabi,100,assumed-default,no TKPI entry
+soto-ayam-lamongan,Soto ayam lamongan,soto ayam lamongan|soto lamongan,tkpi2017,FP079,approximate,,250,prior-table,TKPI Soto madura
+soto-banjar,Soto banjar,soto banjar,tkpi2017,FP075,exact,,250,prior-table,
+tahu-telur,Tahu telur,tahu telur,tkpi2017,CP063,exact,,200,assumed-default,
