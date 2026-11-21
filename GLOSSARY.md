@@ -38,3 +38,24 @@ table and matcher are then applied per item and the macros summed.
 _Avoid_: composite plate, multi-item meal — "mixed plate" is the term
 already used in `agents/cv/CLAUDE.md`'s Task 5; this just canonicalizes it
 instead of introducing a synonym.
+
+**Baseline**:
+One of the trivial predictors B0 (population constant), B1 (persistence)
+or B2 (persistence plus cohort-mean excursion). A comparison row in every
+results table; never what the app serves.
+_Avoid_: model, mean model — a baseline learns nothing per meal.
+
+**Served model**:
+The trained or public machine-learning model a stage actually runs in the
+app. A stage claims a contribution only when its served model beats the
+baseline on held-out people.
+_Avoid_: production model, real model.
+
+**Manual entry**:
+The user listing a meal's items one at a time (whole dishes or single
+ingredients such as beef or potato, each with an amount) instead of a
+photo. Required when dish identification falls below the confidence
+threshold. Resolves through the same matcher and dish table as the photo
+path.
+_Avoid_: fallback lookup, safe mode — there is one dish table, not a
+second lookup.

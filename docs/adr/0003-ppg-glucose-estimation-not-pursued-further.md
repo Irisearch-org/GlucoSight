@@ -1,6 +1,6 @@
 # PPG glucose estimation is not pursued further without an HbA1c/calibration data change
 
-**Status:** accepted (2026-10-19)
+**Status:** accepted (2026-10-19); amended by ADR 0005 (2026-11-21) for the demo's starting-glucose path
 
 Two trained models (Ridge, Random Forest) already lost to the population-
 mean baseline on this project's own 23-subject contact-PPG dataset
