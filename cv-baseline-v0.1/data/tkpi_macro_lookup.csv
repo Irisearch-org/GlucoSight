@@ -1,0 +1,11 @@
+food_class,tkpi_item_name,serving_g,energy_kcal_100g,carbs_g_100g,protein_g_100g,fat_g_100g,fiber_ratio_of_carbs,mapping_confidence,source_note
+bakso,Bakso daging sapi,200,190.0,6.6,12.9,12.2,0.05,medium,Nilai per 100g bakso; kuah/mie tidak terhitung terpisah
+bebek_betutu,Bebek (olahan berbumbu),150,240.0,2.0,19.0,17.0,0.10,low,TKPI tidak punya entri bebek betutu; diturunkan dari daging bebek olahan
+gado_gado,Gado-gado,250,137.0,10.0,6.0,8.0,0.25,high,Entri langsung tersedia
+gudeg,Gudeg nangka,200,150.0,17.0,3.5,8.0,0.16,medium,Basis nangka muda bersantan; variasi resep besar
+nasi_goreng,Nasi goreng,250,186.0,27.0,4.5,6.5,0.03,high,Entri langsung tersedia
+pempek,Pempek ikan,150,190.0,27.0,9.0,5.0,0.02,high,Entri langsung tersedia; cuko tidak dihitung
+rawon,Rawon daging,250,120.0,3.5,9.0,8.0,0.11,medium,Kuah + daging; porsi kuah sangat bervariasi
+rendang,Rendang daging sapi,100,195.0,3.5,22.6,10.5,0.14,high,Entri langsung tersedia
+sate,Sate (rata-rata ayam/kambing),120,225.0,3.0,20.0,14.0,0.10,low,TKPI tidak punya entri sate generik; rata-rata beberapa jenis daging
+soto,Soto ayam,250,90.0,4.0,7.0,5.0,0.10,medium,Basis soto ayam berkuah bening; soto santan lebih tinggi lemak

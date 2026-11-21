@@ -1,0 +1,202 @@
+{
+  "baseline": {
+    "name": "B0 population mean",
+    "model_version": "cv-b0-population-mean-v1",
+    "reads_images": false,
+    "fixed_predictions": {
+      "carbs_g": 45.0,
+      "protein_g": 18.0,
+      "fat_g": 12.0,
+      "fiber_g": 4.0,
+      "gi_category": 1,
+      "food_class": "unknown",
+      "cv_confidence": 0.0,
+      "cv_present": 1,
+      "carbs_source": "population_mean",
+      "portion_reported": 1,
+      "cv_model_version": "cv-b0-population-mean-v1"
+    }
+  },
+  "dataset": {
+    "source_dataset": "cgmacros",
+    "dataset_version": "1.0.0",
+    "dataset_license": "CC BY-NC-SA 4.0",
+    "ground_truth_provenance": "cgmacros_reported_estimate",
+    "manifest_sha256": "064f78df9be342da94bff2761236d0e3b5ac6da7bbd5a5aaac7c7a0109a2c152"
+  },
+  "selection": {
+    "meals_evaluated": 1616,
+    "participants_evaluated": 45,
+    "meal_type_counts": {
+      "Breakfast": 426,
+      "Dinner": 452,
+      "Lunch": 431,
+      "Snack": 307
+    }
+  },
+  "pooled": {
+    "carbs_g": {
+      "mae_g": 27.342388613861388,
+      "rmse_g": 31.844678841912575,
+      "n_meals": 1616
+    },
+    "protein_g": {
+      "mae_g": 19.698576732673267,
+      "rmse_g": 28.11969608954401,
+      "n_meals": 1616
+    },
+    "fat_g": {
+      "mae_g": 12.50946782178218,
+      "rmse_g": 18.258389330403546,
+      "n_meals": 1616
+    },
+    "fiber_g": {
+      "mae_g": 4.1783415841584155,
+      "rmse_g": 7.265194047956011,
+      "n_meals": 1616
+    }
+  },
+  "participant_summary": {
+    "carbs_g": {
+      "mae_median_g": 27.057142857142857,
+      "mae_q1_g": 25.7,
+      "mae_q3_g": 29.066666666666666,
+      "rmse_median_g": 30.861441499524474,
+      "rmse_q1_g": 28.964832788427046,
+      "rmse_q3_g": 33.14180608151625,
+      "n_participants": 45
+    },
+    "protein_g": {
+      "mae_median_g": 19.575,
+      "mae_q1_g": 18.318181818181817,
+      "mae_q3_g": 21.22222222222222,
+      "rmse_median_g": 27.829070104068208,
+      "rmse_q1_g": 26.258808046063326,
+      "rmse_q3_g": 29.938627700204105,
+      "n_participants": 45
+    },
+    "fat_g": {
+      "mae_median_g": 12.5,
+      "mae_q1_g": 11.1875,
+      "mae_q3_g": 13.411764705882353,
+      "rmse_median_g": 17.44542510639558,
+      "rmse_q1_g": 16.023030300164823,
+      "rmse_q3_g": 19.78635893740938,
+      "n_participants": 45
+    },
+    "fiber_g": {
+      "mae_median_g": 3.8421052631578947,
+      "mae_q1_g": 3.6,
+      "mae_q3_g": 4.433333333333334,
+      "rmse_median_g": 5.043808085167397,
+      "rmse_q1_g": 4.562950012931636,
+      "rmse_q3_g": 5.62435181450568,
+      "n_participants": 45
+    }
+  },
+  "by_meal_type": {
+    "Breakfast": {
+      "carbs_g": {
+        "mae_g": 22.2981220657277,
+        "rmse_g": 22.46348105749991,
+        "n_meals": 426
+      },
+      "protein_g": {
+        "mae_g": 17.323943661971832,
+        "rmse_g": 26.624144501232998,
+        "n_meals": 426
+      },
+      "fat_g": {
+        "mae_g": 12.672535211267606,
+        "rmse_g": 18.81979965767249,
+        "n_meals": 426
+      },
+      "fiber_g": {
+        "mae_g": 3.8145539906103285,
+        "rmse_g": 3.8343027963728034,
+        "n_meals": 426
+      }
+    },
+    "Dinner": {
+      "carbs_g": {
+        "mae_g": 28.529203539823012,
+        "rmse_g": 36.17641876051695,
+        "n_meals": 452
+      },
+      "protein_g": {
+        "mae_g": 16.91283185840708,
+        "rmse_g": 22.753102482219248,
+        "n_meals": 452
+      },
+      "fat_g": {
+        "mae_g": 13.576548672566373,
+        "rmse_g": 20.331084792739357,
+        "n_meals": 452
+      },
+      "fiber_g": {
+        "mae_g": 4.227433628318584,
+        "rmse_g": 7.143881595308506,
+        "n_meals": 452
+      }
+    },
+    "Lunch": {
+      "carbs_g": {
+        "mae_g": 31.888631090487237,
+        "rmse_g": 35.97343696470167,
+        "n_meals": 431
+      },
+      "protein_g": {
+        "mae_g": 29.31554524361949,
+        "rmse_g": 39.59449327762426,
+        "n_meals": 431
+      },
+      "fat_g": {
+        "mae_g": 13.564269141531321,
+        "rmse_g": 19.53296576918465,
+        "n_meals": 431
+      },
+      "fiber_g": {
+        "mae_g": 4.6287703016241295,
+        "rmse_g": 6.5648646441357545,
+        "n_meals": 431
+      }
+    },
+    "Snack": {
+      "carbs_g": {
+        "mae_g": 26.212052117263845,
+        "rmse_g": 29.90193581479822,
+        "n_meals": 307
+      },
+      "protein_g": {
+        "mae_g": 13.593811074918564,
+        "rmse_g": 14.67787783434205,
+        "n_meals": 307
+      },
+      "fat_g": {
+        "mae_g": 9.231270358306189,
+        "rmse_g": 10.913234949748123,
+        "n_meals": 307
+      },
+      "fiber_g": {
+        "mae_g": 3.978501628664495,
+        "rmse_g": 11.036150251688772,
+        "n_meals": 307
+      }
+    }
+  },
+  "manifest_build": {
+    "participants_discovered": 45,
+    "meal_rows_discovered": 1706,
+    "eligible_meals": 1616,
+    "excluded_meals": 90,
+    "exclusion_reasons": {
+      "macro_out_of_documented_range": 34,
+      "missing_or_invalid_macros": 1,
+      "missing_or_unresolved_before_image": 55
+    },
+    "warnings": 3,
+    "warning_codes": {
+      "after_image_path_repaired": 3
+    }
+  }
+}

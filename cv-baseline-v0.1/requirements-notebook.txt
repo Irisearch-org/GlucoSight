@@ -1,0 +1,7 @@
+-r requirements.txt
+
+# Notebook lokal OOD CGMacros (Python 3.10-3.12; NumPy 1.x untuk PyTorch 2.2.x)
+pandas>=2.0
+matplotlib>=3.7
+ipykernel>=6.0
+jupyterlab>=4.0
