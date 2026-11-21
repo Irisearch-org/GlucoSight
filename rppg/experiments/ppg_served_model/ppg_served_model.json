@@ -1,0 +1,981 @@
+{
+  "protocol": {
+    "primary": "GroupKFold(5) by subject, native 2190 Hz",
+    "n_recordings": 67,
+    "n_subjects": 23,
+    "bootstrap": 2000,
+    "permutations": 1000,
+    "permutations_forest_candidates": 200,
+    "gate": "MAE gain>0; fold wins>=4/5; bootstrap CI over subjects excludes 0 (lower>0); subject-level label permutation p<=0.05",
+    "selection_rule": "lowest pooled held-out MAE among non-baseline candidates"
+  },
+  "mean_baseline": {
+    "description": "Training-fold mean (B-mean baseline)",
+    "mae": 14.55,
+    "rmse": 18.77,
+    "mae_gain_vs_mean": 0.0,
+    "fold_wins": 0,
+    "folds": [
+      {
+        "fold": 1,
+        "n_recordings": 14,
+        "n_subjects": 4,
+        "baseline_mae": 13.87,
+        "model_mae": 13.87,
+        "model_wins": false
+      },
+      {
+        "fold": 2,
+        "n_recordings": 13,
+        "n_subjects": 4,
+        "baseline_mae": 15.59,
+        "model_mae": 15.59,
+        "model_wins": false
+      },
+      {
+        "fold": 3,
+        "n_recordings": 14,
+        "n_subjects": 5,
+        "baseline_mae": 15.74,
+        "model_mae": 15.74,
+        "model_wins": false
+      },
+      {
+        "fold": 4,
+        "n_recordings": 13,
+        "n_subjects": 5,
+        "baseline_mae": 14.32,
+        "model_mae": 14.32,
+        "model_wins": false
+      },
+      {
+        "fold": 5,
+        "n_recordings": 13,
+        "n_subjects": 5,
+        "baseline_mae": 13.19,
+        "model_mae": 13.19,
+        "model_wins": false
+      }
+    ],
+    "bootstrap_ci_gain": [
+      0.0,
+      0.0
+    ],
+    "tuned_per_fold": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "per_subject_mae": {
+      "n_subjects": 23,
+      "mae_median": 13.94,
+      "mae_q25": 10.99,
+      "mae_q75": 16.63
+    },
+    "clarke_pooled_pct": {
+      "A": 83.58,
+      "B": 16.42,
+      "C": 0.0,
+      "D": 0.0,
+      "E": 0.0
+    },
+    "clarke_per_subject_zone_a": {
+      "median_zone_a": 100.0,
+      "iqr_zone_a": 33.33,
+      "min_zone_a": 50.0,
+      "max_zone_a": 100.0,
+      "n_participants": 22,
+      "n_participants_excluded": 1,
+      "min_meals": 2
+    },
+    "clarke_zone_a_by_reference_range": [
+      {
+        "range": "[0, 100)",
+        "n": 9,
+        "zone_a_pct": 22.22,
+        "zone_ab_pct": 100.0
+      },
+      {
+        "range": "[100, 140)",
+        "n": 53,
+        "zone_a_pct": 100.0,
+        "zone_ab_pct": 100.0
+      },
+      {
+        "range": "[140, 180)",
+        "n": 3,
+        "zone_a_pct": 33.33,
+        "zone_ab_pct": 100.0
+      },
+      {
+        "range": "[180, 250)",
+        "n": 2,
+        "zone_a_pct": 0.0,
+        "zone_ab_pct": 100.0
+      },
+      {
+        "range": "[250, 10000)",
+        "n": 0,
+        "zone_a_pct": null,
+        "zone_ab_pct": null
+      }
+    ],
+    "abs_residual_q80_q90": [
+      20.27,
+      24.28
+    ]
+  },
+  "candidates": {
+    "ridge_handcrafted_alpha10": {
+      "description": "Ridge(alpha=10) on 7 handcrafted features (estimator config)",
+      "mae": 15.3,
+      "rmse": 19.83,
+      "mae_gain_vs_mean": -0.75,
+      "fold_wins": 1,
+      "folds": [
+        {
+          "fold": 1,
+          "n_recordings": 14,
+          "n_subjects": 4,
+          "baseline_mae": 13.87,
+          "model_mae": 14.01,
+          "model_wins": false
+        },
+        {
+          "fold": 2,
+          "n_recordings": 13,
+          "n_subjects": 4,
+          "baseline_mae": 15.59,
+          "model_mae": 14.5,
+          "model_wins": true
+        },
+        {
+          "fold": 3,
+          "n_recordings": 14,
+          "n_subjects": 5,
+          "baseline_mae": 15.74,
+          "model_mae": 18.38,
+          "model_wins": false
+        },
+        {
+          "fold": 4,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 14.32,
+          "model_mae": 14.96,
+          "model_wins": false
+        },
+        {
+          "fold": 5,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 13.19,
+          "model_mae": 14.51,
+          "model_wins": false
+        }
+      ],
+      "bootstrap_ci_gain": [
+        -2.22,
+        0.57
+      ],
+      "tuned_per_fold": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "per_subject_mae": {
+        "n_subjects": 23,
+        "mae_median": 13.64,
+        "mae_q25": 10.53,
+        "mae_q75": 17.51
+      },
+      "clarke_pooled_pct": {
+        "A": 83.58,
+        "B": 16.42,
+        "C": 0.0,
+        "D": 0.0,
+        "E": 0.0
+      },
+      "clarke_per_subject_zone_a": {
+        "median_zone_a": 100.0,
+        "iqr_zone_a": 33.33,
+        "min_zone_a": 50.0,
+        "max_zone_a": 100.0,
+        "n_participants": 22,
+        "n_participants_excluded": 1,
+        "min_meals": 2
+      },
+      "clarke_zone_a_by_reference_range": [
+        {
+          "range": "[0, 100)",
+          "n": 9,
+          "zone_a_pct": 33.33,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[100, 140)",
+          "n": 53,
+          "zone_a_pct": 98.11,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[140, 180)",
+          "n": 3,
+          "zone_a_pct": 33.33,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[180, 250)",
+          "n": 2,
+          "zone_a_pct": 0.0,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[250, 10000)",
+          "n": 0,
+          "zone_a_pct": null,
+          "zone_ab_pct": null
+        }
+      ],
+      "abs_residual_q80_q90": [
+        20.0,
+        25.26
+      ],
+      "permutations": 1000,
+      "permutation_p": 0.3956,
+      "permutation_null_gain_q95": 0.47,
+      "gate": {
+        "criteria": {
+          "mae_gain_positive": false,
+          "fold_wins_ge_4_of_5": false,
+          "bootstrap_ci_excludes_zero": false,
+          "permutation_p_le_0.05": false
+        },
+        "passes": false
+      }
+    },
+    "ridge_handcrafted_nested": {
+      "description": "Ridge on 7 handcrafted features, alpha nested",
+      "mae": 14.69,
+      "rmse": 18.87,
+      "mae_gain_vs_mean": -0.14,
+      "fold_wins": 2,
+      "folds": [
+        {
+          "fold": 1,
+          "n_recordings": 14,
+          "n_subjects": 4,
+          "baseline_mae": 13.87,
+          "model_mae": 13.85,
+          "model_wins": true
+        },
+        {
+          "fold": 2,
+          "n_recordings": 13,
+          "n_subjects": 4,
+          "baseline_mae": 15.59,
+          "model_mae": 15.52,
+          "model_wins": true
+        },
+        {
+          "fold": 3,
+          "n_recordings": 14,
+          "n_subjects": 5,
+          "baseline_mae": 15.74,
+          "model_mae": 16.37,
+          "model_wins": false
+        },
+        {
+          "fold": 4,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 14.32,
+          "model_mae": 14.32,
+          "model_wins": false
+        },
+        {
+          "fold": 5,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 13.19,
+          "model_mae": 13.31,
+          "model_wins": false
+        }
+      ],
+      "bootstrap_ci_gain": [
+        -0.52,
+        0.12
+      ],
+      "tuned_per_fold": [
+        {
+          "alpha": 1000.0
+        },
+        {
+          "alpha": 1000.0
+        },
+        {
+          "alpha": 100.0
+        },
+        {
+          "alpha": 1000.0
+        },
+        {
+          "alpha": 1000.0
+        }
+      ],
+      "per_subject_mae": {
+        "n_subjects": 23,
+        "mae_median": 13.95,
+        "mae_q25": 10.96,
+        "mae_q75": 16.41
+      },
+      "clarke_pooled_pct": {
+        "A": 82.09,
+        "B": 17.91,
+        "C": 0.0,
+        "D": 0.0,
+        "E": 0.0
+      },
+      "clarke_per_subject_zone_a": {
+        "median_zone_a": 100.0,
+        "iqr_zone_a": 33.33,
+        "min_zone_a": 50.0,
+        "max_zone_a": 100.0,
+        "n_participants": 22,
+        "n_participants_excluded": 1,
+        "min_meals": 2
+      },
+      "clarke_zone_a_by_reference_range": [
+        {
+          "range": "[0, 100)",
+          "n": 9,
+          "zone_a_pct": 22.22,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[100, 140)",
+          "n": 53,
+          "zone_a_pct": 98.11,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[140, 180)",
+          "n": 3,
+          "zone_a_pct": 33.33,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[180, 250)",
+          "n": 2,
+          "zone_a_pct": 0.0,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[250, 10000)",
+          "n": 0,
+          "zone_a_pct": null,
+          "zone_ab_pct": null
+        }
+      ],
+      "abs_residual_q80_q90": [
+        20.29,
+        24.65
+      ],
+      "permutations": 1000,
+      "permutation_p": 0.5385,
+      "permutation_null_gain_q95": 0.33,
+      "gate": {
+        "criteria": {
+          "mae_gain_positive": false,
+          "fold_wins_ge_4_of_5": false,
+          "bootstrap_ci_excludes_zero": false,
+          "permutation_p_le_0.05": false
+        },
+        "passes": false
+      }
+    },
+    "rf_handcrafted_nested": {
+      "description": "RandomForest on 7 handcrafted features, min_samples_leaf nested",
+      "mae": 14.84,
+      "rmse": 19.49,
+      "mae_gain_vs_mean": -0.29,
+      "fold_wins": 3,
+      "folds": [
+        {
+          "fold": 1,
+          "n_recordings": 14,
+          "n_subjects": 4,
+          "baseline_mae": 13.87,
+          "model_mae": 12.68,
+          "model_wins": true
+        },
+        {
+          "fold": 2,
+          "n_recordings": 13,
+          "n_subjects": 4,
+          "baseline_mae": 15.59,
+          "model_mae": 17.22,
+          "model_wins": false
+        },
+        {
+          "fold": 3,
+          "n_recordings": 14,
+          "n_subjects": 5,
+          "baseline_mae": 15.74,
+          "model_mae": 14.75,
+          "model_wins": true
+        },
+        {
+          "fold": 4,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 14.32,
+          "model_mae": 16.63,
+          "model_wins": false
+        },
+        {
+          "fold": 5,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 13.19,
+          "model_mae": 13.08,
+          "model_wins": true
+        }
+      ],
+      "bootstrap_ci_gain": [
+        -1.8,
+        1.28
+      ],
+      "tuned_per_fold": [
+        {
+          "min_samples_leaf": 10
+        },
+        {
+          "min_samples_leaf": 2
+        },
+        {
+          "min_samples_leaf": 10
+        },
+        {
+          "min_samples_leaf": 10
+        },
+        {
+          "min_samples_leaf": 10
+        }
+      ],
+      "per_subject_mae": {
+        "n_subjects": 23,
+        "mae_median": 14.78,
+        "mae_q25": 9.59,
+        "mae_q75": 17.02
+      },
+      "clarke_pooled_pct": {
+        "A": 80.6,
+        "B": 19.4,
+        "C": 0.0,
+        "D": 0.0,
+        "E": 0.0
+      },
+      "clarke_per_subject_zone_a": {
+        "median_zone_a": 92.85,
+        "iqr_zone_a": 33.33,
+        "min_zone_a": 50.0,
+        "max_zone_a": 100.0,
+        "n_participants": 22,
+        "n_participants_excluded": 1,
+        "min_meals": 2
+      },
+      "clarke_zone_a_by_reference_range": [
+        {
+          "range": "[0, 100)",
+          "n": 9,
+          "zone_a_pct": 33.33,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[100, 140)",
+          "n": 53,
+          "zone_a_pct": 94.34,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[140, 180)",
+          "n": 3,
+          "zone_a_pct": 33.33,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[180, 250)",
+          "n": 2,
+          "zone_a_pct": 0.0,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[250, 10000)",
+          "n": 0,
+          "zone_a_pct": null,
+          "zone_ab_pct": null
+        }
+      ],
+      "abs_residual_q80_q90": [
+        21.84,
+        31.01
+      ],
+      "permutations": 200,
+      "permutation_p": 0.3632,
+      "permutation_null_gain_q95": 0.78,
+      "gate": {
+        "criteria": {
+          "mae_gain_positive": false,
+          "fold_wins_ge_4_of_5": false,
+          "bootstrap_ci_excludes_zero": false,
+          "permutation_p_le_0.05": false
+        },
+        "passes": false
+      }
+    },
+    "papagei_ridge_nested": {
+      "description": "PaPaGei-S 512-d frozen embedding + Ridge, alpha nested",
+      "mae": 14.78,
+      "rmse": 19.25,
+      "mae_gain_vs_mean": -0.24,
+      "fold_wins": 3,
+      "folds": [
+        {
+          "fold": 1,
+          "n_recordings": 14,
+          "n_subjects": 4,
+          "baseline_mae": 13.87,
+          "model_mae": 14.56,
+          "model_wins": false
+        },
+        {
+          "fold": 2,
+          "n_recordings": 13,
+          "n_subjects": 4,
+          "baseline_mae": 15.59,
+          "model_mae": 14.55,
+          "model_wins": true
+        },
+        {
+          "fold": 3,
+          "n_recordings": 14,
+          "n_subjects": 5,
+          "baseline_mae": 15.74,
+          "model_mae": 15.23,
+          "model_wins": true
+        },
+        {
+          "fold": 4,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 14.32,
+          "model_mae": 16.41,
+          "model_wins": false
+        },
+        {
+          "fold": 5,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 13.19,
+          "model_mae": 13.17,
+          "model_wins": true
+        }
+      ],
+      "bootstrap_ci_gain": [
+        -1.21,
+        0.48
+      ],
+      "tuned_per_fold": [
+        {
+          "alpha": 1000.0
+        },
+        {
+          "alpha": 10000.0
+        },
+        {
+          "alpha": 10000.0
+        },
+        {
+          "alpha": 1000.0
+        },
+        {
+          "alpha": 1000.0
+        }
+      ],
+      "per_subject_mae": {
+        "n_subjects": 23,
+        "mae_median": 13.46,
+        "mae_q25": 11.67,
+        "mae_q75": 15.9
+      },
+      "clarke_pooled_pct": {
+        "A": 83.58,
+        "B": 16.42,
+        "C": 0.0,
+        "D": 0.0,
+        "E": 0.0
+      },
+      "clarke_per_subject_zone_a": {
+        "median_zone_a": 100.0,
+        "iqr_zone_a": 33.33,
+        "min_zone_a": 50.0,
+        "max_zone_a": 100.0,
+        "n_participants": 22,
+        "n_participants_excluded": 1,
+        "min_meals": 2
+      },
+      "clarke_zone_a_by_reference_range": [
+        {
+          "range": "[0, 100)",
+          "n": 9,
+          "zone_a_pct": 33.33,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[100, 140)",
+          "n": 53,
+          "zone_a_pct": 100.0,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[140, 180)",
+          "n": 3,
+          "zone_a_pct": 0.0,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[180, 250)",
+          "n": 2,
+          "zone_a_pct": 0.0,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[250, 10000)",
+          "n": 0,
+          "zone_a_pct": null,
+          "zone_ab_pct": null
+        }
+      ],
+      "abs_residual_q80_q90": [
+        20.56,
+        23.2
+      ],
+      "permutations": 1000,
+      "permutation_p": 0.5335,
+      "permutation_null_gain_q95": 0.45,
+      "gate": {
+        "criteria": {
+          "mae_gain_positive": false,
+          "fold_wins_ge_4_of_5": false,
+          "bootstrap_ci_excludes_zero": false,
+          "permutation_p_le_0.05": false
+        },
+        "passes": false
+      }
+    },
+    "papagei_pca10_rf_nested": {
+      "description": "PaPaGei-S embedding -> PCA(10) -> RandomForest, leaf nested",
+      "mae": 14.94,
+      "rmse": 19.89,
+      "mae_gain_vs_mean": -0.39,
+      "fold_wins": 3,
+      "folds": [
+        {
+          "fold": 1,
+          "n_recordings": 14,
+          "n_subjects": 4,
+          "baseline_mae": 13.87,
+          "model_mae": 15.68,
+          "model_wins": false
+        },
+        {
+          "fold": 2,
+          "n_recordings": 13,
+          "n_subjects": 4,
+          "baseline_mae": 15.59,
+          "model_mae": 14.82,
+          "model_wins": true
+        },
+        {
+          "fold": 3,
+          "n_recordings": 14,
+          "n_subjects": 5,
+          "baseline_mae": 15.74,
+          "model_mae": 14.69,
+          "model_wins": true
+        },
+        {
+          "fold": 4,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 14.32,
+          "model_mae": 16.3,
+          "model_wins": false
+        },
+        {
+          "fold": 5,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 13.19,
+          "model_mae": 13.18,
+          "model_wins": true
+        }
+      ],
+      "bootstrap_ci_gain": [
+        -1.84,
+        0.88
+      ],
+      "tuned_per_fold": [
+        {
+          "min_samples_leaf": 2,
+          "pca_components": 10
+        },
+        {
+          "min_samples_leaf": 10,
+          "pca_components": 10
+        },
+        {
+          "min_samples_leaf": 2,
+          "pca_components": 10
+        },
+        {
+          "min_samples_leaf": 2,
+          "pca_components": 10
+        },
+        {
+          "min_samples_leaf": 10,
+          "pca_components": 10
+        }
+      ],
+      "per_subject_mae": {
+        "n_subjects": 23,
+        "mae_median": 14.31,
+        "mae_q25": 10.69,
+        "mae_q75": 16.86
+      },
+      "clarke_pooled_pct": {
+        "A": 82.09,
+        "B": 17.91,
+        "C": 0.0,
+        "D": 0.0,
+        "E": 0.0
+      },
+      "clarke_per_subject_zone_a": {
+        "median_zone_a": 81.66,
+        "iqr_zone_a": 33.33,
+        "min_zone_a": 50.0,
+        "max_zone_a": 100.0,
+        "n_participants": 22,
+        "n_participants_excluded": 1,
+        "min_meals": 2
+      },
+      "clarke_zone_a_by_reference_range": [
+        {
+          "range": "[0, 100)",
+          "n": 9,
+          "zone_a_pct": 55.56,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[100, 140)",
+          "n": 53,
+          "zone_a_pct": 92.45,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[140, 180)",
+          "n": 3,
+          "zone_a_pct": 33.33,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[180, 250)",
+          "n": 2,
+          "zone_a_pct": 0.0,
+          "zone_ab_pct": 100.0
+        },
+        {
+          "range": "[250, 10000)",
+          "n": 0,
+          "zone_a_pct": null,
+          "zone_ab_pct": null
+        }
+      ],
+      "abs_residual_q80_q90": [
+        21.96,
+        25.39
+      ],
+      "permutations": 200,
+      "permutation_p": 0.5025,
+      "permutation_null_gain_q95": 0.82,
+      "gate": {
+        "criteria": {
+          "mae_gain_positive": false,
+          "fold_wins_ge_4_of_5": false,
+          "bootstrap_ci_excludes_zero": false,
+          "permutation_p_le_0.05": false
+        },
+        "passes": false
+      }
+    }
+  },
+  "sensitivity_loso": {
+    "ridge_handcrafted_alpha10": {
+      "mae": 15.21,
+      "baseline_mae": 14.71
+    },
+    "ridge_handcrafted_nested": {
+      "mae": 14.59,
+      "baseline_mae": 14.71
+    },
+    "rf_handcrafted_nested": {
+      "mae": 14.44,
+      "baseline_mae": 14.71
+    },
+    "papagei_ridge_nested": {
+      "mae": 14.72,
+      "baseline_mae": 14.71
+    },
+    "papagei_pca10_rf_nested": {
+      "mae": 14.07,
+      "baseline_mae": 14.71
+    }
+  },
+  "sensitivity_30hz": {
+    "papagei_ridge_nested": {
+      "mae": 15.07,
+      "mae_gain_vs_mean": -0.52,
+      "fold_wins": 3,
+      "bootstrap_ci_gain": [
+        -2.85,
+        1.2
+      ],
+      "folds": [
+        {
+          "fold": 1,
+          "n_recordings": 14,
+          "n_subjects": 4,
+          "baseline_mae": 13.87,
+          "model_mae": 12.89,
+          "model_wins": true
+        },
+        {
+          "fold": 2,
+          "n_recordings": 13,
+          "n_subjects": 4,
+          "baseline_mae": 15.59,
+          "model_mae": 15.37,
+          "model_wins": true
+        },
+        {
+          "fold": 3,
+          "n_recordings": 14,
+          "n_subjects": 5,
+          "baseline_mae": 15.74,
+          "model_mae": 15.34,
+          "model_wins": true
+        },
+        {
+          "fold": 4,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 14.32,
+          "model_mae": 18.46,
+          "model_wins": false
+        },
+        {
+          "fold": 5,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 13.19,
+          "model_mae": 13.44,
+          "model_wins": false
+        }
+      ]
+    },
+    "papagei_pca10_rf_nested": {
+      "mae": 13.72,
+      "mae_gain_vs_mean": 0.83,
+      "fold_wins": 4,
+      "bootstrap_ci_gain": [
+        -0.89,
+        2.55
+      ],
+      "folds": [
+        {
+          "fold": 1,
+          "n_recordings": 14,
+          "n_subjects": 4,
+          "baseline_mae": 13.87,
+          "model_mae": 12.77,
+          "model_wins": true
+        },
+        {
+          "fold": 2,
+          "n_recordings": 13,
+          "n_subjects": 4,
+          "baseline_mae": 15.59,
+          "model_mae": 14.1,
+          "model_wins": true
+        },
+        {
+          "fold": 3,
+          "n_recordings": 14,
+          "n_subjects": 5,
+          "baseline_mae": 15.74,
+          "model_mae": 13.26,
+          "model_wins": true
+        },
+        {
+          "fold": 4,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 14.32,
+          "model_mae": 15.97,
+          "model_wins": false
+        },
+        {
+          "fold": 5,
+          "n_recordings": 13,
+          "n_subjects": 5,
+          "baseline_mae": 13.19,
+          "model_mae": 12.6,
+          "model_wins": true
+        }
+      ]
+    }
+  },
+  "selected_served": "ridge_handcrafted_nested",
+  "selected_served_passes_gate": false,
+  "served_residual_analysis": {
+    "signed_residual_mean": 0.5,
+    "abs_residual_q80_q90": [
+      20.29,
+      24.65
+    ],
+    "spearman_abs_residual_vs_sqi": [
+      0.012,
+      0.9216
+    ],
+    "sqi_tertile_edges": [
+      0.428,
+      0.606
+    ],
+    "mae_by_sqi_tertile": [
+      12.72,
+      14.05,
+      17.17
+    ],
+    "n_by_sqi_tertile": [
+      22,
+      22,
+      23
+    ],
+    "sqi_below_0_3_count": 15
+  }
+}
