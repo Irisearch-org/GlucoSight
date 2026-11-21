@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" role="img" aria-label="GlucoSight">
+  <title>GlucoSight</title>
+  <defs>
+    <linearGradient id="gs-signal" x1="24" y1="62" x2="93" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF4D5E"/>
+      <stop offset="0.45" stop-color="#FF6B4A"/>
+      <stop offset="1" stop-color="#00C2A8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Lens: the phone camera. Open at 3 o'clock, where the prediction leaves the frame. -->
+  <path d="M 84.14 36.26 A 38 38 0 1 0 84.14 59.74"
+        fill="none" stroke="#0B1F3A" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- One unbroken stroke: contact-PPG pulse (red) resolving into the
+       postprandial glucose response (teal). Measurement and prediction
+       are the same line. -->
+  <path d="M 24 62 L 31 62 L 36.5 30 L 42 62 L 52 62
+           C 60 62 60 38 67 38
+           C 74 38 75 47 82 49.5
+           C 86 50.1 89 50.4 93 50.6"
+        fill="none" stroke="url(#gs-signal)" stroke-width="6.5"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
