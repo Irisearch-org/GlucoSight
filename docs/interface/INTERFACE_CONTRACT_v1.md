@@ -1,7 +1,8 @@
 # GlucoSight Interface Contract v1.2
 
-**Status:** DRAFT — sign-off deliberately deferred until after the
-independent-model week. See `docs/DATA_STRATEGY.md` §7.
+**Status:** **superseded by v2.0 (2026-11-21)** — see
+[`INTERFACE_CONTRACT_v2.md`](INTERFACE_CONTRACT_v2.md). Kept for history; do not
+build against it. (Was: DRAFT, sign-off deferred, `docs/DATA_STRATEGY.md` §7.)
 **Owner:** Project Manager
 **Last updated:** 2026-08-20 (post data-strategy change)
 **Supersedes:** v1.1 draft

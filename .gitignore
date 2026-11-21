@@ -56,6 +56,10 @@ nlp/data/Shanghai_T2DM/
 !nlp/features/shanghai_nlp_features.csv
 
 # Model weights and checkpoints
+# Served artefacts (paths in integration/models/served.json) are built locally,
+# never committed: LightGBM forecasters and the PPG ridge model.
+forecasting/models/
+rppg/models/weights/
 *.pt
 *.pth
 *.ckpt

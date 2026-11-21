@@ -65,15 +65,17 @@ glucosight/
 | Order | Document | What it settles |
 |-------|----------|-----------------|
 | 1 | `CLAUDE.md` (this file) | Project scope and shared rules |
-| 2 | `docs/interface/INTERFACE_CONTRACT_v1.md` | **v1.1** — the cross-track variable schema. Authoritative |
-| 3 | `docs/protocol/DATA_COLLECTION_PROTOCOL.md` | Meal timing, camera capture, pilot, ethics, retention |
-| 4 | `docs/REVIEW_FINDINGS.md` | Sprint 1 architecture review — findings C1–C7, H1–H9, M1–M7 |
-| 5 | `agents/{track}/CLAUDE.md` | Your track's objective and Sprint 2 task list |
+| 2 | `docs/interface/INTERFACE_CONTRACT_v2.md` | **v2.0** — the stage schema and HTTP API. Authoritative (v1 is superseded) |
+| 3 | `docs/SPEC_V2_PIPELINE.md` | The v2 pipeline spec: fixed three-step flow, served models, evidence |
+| 4 | `docs/protocol/DATA_COLLECTION_PROTOCOL.md` | Meal timing, camera capture, pilot, ethics, retention |
+| 5 | `docs/REVIEW_FINDINGS.md` | Sprint 1 architecture review — findings C1–C7, H1–H9, M1–M7 |
+| 6 | `agents/{track}/CLAUDE.md` | Your track's objective and Sprint 2 task list |
 
 **The interface contract is the single most important file in this repo
 after this one.** Before suggesting any implementation that produces or
-consumes cross-track variables, read it. It is currently at **v1.1 (DRAFT)**
-and is unsigned — sign-off happens at the Sprint 2 Interface Meeting.
+consumes cross-track variables, read it. It is at **v2.0** (2026-11-21), which
+supersedes the v1.x drafts; the evaluation tables are in
+`docs/EVALUATION_PLAN.md`.
 
 `docs/REVIEW_FINDINGS.md` carries stable finding IDs. Other documents cite
 them. If you disagree with a rule, argue against the finding, not the rule.
@@ -91,22 +93,24 @@ worthless result. Nothing errors. Know them by heart.
    result is meaningful without B0/B1/B2 in the same table.
 3. **Grouped splits (C4).** Split by participant (and by subject for the PPG
    dataset). Effective n is the number of held-out *people*, not meals.
-4. **Timing (C1).** T=0 is the **first bite**, logged to the second. Δt is
-   recorded and passed as a feature, never assumed to be 60 or 120.
+4. **Timing (C1).** T=0 is the **first bite**, logged to the second. In
+   contract v2 the horizons are fixed at 60 and 120 min and there is no Δt
+   input; datasets that record a meal marker rather than a first bite say so
+   (`t0_basis`).
 
 ---
 
 ## Tech Stack
 
-| Layer          | Technology                              |
-|----------------|-----------------------------------------|
-| CV             | PyTorch, EfficientNet-B3, ViT, timm     |
-| rPPG           | OpenCV, PyTorch, CNN/Transformer        |
-| NLP            | HuggingFace Transformers, IndoBERT      |
-| Forecasting    | PyTorch, LSTM, pytorch-forecasting(TFT) |
-| Evaluation     | Clarke Error Grid, RMSE, MAE, F1        |
-| Prototype      | FastAPI + Flutter / React Native        |
-| Versioning     | Git + DVC (data version control)        |
+| Layer          | Technology                                                        |
+|----------------|-------------------------------------------------------------------|
+| Meal / CV      | Gemini VLM (`gemini-3.5-flash-lite`) names dishes → embedding matcher (`gemini-embedding-001`) → locally built dish table. MobileNetV2 (PyTorch) is a comparison model, not served |
+| Contact PPG    | NumPy/SciPy, scikit-learn ridge on 7 handcrafted features (served; not a validated glucose estimator, ADR 0005) |
+| NLP            | HuggingFace Transformers, IndoBERT (research only; free-text path retired from serving in v2) |
+| Forecasting    | LightGBM — two served models, T+60 and T+120 |
+| Evaluation     | Clarke Error Grid, RMSE, MAE, F1                                  |
+| Prototype      | FastAPI backend + Vite/React frontend (`frontend/`)               |
+| Versioning     | Git + DVC (data version control)                                  |
 
 ---
 
@@ -181,7 +185,11 @@ When asked something outside your track, route to the PM agent.
    and healthcare constraints in your suggestions
 7. **Check the four silent-failure rules above** before endorsing any
    training, splitting, or evaluation code
-8. **Missing ≠ negative.** Every modality carries a `*_present` mask
-   separate from its confidence score
-9. **Down-weight, never exclude** a low-confidence modality — excluding
-   changes input dimensionality at inference time
+8. **Missing ≠ zero.** Unknown nutrient values are `null`, never a fallback
+   constant
+9. **Every stage serves a real model.** Baselines are comparison rows only
+   (ADR 0004 gate for any claimed gain)
+
+Rules 8–9 replace the v1 rules "`*_present` masks" and "down-weight, never
+exclude", which are superseded by
+[contract v2](docs/interface/INTERFACE_CONTRACT_v2.md) §7.

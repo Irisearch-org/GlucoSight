@@ -26,7 +26,7 @@ Audience: implementers now, paper reviewers (December 2026) later. Research prot
 - **PPG served model:** nested ridge on 7 handcrafted features, `rppg/models/weights/ppg_served_model.pt`. Held-out MAE 14.69 vs mean 14.55; it fails the gate. Predictions barely track glucose (pred ≈ 113.4 + 0.010·true, r = 0.045), and it under-reads high glucose. ADR 0005 records why it is served anyway and how it is kept honest.
 - **The scan screen shows** the glucose as a range ("≈ 112 mg/dL (87–137)", *Estimasi kasar dari kamera*, with a note that a glucometer is more accurate) and heart rate as a secondary line. It does **not** show HRV, perfusion index or a quality score ([scan outputs](https://github.com/Irisearch-org/GlucoSight/issues/14)).
 - **The capture gate checks validity only:** finger on the lens; torch verified (lit/dark luma delta > 0.03); clipping under the limit; HR 40–180 bpm; server window rules (fs 10–240 Hz, jitter ≤ 5%, ≥ 1 × 10 s window after a 3 s settle). A fail shows "Ulangi scan".
-- **Server feature extraction matches training exactly:** resample to 125 Hz, pyPPG bandpass, the same 7 features.
+- **Server feature extraction matches training exactly:** `rppg.features.extractor.extract_features` at the capture's sample rate, producing the same 7 `rppg.models.glucose_estimator.FEATURE_NAMES`, fed to the served ridge (`rppg/experiments/ppg_served_model/serve.py` on `wayfinder/ppg-served-model`). The 125 Hz / pyPPG path belongs only to the unserved PaPaGei-S candidate.
 - **One capture module:** `frontend/src/ppg.ts` absorbs the `integration/web/ppg-capture.html` protocol (torch check, brightest-channel record, POS pulse detector, clipping).
 
 ## 2. Step 2: meal (`integration/stages/meal.py`, `integration/dishes/`)

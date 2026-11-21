@@ -1,7 +1,18 @@
-# cv-baseline-v0.1 — CV Food Macro Estimation
+# cv-baseline-v0.1 — MobileNetV2 food classifier (comparison model, no longer served)
 
-Mengubah foto makanan Indonesia menjadi fitur nutrisi terstruktur untuk pipeline
-Forecasting/Fusion.
+> **Serving moved (2026-11-21).** The app no longer uses this classifier.
+> Photo dish identification is now a Gemini VLM (`gemini-3.5-flash-lite`) that
+> names the dishes, an embedding matcher (`gemini-embedding-001`) that maps each
+> name to a dish-table row, and a confidence rule (similarity ≥ 0.80 and margin
+> ≥ 0.05, otherwise the user enters the item manually). See
+> [`docs/SPEC_V2_PIPELINE.md`](../docs/SPEC_V2_PIPELINE.md) §2 and the
+> [v2 interface contract](../docs/interface/INTERFACE_CONTRACT_v2.md). The
+> MobileNetV2 numbers (food-10 top-1 **88.1%**, 1,051/1,193) are in
+> [`MODEL_CARD.md`](MODEL_CARD.md). The MobileNet path below is kept as a
+> comparison model and for the evaluation scripts in this directory.
+
+Mengubah foto makanan Indonesia menjadi fitur nutrisi terstruktur (kontrak v1,
+sudah digantikan) untuk pipeline Forecasting/Fusion.
 
 ## Setup
 

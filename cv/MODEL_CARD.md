@@ -11,6 +11,20 @@ Arsitektur dua tahap:
 gambar → MobileNetV2 (klasifikasi 10 kelas) → lookup makro TKPI → fitur nutrisi
 ```
 
+> **Status (2026-11-21): MobileNetV2 tidak lagi dipakai di jalur serving.**
+> Identifikasi hidangan di aplikasi kini memakai VLM (Gemini
+> `gemini-3.5-flash-lite`) + embedding matcher (`gemini-embedding-001`) ke tabel
+> hidangan, dengan aturan penerimaan kemiripan ≥ 0,80 dan margin ≥ 0,05
+> ([#18](https://github.com/Irisearch-org/GlucoSight/issues/18),
+> [#19](https://github.com/Irisearch-org/GlucoSight/issues/19),
+> [`docs/SPEC_V2_PIPELINE.md`](../docs/SPEC_V2_PIPELINE.md) §2). Pada granularitas
+> label MobileNet sendiri (n = 88 foto overlap), VLM + embedding unggul +6,8 pp
+> (+1,1 sampai +13,6) tingkat keluarga, tetapi −20,5 pp (−31,8 sampai −9,1) pada
+> tingkat hidangan eksak; MobileNet juga tidak dapat menamai ~75% hidangan di
+> luar 10 kelasnya. Kartu ini dipertahankan sebagai catatan model pembanding.
+> Bagian "Kontrak Output" dan lookup makro TKPI di bawah menggambarkan kontrak
+> v1 yang sudah digantikan ([contract v2](../docs/interface/INTERFACE_CONTRACT_v2.md)).
+
 | | |
 |---|---|
 | Versi | `cv-baseline-v0.1` |
@@ -58,36 +72,38 @@ seleksi        checkpoint dengan val accuracy tertinggi
 
 ## Hasil
 
-| Metrik | Nilai |
+Angka di bawah dihitung ulang dari checkpoint tersimpan
+`models/mobilenetv2_food10.pt` (sha256 `394c8869…`) pada seluruh split test
+food-10 Mendeley (n = 1.193) lewat jalur aplikasi (`cv/cv_baseline`). Sumber:
+[`cv_accuracy_reconciliation.md`](https://github.com/Irisearch-org/GlucoSight/blob/wayfinder/cv-accuracy-reconciliation/cv/reports/cv_accuracy_reconciliation.md)
+(branch `wayfinder/cv-accuracy-reconciliation`, skrip `cv/scripts/eval_food10_reconcile.py`),
+[tiket #11](https://github.com/Irisearch-org/GlucoSight/issues/11).
+
+| Metrik (food-10 test, n = 1.193) | Nilai |
 |---|---|
-| Best val accuracy | 0.867 (epoch 10) |
-| **Test accuracy** | **0.866** |
-| Macro F1 (test) | 0.858 |
+| **Top-1 accuracy (jalur aplikasi)** | **88,1%** (1.051/1.193) |
+| Top-1 accuracy (transform training) | 88,0% (1.050/1.193) — selisih 7 gambar berasal dari preprocessing |
+| Top-3 accuracy | 98,0% |
+| Macro F1 | 0,874 |
 
-### Per kelas (test set)
+**Angka lama dihapus.** 0,8659 / 86,6% dan macro-F1 0,858 (notebook dan versi
+kartu ini sebelumnya), serta rentang "86,6–88,0%", tidak dapat direproduksi dari
+checkpoint tersimpan [INFERENCE: berasal dari bobot lain]; tabel per kelas dari
+run itu ikut dihapus. Nilai 0,8801 di `training_metadata.json` memang nyata
+(= 88,0% pada transform training), tetapi `train_mobilenet.py` tidak menghitung
+test accuracy, jadi angka itu berasal dari evaluasi di luar repo. Klaim "Gemini
+95,96% vs MobileNet 70,71% pada 99 gambar" juga dihapus: rekaman mentah VLM dan
+fitur MobileNet tidak ada, dan skor MobileNet hasil rekonstruksi adalah 89/99
+(89,9%).
 
-| Kelas | Precision | Recall | F1 | Support |
-|---|---|---|---|---|
-| bakso | 0.917 | 0.854 | 0.884 | 130 |
-| bebek_betutu | 0.767 | 0.814 | 0.790 | 97 |
-| gado_gado | 0.853 | 0.823 | 0.838 | 113 |
-| gudeg | 0.780 | 0.780 | 0.780 | 82 |
-| nasi_goreng | 0.952 | 0.903 | 0.927 | 155 |
-| pempek | 0.852 | 0.935 | 0.891 | 123 |
-| rawon | 0.852 | 0.885 | 0.868 | 104 |
-| rendang | 0.872 | 0.798 | 0.833 | 94 |
-| sate | 0.940 | 0.909 | 0.924 | 154 |
-| soto | 0.810 | 0.879 | 0.844 | 141 |
+**Bug kunci stem.** 130 stem nama file (310 gambar) muncul di lebih dari satu
+folder kelas. Skrip yang mengindeks hasil dengan stem saja menghasilkan skor
+tidak valid; indeks selalu dengan path lengkap.
 
-**Terbaik:** `nasi_goreng` dan `sate` (F1 > 0.92) — visualnya paling khas.
+**Hanya 10 kelas.** Angka ini hanya berlaku untuk 10 kelas food-10 dengan foto
+rapi satu hidangan, dan bukan akurasi identifikasi hidangan secara umum.
 
-**Terlemah:** `gudeg` (0.780) dan `bebek_betutu` (0.790). Keduanya kelas dengan
-data paling sedikit, dan secara visual mudah tertukar dengan hidangan berkuah
-santan / daging berbumbu gelap lainnya.
-
-Kesenjangan train accuracy (0.992) vs test (0.866) menunjukkan overfitting
-sedang. Val loss berhenti turun sekitar epoch 4 sementara train loss terus
-turun — menambah epoch tanpa regularisasi tambahan kemungkinan tidak menolong.
+Kesenjangan antara akurasi train dan test menunjukkan overfitting sedang.
 
 ---
 
@@ -146,7 +162,7 @@ satu asumsi porsi tetap (`assumed_serving_g` di output). Sepiring nasi goreng
 porsi kecil dan porsi jumbo menghasilkan angka makro identik.
 
 Ini bukan error kecil — variasi porsi nyata bisa ±50% atau lebih. Akurasi
-klasifikasi 0.866 **tidak berarti** akurasi makro 0.866.
+klasifikasi 0.881 **tidak berarti** akurasi makro 0.881.
 
 ### 2. `fiber_g` adalah heuristik, bukan data TKPI
 
