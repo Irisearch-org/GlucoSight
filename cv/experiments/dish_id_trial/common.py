@@ -27,7 +27,7 @@ def load_labels(csv_path: Path = DEV_CSV):
         return [(r[0].strip(), r[2].strip()) for r in reader if r and r[0].strip()]
 
 
-def build_manifest(root: Path = WIB_ROOT, out: Path = MANIFEST):
+def build_manifest(root: Path = WIB_ROOT, out: Path = MANIFEST, labels_csv: Path = DEV_CSV):
     """Resolve each labelled Image Index to a unique full path under root."""
     by_name: dict = {}
     for p in root.rglob("*"):
@@ -36,7 +36,7 @@ def build_manifest(root: Path = WIB_ROOT, out: Path = MANIFEST):
             by_name.setdefault(p.stem, []).append(p)
 
     rows, unresolved, ambiguous = [], [], []
-    for index, label in load_labels():
+    for index, label in load_labels(labels_csv):
         cands = by_name.get(index) or by_name.get(Path(index).stem) or []
         if len(cands) > 1:
             same_dir = [p for p in cands if _norm(p.parent.name) == _norm(label)]
