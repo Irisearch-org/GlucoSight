@@ -388,3 +388,14 @@ img { max-width: 100%; display: block; }
 /* --------------------------------------------------------------- food icon */
 
 .food-icon { display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; background: var(--soft); color: var(--teal-dark); flex: none; }
+
+/* v2 additions: PPG range result, photo-item chips, two-horizon result */
+.scan-result__note { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin: 0; }
+.scan-result__secondary { font-size: 13px; color: var(--muted); margin: 0; }
+.dish-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; background: var(--card); padding: 6px 12px; font-size: 13px; cursor: pointer; }
+.chip:hover { border-color: var(--teal); background: var(--soft); }
+.chip--dashed { border-style: dashed; color: var(--muted); }
+.food-row--pending { border-color: #f6d9ba; }
+.food-nutri__line { margin: 0; font-size: 12px; color: var(--muted); }
+.result-band { margin: -4px 0 4px; font-size: 14px; font-weight: 700; color: var(--muted); }

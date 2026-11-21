@@ -12,6 +12,9 @@ export default defineConfig(({ mode }) => ({
     proxy: {
       "/health": "http://127.0.0.1:8000",
       "/predict": "http://127.0.0.1:8000",
+      "/dishes": "http://127.0.0.1:8000",
+      "/glucose": "http://127.0.0.1:8000",
+      "/meal": "http://127.0.0.1:8000",
       "/contract": "http://127.0.0.1:8000",
       "/auth": "http://127.0.0.1:8000",
       "/user": "http://127.0.0.1:8000",
