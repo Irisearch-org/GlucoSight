@@ -64,7 +64,8 @@ function DishSearch({ onPick, autoFocus = false }: { onPick: (row: DishRow) => v
       const aboveRoom = r.top - top - SUGGESTION_GAP;
       const above = below < SUGGESTION_MIN_BELOW && aboveRoom > below;
       const room = above ? aboveRoom : below;
-      setPlacement({ above, maxHeight: Math.min(SUGGESTION_MAX, Math.max(96, room)) });
+      const maxHeight = Math.round(Math.min(SUGGESTION_MAX, Math.max(96, room)));
+      setPlacement((prev) => (prev.above === above && prev.maxHeight === maxHeight ? prev : { above, maxHeight }));
     };
     measure();
     const vv = window.visualViewport;
@@ -165,13 +166,17 @@ export function Camera({ draft, patch, go }: { draft: Draft; patch: Patch; go: (
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
+  const viewRef = useRef<HTMLDivElement>(null);
   const gallery = useRef<HTMLInputElement>(null);
   const shoot = useRef<HTMLInputElement>(null);
+  // The viewfinder takes the stream's own shape, so the whole frame that is sent is visible.
+  const fitView = (v: HTMLVideoElement) => { if (v.videoWidth) viewRef.current?.style.setProperty("--cam-ratio", String(v.videoWidth / v.videoHeight)); };
 
   // The live preview runs whenever no photo has been taken yet, so coming back
   // here (retake, "Ganti foto") always starts from the camera, never a stale photo.
   useEffect(() => {
     if (shot) return;
+    viewRef.current?.style.removeProperty("--cam-ratio");
     let stream: MediaStream | null = null;
     let cancelled = false;
     setCam("starting");
@@ -232,9 +237,9 @@ export function Camera({ draft, patch, go }: { draft: Draft; patch: Patch; go: (
 
   return <WizardLayout current={2} title="Foto Makanan" back={() => go("summary")}>
     <div className="camera-copy"><span>Langkah 3 dari 4</span><h1>Foto makanan Anda</h1><p>Pastikan seluruh makanan terlihat jelas.</p></div>
-    <div className="camera-view">
+    <div className="camera-view" ref={viewRef}>
       {shot ? <img className="camera-photo" src={shot} alt="Foto makanan"/> : <>
-        <video ref={videoRef} className={`camera-photo ${cam === "live" ? "" : "is-hidden"}`} playsInline muted autoPlay/>
+        <video ref={videoRef} className={`camera-photo ${cam === "live" ? "" : "is-hidden"}`} playsInline muted autoPlay onLoadedMetadata={(e) => fitView(e.currentTarget)} onResize={(e) => fitView(e.currentTarget)}/>
         {cam !== "live" && <div className="camera-status">
           {cam === "starting"
             ? <><span className="loader"/><strong>Membuka kamera…</strong></>

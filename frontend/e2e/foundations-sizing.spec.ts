@@ -1,5 +1,11 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { historyRecords, openHome, primaryTab, signedOut, withViewport } from "./fixtures";
+import { openScan, stubCamera as stubTorchCamera } from "./helpers-t4";
+import {
+  MENU, SEARCH_PLACEHOLDER, reachCamera, reachConfirm, reachManual, stubCamera as stubStream, stubMeal, waitForLivePreview,
+} from "./helpers-t5";
+import { openFreshResult } from "./helpers-t6";
+import { runningAnimations } from "./helpers-t8";
 
 const PHONE_WIDTHS = [320, 360, 390, 430, 768];
 const TEXT_WIDTH = 390;
@@ -12,6 +18,9 @@ interface Screen {
 }
 
 const home = (page: Page) => openHome(page, { history: historyRecords() });
+
+const STREAM_PORTRAIT = { kind: "stream", width: 960, height: 1280 } as const;
+const RESULT: Screen = { name: "Hasil", open: openFreshResult };
 
 const SCREENS: Screen[] = [
   { name: "Beranda", open: home },
@@ -68,6 +77,45 @@ const SCREENS: Screen[] = [
       await expect(page.getByText("Konfirmasi kata sandi", { exact: true })).toBeVisible();
     },
   },
+  RESULT,
+  {
+    name: "Pindai",
+    open: async (page) => {
+      await stubTorchCamera(page, "torch");
+      await openScan(page);
+      await page.getByRole("button", { name: "Mulai pindai" }).click();
+      await expect(page.getByRole("button", { name: "Mulai merekam" })).toBeEnabled({ timeout: 15_000 });
+    },
+  },
+  {
+    name: "Kamera",
+    open: async (page) => {
+      await stubStream(page, STREAM_PORTRAIT);
+      await stubMeal(page);
+      await reachCamera(page);
+      await waitForLivePreview(page);
+    },
+  },
+  {
+    name: "Konfirmasi",
+    open: async (page) => {
+      await stubStream(page, STREAM_PORTRAIT);
+      await stubMeal(page);
+      await reachConfirm(page);
+    },
+  },
+  {
+    name: "Manual",
+    open: async (page) => {
+      await stubStream(page, STREAM_PORTRAIT);
+      await stubMeal(page);
+      await reachManual(page);
+      for (const dish of MENU.slice(0, 2)) {
+        await page.getByPlaceholder(SEARCH_PLACEHOLDER).fill(dish.name);
+        await page.getByRole("button", { name: dish.name, exact: false }).first().click();
+      }
+    },
+  },
 ];
 
 // Runs in the page: every visible control must be at least 44x44 CSS px.
@@ -110,8 +158,8 @@ function textSizeOffenders(page: Page, min: number): Promise<string[]> {
 // Runs in the page: WCAG 2.x contrast of every visible, enabled run of text against the
 // colour it actually sits on. Translucent text is blended over its backdrop, gradient
 // backgrounds are checked at every colour stop, and the worst case is reported.
-function contrastOffenders(page: Page): Promise<string[]> {
-  return page.evaluate(() => {
+function contrastOffenders(page: Page, scope = "body"): Promise<string[]> {
+  return page.evaluate((scope) => {
     type RGBA = [number, number, number, number];
     const parse = (s: string): RGBA | null => {
       const m = s.match(/rgba?\(([^)]+)\)/);
@@ -164,12 +212,14 @@ function contrastOffenders(page: Page): Promise<string[]> {
     };
 
     const out = new Set<string>();
+    const roots = [...document.querySelectorAll<HTMLElement>(scope)];
+    if (roots.length === 0) out.add(`no element matches ${scope}`);
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     const seen = new Set<HTMLElement>();
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
       const text = node.textContent?.trim() ?? "";
       const el = node.parentElement;
-      if (!text || !el || seen.has(el) || el.closest("script, style, option")) continue;
+      if (!text || !el || seen.has(el) || el.closest("script, style, option") || !roots.some((root) => root.contains(el))) continue;
       seen.add(el);
       if (el.closest("button:disabled, input:disabled, select:disabled, textarea:disabled, [aria-disabled='true']")) continue;
       if (el.getClientRects().length === 0 || getComputedStyle(el).visibility !== "visible") continue;
@@ -187,7 +237,7 @@ function contrastOffenders(page: Page): Promise<string[]> {
       if (worst < needed) out.add(`"${text.slice(0, 30)}" ${worst.toFixed(2)}:1 (need ${needed})`);
     }
     return [...out];
-  });
+  }, scope);
 }
 
 async function eachScreen(browser: Browser, width: number, screen: Screen, run: (page: Page) => Promise<void>) {
@@ -202,6 +252,7 @@ test.describe("Touch targets", () => {
     for (const screen of SCREENS) {
       test(`${screen.name} at ${width}px: every visible control is at least ${MIN_TARGET}x${MIN_TARGET}`, async ({ browser }) => {
         await eachScreen(browser, width, screen, async (page) => {
+          await expect.poll(() => runningAnimations(page)).toBe(0);
           expect(await touchOffenders(page)).toEqual([]);
         });
       });
@@ -227,4 +278,12 @@ test.describe("Contrast", () => {
       });
     });
   }
+});
+
+test.describe("Result cards", () => {
+  test(`Hasil at ${TEXT_WIDTH}px: result numbers, badges, tip cards and disclaimer meet WCAG AA contrast`, async ({ browser }) => {
+    await eachScreen(browser, TEXT_WIDTH, RESULT, async (page) => {
+      expect(await contrastOffenders(page, ".result-number, .badge, .tip-card, .disclaimer")).toEqual([]);
+    });
+  });
 });

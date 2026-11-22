@@ -4,6 +4,14 @@ import {
   withViewport,
 } from "./fixtures";
 
+declare global {
+  interface Window {
+    __pillRuns?: number;
+    __pillTops?: number[];
+    __pillSampled?: (value?: unknown) => void;
+  }
+}
+
 const TABS = ["Beranda", "Prediksi", "Riwayat", "Profil"];
 const DESKTOP_WIDTHS = [1440, 1280];
 const PHONE_WIDTHS = [320, 360, 390, 430, 768];
@@ -92,6 +100,69 @@ test.describe("Primary nav on desktop", () => {
       await loadSession(page, () => page.reload());
       await tapMasuk(page);
       await expect(toggleOf(page)).toHaveAttribute("aria-expanded", "true");
+    });
+  });
+
+  test("first visit: the highlight is placed without a glide", async ({ browser }) => {
+    await withViewport(browser, { width: 1280, height: 800 }, async (page) => {
+      await page.addInitScript(() => {
+        window.__pillRuns = 0;
+        document.addEventListener("transitionrun", (e) => {
+          if (e.target instanceof Element && e.target.classList.contains("bottom-nav__pill")) window.__pillRuns = (window.__pillRuns ?? 0) + 1;
+        }, true);
+      });
+      await openHome(page);
+      expect(await page.evaluate(() => window.__pillRuns)).toBe(0);
+      const p = await box(pillOf(page));
+      const a = await box(primaryTab(page, "Beranda"));
+      expect(Math.abs(p.y - a.y)).toBeLessThanOrEqual(1);
+    });
+  });
+
+  test("the highlight glides to the next tab without overshooting", async ({ browser }) => {
+    await withViewport(browser, { width: 1280, height: 800 }, async (page) => {
+      await openHome(page);
+      const start = (await box(pillOf(page))).y;
+      const { promise: sampled, resolve: done } = Promise.withResolvers<void>();
+      await page.exposeFunction("__pillSampled", done);
+      await page.evaluate(() => {
+        window.__pillTops = [];
+        const t0 = performance.now();
+        const frame = (now: number) => {
+          const pill = document.querySelector<HTMLElement>(".bottom-nav__pill");
+          if (pill) window.__pillTops?.push(pill.getBoundingClientRect().top);
+          if (now - t0 < 900) requestAnimationFrame(frame);
+          else void window.__pillSampled();
+        };
+        requestAnimationFrame(frame);
+      });
+      await primaryTab(page, "Riwayat").click();
+      await sampled;
+      const target = (await box(primaryTab(page, "Riwayat"))).y;
+      const tops = await page.evaluate(() => window.__pillTops ?? []);
+      expect(Math.max(...tops)).toBeLessThanOrEqual(target + 1);
+      expect(tops.some((t) => t > start + 1 && t < target - 1)).toBe(true);
+      expect(Math.abs(tops[tops.length - 1] - target)).toBeLessThanOrEqual(1);
+    });
+  });
+
+  test("resizing across the desktop breakpoint re-aligns the highlight with the active tab", async ({ browser }) => {
+    await withViewport(browser, { width: 390, height: 640, mobile: true }, async (page) => {
+      await openHome(page);
+      await primaryTab(page, "Riwayat").click();
+      await expect(page.getByText("Riwayat Prediksi", { exact: true })).toBeVisible();
+      const alignedOnDesktop = async () => {
+        await expect.poll(async () => {
+          const p = await box(pillOf(page));
+          const a = await box(primaryTab(page, "Riwayat"));
+          return Math.abs(p.y + p.height / 2 - (a.y + a.height / 2));
+        }).toBeLessThanOrEqual(2);
+      };
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await alignedOnDesktop();
+      await page.setViewportSize({ width: 390, height: 640 });
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await alignedOnDesktop();
     });
   });
 });

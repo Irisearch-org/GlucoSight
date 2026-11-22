@@ -128,39 +128,67 @@ export function SelectField({ label, value, options, onChange }: { label: string
   </label>;
 }
 
-const SIDEBAR_KEY = "glucosight.v1.sidebar";
-// Pill offset (px from the top of the Primary nav) on the previous screen. Each screen mounts
-// its own Primary nav, so this is what lets the highlight glide between menus.
-let lastPillTop = 0;
+const PRIMARY_NAV_KEY = "glucosight.v1.sidebar";
+// Pill offset (px from the top of the Primary nav) where the highlight last settled. Each screen
+// mounts its own Primary nav, so this carries the highlight from one menu to the next. Null until
+// the first placement, so the first visit does not glide in from the top.
+let lastPillTop: number | null = null;
+
+const activeTabTop = (nav: HTMLElement) => nav.querySelector<HTMLElement>("button.active")?.offsetTop ?? 0;
+
+// Places the highlight without animating (first paint, or a layout change such as the breakpoint).
+function settlePill(el: HTMLElement, top: number) {
+  el.style.transition = "none";
+  el.style.setProperty("--pill-top", `${top}px`);
+  void el.offsetWidth;
+  el.style.transition = "";
+  lastPillTop = top;
+}
+
+// Moves the highlight from where it last settled to the active tab.
+function glidePill(el: HTMLElement, top: number) {
+  if (lastPillTop === null) return settlePill(el, top);
+  el.style.setProperty("--pill-top", `${lastPillTop}px`); // commit the old position ...
+  void el.offsetWidth;                                     // ... then let the transition carry it over
+  el.style.setProperty("--pill-top", `${top}px`);
+  lastPillTop = top;
+}
 
 /**
  * The Primary nav: a tab bar on phones; from 900px up it becomes a left rail (see desktop.css).
  * Below 1100px it starts collapsed to icons; the user's choice is remembered once made.
  */
-export function BottomNav({ active, go }: { active: "home" | "prediction" | "history" | "profile"; go: (s: Screen) => void }) {
+export function PrimaryNav({ active, go }: { active: "home" | "prediction" | "history" | "profile"; go: (s: Screen) => void }) {
   const [open, setOpen] = useState(() => {
     try {
-      const saved = localStorage.getItem(SIDEBAR_KEY);
+      const saved = localStorage.getItem(PRIMARY_NAV_KEY);
       if (saved) return saved === "open";
     } catch { /* storage blocked: use the width default */ }
     return window.matchMedia("(min-width: 1100px)").matches;
   });
   const nav = useRef<HTMLElement>(null);
   const pill = useRef<HTMLSpanElement>(null);
+  // The nav changes shape at the breakpoint (phone bar <-> rail): keep the highlight on the active tab.
   useLayoutEffect(() => {
-    const el = pill.current;
     const navEl = nav.current;
-    if (!el || !navEl) return;
-    const target = navEl.querySelector<HTMLElement>("button.active")?.offsetTop ?? 0;
-    el.style.setProperty("--pill-top", `${lastPillTop}px`); // start where it was last time ...
-    void el.offsetWidth;                                     // ... commit that position ...
-    el.style.setProperty("--pill-top", `${target}px`);       // ... then let the transition carry it over
-    lastPillTop = target;
+    const el = pill.current;
+    if (!navEl || !el) return;
+    const observer = new ResizeObserver(() => {
+      const top = activeTabTop(navEl);
+      if (top !== lastPillTop) settlePill(el, top);
+    });
+    observer.observe(navEl);
+    return () => observer.disconnect();
+  }, []);
+  useLayoutEffect(() => {
+    const navEl = nav.current;
+    const el = pill.current;
+    if (navEl && el) glidePill(el, activeTabTop(navEl));
   }, [active, open]);
   const toggle = () => {
     const next = !open;
     setOpen(next);
-    try { localStorage.setItem(SIDEBAR_KEY, next ? "open" : "closed"); } catch { /* storage blocked */ }
+    try { localStorage.setItem(PRIMARY_NAV_KEY, next ? "open" : "closed"); } catch { /* storage blocked */ }
   };
   return <nav ref={nav} className={`bottom-nav ${open ? "bottom-nav--open" : ""}`} aria-label="Menu utama">
     <div className="bottom-nav__brand">
@@ -175,23 +203,33 @@ export function BottomNav({ active, go }: { active: "home" | "prediction" | "his
   </nav>;
 }
 
-/** Keeps the pinned action row above the on-screen keyboard and keeps the focused field visible when the keyboard opens (iOS Safari, and browsers whose layout viewport does not shrink). */
+/** Keeps the pinned action row above the on-screen keyboard and brings the focused field into view once per focus (iOS Safari, and browsers whose layout viewport does not shrink). */
 function useKeyboardInset(ref: RefObject<HTMLElement | null>) {
   useEffect(() => {
     const vv = window.visualViewport;
     const el = ref.current;
     if (!vv || !el) return;
     let height = vv.height;
+    let scrolledFor: Element | null = null;
+    const onFocusIn = () => { scrolledFor = null; };
     const update = () => {
       el.style.setProperty("--kb-inset", `${Math.round(Math.max(0, window.innerHeight - vv.height - vv.offsetTop))}px`);
       const focused = document.activeElement;
-      if (vv.height < height && focused instanceof HTMLInputElement && el.contains(focused)) focused.scrollIntoView({ block: "center" });
+      if (vv.height < height && focused instanceof HTMLInputElement && el.contains(focused) && focused !== scrolledFor) {
+        scrolledFor = focused;
+        focused.scrollIntoView({ block: "center" });
+      }
       height = vv.height;
     };
     update();
+    el.addEventListener("focusin", onFocusIn);
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
-    return () => { vv.removeEventListener("resize", update); vv.removeEventListener("scroll", update); };
+    return () => {
+      el.removeEventListener("focusin", onFocusIn);
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
   }, [ref]);
 }
 

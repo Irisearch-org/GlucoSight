@@ -98,6 +98,48 @@ test.describe("Landing layout", () => {
   }
 });
 
+test.describe("Landing header", () => {
+  for (const width of [320, 360, 390, 430]) {
+    test(`${width}px: Cara kerja and Fitur are visible, each at least 44x44, and do not overlap the sign-in buttons`, async ({ browser }) => {
+      await withLanding(browser, width, async (page) => {
+        const masuk = await box(page.getByRole("button", { name: "Masuk", exact: true }));
+        const daftar = await box(page.getByRole("button", { name: "Daftar", exact: true }));
+        const links = [
+          await box(page.getByRole("link", { name: "Cara kerja", exact: true })),
+          await box(page.getByRole("link", { name: "Fitur", exact: true })),
+        ];
+        for (const link of links) {
+          expect(link.width).toBeGreaterThanOrEqual(44);
+          expect(link.height).toBeGreaterThanOrEqual(44);
+          expect(overlaps(link, masuk)).toBe(false);
+          expect(overlaps(link, daftar)).toBe(false);
+        }
+        expect(overlaps(links[0], links[1])).toBe(false);
+      });
+    });
+
+    test(`${width}px: tapping Fitur brings the section to the top of the screen`, async ({ browser }) => {
+      await withLanding(browser, width, async (page) => {
+        await page.getByRole("link", { name: "Fitur", exact: true }).click();
+        await expect.poll(async () => Math.abs((await box(page.locator("#fitur"))).y)).toBeLessThanOrEqual(120);
+      });
+    });
+  }
+
+  for (const width of [720, 768, 1280]) {
+    test(`${width}px: the header is sticky and shows both nav links on one row`, async ({ browser }) => {
+      await withLanding(browser, width, async (page) => {
+        await expect(page.locator(".lp-header")).toHaveCSS("position", "sticky");
+        const links = await Promise.all([
+          box(page.getByRole("link", { name: "Cara kerja", exact: true })),
+          box(page.getByRole("link", { name: "Fitur", exact: true })),
+        ]);
+        expect(Math.abs(links[0].y - links[1].y)).toBeLessThan(4);
+      });
+    });
+  }
+});
+
 test.describe("Landing scroll reveal", () => {
   for (const width of LANDING_WIDTHS) {
     test(`${width}px: every section is visible once scrolled into view`, async ({ browser }) => {
