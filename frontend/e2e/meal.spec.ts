@@ -20,31 +20,48 @@ const PRIMARY = (page: Page) => page.getByRole("button", { name: "Lihat prediksi
 const shutter = (page: Page) => page.getByRole("button", { name: "Ambil foto", exact: true });
 const manualButton = (page: Page) => page.getByRole("button", { name: "Masukkan makanan secara manual", exact: true });
 
+// The viewfinder box must have the live stream's own shape, so nothing is cropped.
+async function expectViewfinderHoldsStream(page: Page) {
+  const view = await box(page.locator(".camera-view"));
+  const stream = await page.evaluate(() => {
+    const v = document.querySelector("video");
+    return v ? v.videoWidth / v.videoHeight : 0;
+  });
+  expect(Math.abs(view.width / view.height - stream)).toBeLessThanOrEqual(0.02);
+  return view;
+}
+const SHAPES = [
+  { name: "portrait", stream: STREAM_PORTRAIT },
+  { name: "landscape", stream: { kind: "stream", width: 1280, height: 960 } as const },
+] as const;
+
 test.describe("Camera viewfinder", () => {
   for (const { width, height } of PHONES) {
-    test(`is portrait 3:4 on a ${width}x${height} phone`, async ({ browser }) => {
-      await withViewport(browser, { width, height, mobile: true }, async (page) => {
-        await stubCamera(page, STREAM_PORTRAIT);
+    for (const { name, stream } of SHAPES) {
+      test(`shows the ${name} stream's shape on a ${width}x${height} phone`, async ({ browser }) => {
+        await withViewport(browser, { width, height, mobile: true }, async (page) => {
+          await stubCamera(page, stream);
+          await stubMeal(page);
+          await reachCamera(page);
+          await waitForLivePreview(page);
+          const view = await expectViewfinderHoldsStream(page);
+          expect(view.x + view.width).toBeLessThanOrEqual(width);
+        });
+      });
+    }
+  }
+
+  for (const { name, stream } of SHAPES) {
+    test(`shows the ${name} stream's shape on a 1280x800 desktop`, async ({ browser }) => {
+      await withViewport(browser, { width: 1280, height: 800 }, async (page) => {
+        await stubCamera(page, stream);
         await stubMeal(page);
         await reachCamera(page);
         await waitForLivePreview(page);
-        const view = await box(page.locator("video"));
-        expect(view.width / view.height).toBeCloseTo(0.75, 1);
-        expect(view.x + view.width).toBeLessThanOrEqual(width);
+        await expectViewfinderHoldsStream(page);
       });
     });
   }
-
-  test("stays 4:3 on a 1280x800 desktop", async ({ browser }) => {
-    await withViewport(browser, { width: 1280, height: 800 }, async (page) => {
-      await stubCamera(page, { kind: "stream", width: 1280, height: 960 });
-      await stubMeal(page);
-      await reachCamera(page);
-      await waitForLivePreview(page);
-      const view = await box(page.locator("video"));
-      expect(view.width / view.height).toBeCloseTo(4 / 3, 1);
-    });
-  });
 
   test("the recognised photo keeps the viewfinder shape while it is being identified", async ({ browser }) => {
     await withViewport(browser, { width: 390, height: 844, mobile: true }, async (page) => {
