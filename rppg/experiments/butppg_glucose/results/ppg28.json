@@ -1,0 +1,1050 @@
+{
+ "finger_still": {
+  "n_recordings": 1246,
+  "n_subjects_total": 18,
+  "n_two_session_subjects": 17,
+  "recordings_per_session": {
+   "min": 24,
+   "median": 36.0,
+   "max": 38
+  },
+  "a_delta_features": {
+   "n_subjects": 17,
+   "delta_glucose_mgdl": {
+    "abs_median": 10.8,
+    "abs_q25_q75": [
+     5.4,
+     27.0
+    ],
+    "abs_min_max": [
+     1.8,
+     57.7
+    ],
+    "n_abs_lt_10": 8,
+    "n_abs_lt_18": 11,
+    "n_positive": 9,
+    "n_negative": 8,
+    "mean_abs": 19.39
+   },
+   "spearman_hand": [
+    {
+     "feature": "pulse_rate_bpm",
+     "rho": -0.417,
+     "p": 0.0959,
+     "p_holm": 0.5756
+    },
+    {
+     "feature": "hrv_rmssd_ms",
+     "rho": 0.277,
+     "p": 0.2815,
+     "p_holm": 0.706
+    },
+    {
+     "feature": "perfusion_index",
+     "rho": -0.112,
+     "p": 0.6698,
+     "p_holm": 0.706
+    },
+    {
+     "feature": "signal_quality",
+     "rho": -0.304,
+     "p": 0.2353,
+     "p_holm": 0.706
+    },
+    {
+     "feature": "rise_time_ms",
+     "rho": 0.399,
+     "p": 0.1131,
+     "p_holm": 0.5756
+    },
+    {
+     "feature": "pulse_width_half_ms",
+     "rho": 0.459,
+     "p": 0.0641,
+     "p_holm": 0.4486
+    },
+    {
+     "feature": "n_beats_detected",
+     "rho": -0.353,
+     "p": 0.1644,
+     "p_holm": 0.6575
+    }
+   ],
+   "delta_ridge_loso": {
+    "hand": {
+     "mae_delta_model": 17.77,
+     "mae_delta_zero_baseline": 19.39,
+     "gain": 1.62,
+     "ci95": [
+      -1.389,
+      4.634
+     ],
+     "subjects_model_better": 12,
+     "sign_correct": "12/17",
+     "sign_acc": 0.706,
+     "majority_sign_rate": 0.529,
+     "binom_p_two_sided": 0.1435,
+     "perm_p_sign_acc": 0.1134,
+     "perm_p_gain": 0.032,
+     "n_perm": 2000,
+     "pearson_pred_vs_true_delta": 0.285,
+     "pred_delta": [
+      8.7,
+      7.2,
+      -1.3,
+      4.4,
+      -0.9,
+      3.2,
+      1.9,
+      -0.4,
+      -2.2,
+      14.5,
+      9.0,
+      -15.4,
+      -8.1,
+      11.0,
+      2.3,
+      1.4,
+      -3.9
+     ],
+     "true_delta": [
+      -46.8,
+      3.6,
+      7.2,
+      50.4,
+      -1.8,
+      5.4,
+      -27.0,
+      10.8,
+      -12.6,
+      -5.4,
+      48.6,
+      -14.4,
+      -5.4,
+      18.0,
+      7.2,
+      7.2,
+      -57.7
+     ]
+    },
+    "pap": {
+     "mae_delta_model": 21.15,
+     "mae_delta_zero_baseline": 19.39,
+     "gain": -1.753,
+     "ci95": [
+      -6.336,
+      1.481
+     ],
+     "subjects_model_better": 9,
+     "sign_correct": "11/17",
+     "sign_acc": 0.647,
+     "majority_sign_rate": 0.529,
+     "binom_p_two_sided": 0.3323,
+     "perm_p_sign_acc": 0.2059,
+     "perm_p_gain": 0.8136,
+     "n_perm": 2000,
+     "pearson_pred_vs_true_delta": -0.02,
+     "pred_delta": [
+      3.4,
+      10.6,
+      -2.5,
+      3.3,
+      1.3,
+      20.2,
+      32.6,
+      2.4,
+      -0.9,
+      2.1,
+      6.0,
+      -2.8,
+      -2.3,
+      2.2,
+      -1.3,
+      3.0,
+      -3.3
+     ],
+     "true_delta": [
+      -46.8,
+      3.6,
+      7.2,
+      50.4,
+      -1.8,
+      5.4,
+      -27.0,
+      10.8,
+      -12.6,
+      -5.4,
+      48.6,
+      -14.4,
+      -5.4,
+      18.0,
+      7.2,
+      7.2,
+      -57.7
+     ]
+    }
+   }
+  },
+  "delta_ridge_as_calibration": {
+   "mae": 17.77,
+   "carry_mae": 19.39,
+   "gain": 1.62,
+   "ci95": [
+    -1.389,
+    4.634
+   ],
+   "subjects_better": 12,
+   "of_subjects": 17
+  },
+  "b_calibration": {
+   "hand+ridge": {
+    "n_pairs": 34,
+    "n_subjects": 17,
+    "mae": {
+     "calibrated": 20.92,
+     "carry": 19.39,
+     "mean": 22.6,
+     "model_dst": 22.4
+    },
+    "model_delta_vs_true_delta": {
+     "pearson": -0.287,
+     "spearman": -0.324,
+     "sign_correct": 14,
+     "of": 34,
+     "pred_delta_sd": 3.71,
+     "true_delta_sd": 26.82
+    },
+    "calibrated_vs_carry": {
+     "gain": -1.523,
+     "ci95": [
+      -3.082,
+      -0.083
+     ],
+     "subjects_calibration_better": 6,
+     "of_subjects": 17,
+     "perm_p": 0.999
+    },
+    "calibrated_vs_mean": {
+     "gain": 1.684,
+     "ci95": [
+      -7.122,
+      11.899
+     ],
+     "subjects_calibration_better": 10,
+     "of_subjects": 17,
+     "perm_p": 0.998
+    },
+    "permutations": 1000,
+    "gate_vs_carry": {
+     "criteria": {
+      "gain_positive": false,
+      "subjects_better_ge_80pct": false,
+      "ci_excludes_zero": false,
+      "perm_p_le_0.05": false
+     },
+     "passes": false
+    },
+    "rows": [
+     {
+      "subject": 132,
+      "order": "A>B",
+      "g_src": 124.3,
+      "g_dst": 77.5,
+      "model_dst": 102.1,
+      "model_src": 103.3,
+      "calibrated": 123.2,
+      "carry": 124.3,
+      "mean": 103.2
+     },
+     {
+      "subject": 132,
+      "order": "B>A",
+      "g_src": 77.5,
+      "g_dst": 124.3,
+      "model_dst": 103.3,
+      "model_src": 102.1,
+      "calibrated": 78.6,
+      "carry": 77.5,
+      "mean": 103.2
+     },
+     {
+      "subject": 133,
+      "order": "A>B",
+      "g_src": 81.1,
+      "g_dst": 84.7,
+      "model_dst": 104.4,
+      "model_src": 112.9,
+      "calibrated": 72.5,
+      "carry": 81.1,
+      "mean": 104.4
+     },
+     {
+      "subject": 133,
+      "order": "B>A",
+      "g_src": 84.7,
+      "g_dst": 81.1,
+      "model_dst": 112.9,
+      "model_src": 104.4,
+      "calibrated": 93.2,
+      "carry": 84.7,
+      "mean": 104.4
+     },
+     {
+      "subject": 134,
+      "order": "A>B",
+      "g_src": 66.7,
+      "g_dst": 73.9,
+      "model_dst": 103.8,
+      "model_src": 103.7,
+      "calibrated": 66.7,
+      "carry": 66.7,
+      "mean": 105.1
+     },
+     {
+      "subject": 134,
+      "order": "B>A",
+      "g_src": 73.9,
+      "g_dst": 66.7,
+      "model_dst": 103.7,
+      "model_src": 103.8,
+      "calibrated": 73.8,
+      "carry": 73.9,
+      "mean": 105.1
+     },
+     {
+      "subject": 135,
+      "order": "A>B",
+      "g_src": 81.1,
+      "g_dst": 131.5,
+      "model_dst": 101.0,
+      "model_src": 103.9,
+      "calibrated": 78.2,
+      "carry": 81.1,
+      "mean": 102.9
+     },
+     {
+      "subject": 135,
+      "order": "B>A",
+      "g_src": 131.5,
+      "g_dst": 81.1,
+      "model_dst": 103.9,
+      "model_src": 101.0,
+      "calibrated": 134.4,
+      "carry": 131.5,
+      "mean": 102.9
+     },
+     {
+      "subject": 136,
+      "order": "A>B",
+      "g_src": 97.3,
+      "g_dst": 95.5,
+      "model_dst": 104.5,
+      "model_src": 108.2,
+      "calibrated": 93.6,
+      "carry": 97.3,
+      "mean": 103.5
+     },
+     {
+      "subject": 136,
+      "order": "B>A",
+      "g_src": 95.5,
+      "g_dst": 97.3,
+      "model_dst": 108.2,
+      "model_src": 104.5,
+      "calibrated": 99.2,
+      "carry": 95.5,
+      "mean": 103.5
+     },
+     {
+      "subject": 137,
+      "order": "A>B",
+      "g_src": 86.5,
+      "g_dst": 91.9,
+      "model_dst": 102.7,
+      "model_src": 102.8,
+      "calibrated": 86.4,
+      "carry": 86.5,
+      "mean": 104.0
+     },
+     {
+      "subject": 137,
+      "order": "B>A",
+      "g_src": 91.9,
+      "g_dst": 86.5,
+      "model_dst": 102.8,
+      "model_src": 102.7,
+      "calibrated": 91.9,
+      "carry": 91.9,
+      "mean": 104.0
+     },
+     {
+      "subject": 139,
+      "order": "A>B",
+      "g_src": 117.1,
+      "g_dst": 90.1,
+      "model_dst": 101.6,
+      "model_src": 103.0,
+      "calibrated": 115.8,
+      "carry": 117.1,
+      "mean": 103.1
+     },
+     {
+      "subject": 139,
+      "order": "B>A",
+      "g_src": 90.1,
+      "g_dst": 117.1,
+      "model_dst": 103.0,
+      "model_src": 101.6,
+      "calibrated": 91.4,
+      "carry": 90.1,
+      "mean": 103.1
+     },
+     {
+      "subject": 140,
+      "order": "A>B",
+      "g_src": 113.5,
+      "g_dst": 124.3,
+      "model_dst": 105.0,
+      "model_src": 105.0,
+      "calibrated": 113.6,
+      "carry": 113.5,
+      "mean": 102.1
+     },
+     {
+      "subject": 140,
+      "order": "B>A",
+      "g_src": 124.3,
+      "g_dst": 113.5,
+      "model_dst": 105.0,
+      "model_src": 105.0,
+      "calibrated": 124.2,
+      "carry": 124.3,
+      "mean": 102.1
+     },
+     {
+      "subject": 141,
+      "order": "A>B",
+      "g_src": 108.1,
+      "g_dst": 95.5,
+      "model_dst": 99.5,
+      "model_src": 98.8,
+      "calibrated": 108.8,
+      "carry": 108.1,
+      "mean": 103.2
+     },
+     {
+      "subject": 141,
+      "order": "B>A",
+      "g_src": 95.5,
+      "g_dst": 108.1,
+      "model_dst": 98.8,
+      "model_src": 99.5,
+      "calibrated": 94.7,
+      "carry": 95.5,
+      "mean": 103.2
+     },
+     {
+      "subject": 142,
+      "order": "A>B",
+      "g_src": 95.5,
+      "g_dst": 90.1,
+      "model_dst": 99.9,
+      "model_src": 106.2,
+      "calibrated": 89.2,
+      "carry": 95.5,
+      "mean": 103.8
+     },
+     {
+      "subject": 142,
+      "order": "B>A",
+      "g_src": 90.1,
+      "g_dst": 95.5,
+      "model_dst": 106.2,
+      "model_src": 99.9,
+      "calibrated": 96.3,
+      "carry": 90.1,
+      "mean": 103.8
+     },
+     {
+      "subject": 143,
+      "order": "A>B",
+      "g_src": 84.7,
+      "g_dst": 133.3,
+      "model_dst": 97.7,
+      "model_src": 102.4,
+      "calibrated": 80.0,
+      "carry": 84.7,
+      "mean": 102.8
+     },
+     {
+      "subject": 143,
+      "order": "B>A",
+      "g_src": 133.3,
+      "g_dst": 84.7,
+      "model_dst": 102.4,
+      "model_src": 97.7,
+      "calibrated": 138.0,
+      "carry": 133.3,
+      "mean": 102.8
+     },
+     {
+      "subject": 144,
+      "order": "A>B",
+      "g_src": 113.5,
+      "g_dst": 99.1,
+      "model_dst": 104.8,
+      "model_src": 99.4,
+      "calibrated": 118.8,
+      "carry": 113.5,
+      "mean": 102.9
+     },
+     {
+      "subject": 144,
+      "order": "B>A",
+      "g_src": 99.1,
+      "g_dst": 113.5,
+      "model_dst": 99.4,
+      "model_src": 104.8,
+      "calibrated": 93.8,
+      "carry": 99.1,
+      "mean": 102.9
+     },
+     {
+      "subject": 145,
+      "order": "A>B",
+      "g_src": 82.9,
+      "g_dst": 77.5,
+      "model_dst": 103.7,
+      "model_src": 98.4,
+      "calibrated": 88.1,
+      "carry": 82.9,
+      "mean": 104.2
+     },
+     {
+      "subject": 145,
+      "order": "B>A",
+      "g_src": 77.5,
+      "g_dst": 82.9,
+      "model_dst": 98.4,
+      "model_src": 103.7,
+      "calibrated": 72.2,
+      "carry": 77.5,
+      "mean": 104.2
+     },
+     {
+      "subject": 146,
+      "order": "A>B",
+      "g_src": 82.9,
+      "g_dst": 100.9,
+      "model_dst": 99.7,
+      "model_src": 103.7,
+      "calibrated": 78.8,
+      "carry": 82.9,
+      "mean": 103.8
+     },
+     {
+      "subject": 146,
+      "order": "B>A",
+      "g_src": 100.9,
+      "g_dst": 82.9,
+      "model_dst": 103.7,
+      "model_src": 99.7,
+      "calibrated": 104.9,
+      "carry": 100.9,
+      "mean": 103.8
+     },
+     {
+      "subject": 147,
+      "order": "A>B",
+      "g_src": 84.7,
+      "g_dst": 91.9,
+      "model_dst": 102.6,
+      "model_src": 104.1,
+      "calibrated": 83.2,
+      "carry": 84.7,
+      "mean": 104.1
+     },
+     {
+      "subject": 147,
+      "order": "B>A",
+      "g_src": 91.9,
+      "g_dst": 84.7,
+      "model_dst": 104.1,
+      "model_src": 102.6,
+      "calibrated": 93.4,
+      "carry": 91.9,
+      "mean": 104.1
+     },
+     {
+      "subject": 148,
+      "order": "A>B",
+      "g_src": 90.1,
+      "g_dst": 97.3,
+      "model_dst": 99.3,
+      "model_src": 98.8,
+      "calibrated": 90.5,
+      "carry": 90.1,
+      "mean": 103.6
+     },
+     {
+      "subject": 148,
+      "order": "B>A",
+      "g_src": 97.3,
+      "g_dst": 90.1,
+      "model_dst": 98.8,
+      "model_src": 99.3,
+      "calibrated": 96.9,
+      "carry": 97.3,
+      "mean": 103.6
+     },
+     {
+      "subject": 149,
+      "order": "A>B",
+      "g_src": 241.4,
+      "g_dst": 183.8,
+      "model_dst": 96.8,
+      "model_src": 96.5,
+      "calibrated": 241.7,
+      "carry": 241.4,
+      "mean": 96.1
+     },
+     {
+      "subject": 149,
+      "order": "B>A",
+      "g_src": 183.8,
+      "g_dst": 241.4,
+      "model_dst": 96.5,
+      "model_src": 96.8,
+      "calibrated": 183.5,
+      "carry": 183.8,
+      "mean": 96.1
+     }
+    ]
+   },
+   "pap+ridge": {
+    "n_pairs": 34,
+    "n_subjects": 17,
+    "mae": {
+     "calibrated": 20.29,
+     "carry": 19.39,
+     "mean": 22.6,
+     "model_dst": 21.85
+    },
+    "model_delta_vs_true_delta": {
+     "pearson": -0.22,
+     "spearman": -0.206,
+     "sign_correct": 14,
+     "of": 34,
+     "pred_delta_sd": 3.03,
+     "true_delta_sd": 26.82
+    },
+    "calibrated_vs_carry": {
+     "gain": -0.894,
+     "ci95": [
+      -2.327,
+      0.426
+     ],
+     "subjects_calibration_better": 7,
+     "of_subjects": 17,
+     "perm_p": 0.9801
+    },
+    "calibrated_vs_mean": {
+     "gain": 2.313,
+     "ci95": [
+      -6.467,
+      12.28
+     ],
+     "subjects_calibration_better": 10,
+     "of_subjects": 17,
+     "perm_p": 0.9402
+    },
+    "permutations": 300,
+    "gate_vs_carry": {
+     "criteria": {
+      "gain_positive": false,
+      "subjects_better_ge_80pct": false,
+      "ci_excludes_zero": false,
+      "perm_p_le_0.05": false
+     },
+     "passes": false
+    },
+    "rows": [
+     {
+      "subject": 132,
+      "order": "A>B",
+      "g_src": 124.3,
+      "g_dst": 77.5,
+      "model_dst": 100.7,
+      "model_src": 101.6,
+      "calibrated": 123.4,
+      "carry": 124.3,
+      "mean": 103.2
+     },
+     {
+      "subject": 132,
+      "order": "B>A",
+      "g_src": 77.5,
+      "g_dst": 124.3,
+      "model_dst": 101.6,
+      "model_src": 100.7,
+      "calibrated": 78.4,
+      "carry": 77.5,
+      "mean": 103.2
+     },
+     {
+      "subject": 133,
+      "order": "A>B",
+      "g_src": 81.1,
+      "g_dst": 84.7,
+      "model_dst": 103.3,
+      "model_src": 109.9,
+      "calibrated": 74.5,
+      "carry": 81.1,
+      "mean": 104.4
+     },
+     {
+      "subject": 133,
+      "order": "B>A",
+      "g_src": 84.7,
+      "g_dst": 81.1,
+      "model_dst": 109.9,
+      "model_src": 103.3,
+      "calibrated": 91.2,
+      "carry": 84.7,
+      "mean": 104.4
+     },
+     {
+      "subject": 134,
+      "order": "A>B",
+      "g_src": 66.7,
+      "g_dst": 73.9,
+      "model_dst": 103.5,
+      "model_src": 103.8,
+      "calibrated": 66.4,
+      "carry": 66.7,
+      "mean": 105.1
+     },
+     {
+      "subject": 134,
+      "order": "B>A",
+      "g_src": 73.9,
+      "g_dst": 66.7,
+      "model_dst": 103.8,
+      "model_src": 103.5,
+      "calibrated": 74.1,
+      "carry": 73.9,
+      "mean": 105.1
+     },
+     {
+      "subject": 135,
+      "order": "A>B",
+      "g_src": 81.1,
+      "g_dst": 131.5,
+      "model_dst": 102.2,
+      "model_src": 104.3,
+      "calibrated": 79.0,
+      "carry": 81.1,
+      "mean": 102.9
+     },
+     {
+      "subject": 135,
+      "order": "B>A",
+      "g_src": 131.5,
+      "g_dst": 81.1,
+      "model_dst": 104.3,
+      "model_src": 102.2,
+      "calibrated": 133.6,
+      "carry": 131.5,
+      "mean": 102.9
+     },
+     {
+      "subject": 136,
+      "order": "A>B",
+      "g_src": 97.3,
+      "g_dst": 95.5,
+      "model_dst": 102.5,
+      "model_src": 104.5,
+      "calibrated": 95.3,
+      "carry": 97.3,
+      "mean": 103.5
+     },
+     {
+      "subject": 136,
+      "order": "B>A",
+      "g_src": 95.5,
+      "g_dst": 97.3,
+      "model_dst": 104.5,
+      "model_src": 102.5,
+      "calibrated": 97.5,
+      "carry": 95.5,
+      "mean": 103.5
+     },
+     {
+      "subject": 137,
+      "order": "A>B",
+      "g_src": 86.5,
+      "g_dst": 91.9,
+      "model_dst": 98.1,
+      "model_src": 103.5,
+      "calibrated": 81.1,
+      "carry": 86.5,
+      "mean": 104.0
+     },
+     {
+      "subject": 137,
+      "order": "B>A",
+      "g_src": 91.9,
+      "g_dst": 86.5,
+      "model_dst": 103.5,
+      "model_src": 98.1,
+      "calibrated": 97.3,
+      "carry": 91.9,
+      "mean": 104.0
+     },
+     {
+      "subject": 139,
+      "order": "A>B",
+      "g_src": 117.1,
+      "g_dst": 90.1,
+      "model_dst": 101.1,
+      "model_src": 103.4,
+      "calibrated": 114.8,
+      "carry": 117.1,
+      "mean": 103.1
+     },
+     {
+      "subject": 139,
+      "order": "B>A",
+      "g_src": 90.1,
+      "g_dst": 117.1,
+      "model_dst": 103.4,
+      "model_src": 101.1,
+      "calibrated": 92.4,
+      "carry": 90.1,
+      "mean": 103.1
+     },
+     {
+      "subject": 140,
+      "order": "A>B",
+      "g_src": 113.5,
+      "g_dst": 124.3,
+      "model_dst": 109.2,
+      "model_src": 107.2,
+      "calibrated": 115.5,
+      "carry": 113.5,
+      "mean": 102.1
+     },
+     {
+      "subject": 140,
+      "order": "B>A",
+      "g_src": 124.3,
+      "g_dst": 113.5,
+      "model_dst": 107.2,
+      "model_src": 109.2,
+      "calibrated": 122.3,
+      "carry": 124.3,
+      "mean": 102.1
+     },
+     {
+      "subject": 141,
+      "order": "A>B",
+      "g_src": 108.1,
+      "g_dst": 95.5,
+      "model_dst": 101.3,
+      "model_src": 100.5,
+      "calibrated": 108.9,
+      "carry": 108.1,
+      "mean": 103.2
+     },
+     {
+      "subject": 141,
+      "order": "B>A",
+      "g_src": 95.5,
+      "g_dst": 108.1,
+      "model_dst": 100.5,
+      "model_src": 101.3,
+      "calibrated": 94.7,
+      "carry": 95.5,
+      "mean": 103.2
+     },
+     {
+      "subject": 142,
+      "order": "A>B",
+      "g_src": 95.5,
+      "g_dst": 90.1,
+      "model_dst": 101.9,
+      "model_src": 106.6,
+      "calibrated": 90.8,
+      "carry": 95.5,
+      "mean": 103.8
+     },
+     {
+      "subject": 142,
+      "order": "B>A",
+      "g_src": 90.1,
+      "g_dst": 95.5,
+      "model_dst": 106.6,
+      "model_src": 101.9,
+      "calibrated": 94.7,
+      "carry": 90.1,
+      "mean": 103.8
+     },
+     {
+      "subject": 143,
+      "order": "A>B",
+      "g_src": 84.7,
+      "g_dst": 133.3,
+      "model_dst": 98.2,
+      "model_src": 102.0,
+      "calibrated": 80.9,
+      "carry": 84.7,
+      "mean": 102.8
+     },
+     {
+      "subject": 143,
+      "order": "B>A",
+      "g_src": 133.3,
+      "g_dst": 84.7,
+      "model_dst": 102.0,
+      "model_src": 98.2,
+      "calibrated": 137.1,
+      "carry": 133.3,
+      "mean": 102.8
+     },
+     {
+      "subject": 144,
+      "order": "A>B",
+      "g_src": 113.5,
+      "g_dst": 99.1,
+      "model_dst": 103.6,
+      "model_src": 99.8,
+      "calibrated": 117.3,
+      "carry": 113.5,
+      "mean": 102.9
+     },
+     {
+      "subject": 144,
+      "order": "B>A",
+      "g_src": 99.1,
+      "g_dst": 113.5,
+      "model_dst": 99.8,
+      "model_src": 103.6,
+      "calibrated": 95.3,
+      "carry": 99.1,
+      "mean": 102.9
+     },
+     {
+      "subject": 145,
+      "order": "A>B",
+      "g_src": 82.9,
+      "g_dst": 77.5,
+      "model_dst": 103.5,
+      "model_src": 100.1,
+      "calibrated": 86.3,
+      "carry": 82.9,
+      "mean": 104.2
+     },
+     {
+      "subject": 145,
+      "order": "B>A",
+      "g_src": 77.5,
+      "g_dst": 82.9,
+      "model_dst": 100.1,
+      "model_src": 103.5,
+      "calibrated": 74.1,
+      "carry": 77.5,
+      "mean": 104.2
+     },
+     {
+      "subject": 146,
+      "order": "A>B",
+      "g_src": 82.9,
+      "g_dst": 100.9,
+      "model_dst": 102.6,
+      "model_src": 102.5,
+      "calibrated": 82.9,
+      "carry": 82.9,
+      "mean": 103.8
+     },
+     {
+      "subject": 146,
+      "order": "B>A",
+      "g_src": 100.9,
+      "g_dst": 82.9,
+      "model_dst": 102.5,
+      "model_src": 102.6,
+      "calibrated": 100.8,
+      "carry": 100.9,
+      "mean": 103.8
+     },
+     {
+      "subject": 147,
+      "order": "A>B",
+      "g_src": 84.7,
+      "g_dst": 91.9,
+      "model_dst": 103.3,
+      "model_src": 102.1,
+      "calibrated": 85.9,
+      "carry": 84.7,
+      "mean": 104.1
+     },
+     {
+      "subject": 147,
+      "order": "B>A",
+      "g_src": 91.9,
+      "g_dst": 84.7,
+      "model_dst": 102.1,
+      "model_src": 103.3,
+      "calibrated": 90.7,
+      "carry": 91.9,
+      "mean": 104.1
+     },
+     {
+      "subject": 148,
+      "order": "A>B",
+      "g_src": 90.1,
+      "g_dst": 97.3,
+      "model_dst": 100.5,
+      "model_src": 101.9,
+      "calibrated": 88.8,
+      "carry": 90.1,
+      "mean": 103.6
+     },
+     {
+      "subject": 148,
+      "order": "B>A",
+      "g_src": 97.3,
+      "g_dst": 90.1,
+      "model_dst": 101.9,
+      "model_src": 100.5,
+      "calibrated": 98.6,
+      "carry": 97.3,
+      "mean": 103.6
+     },
+     {
+      "subject": 149,
+      "order": "A>B",
+      "g_src": 241.4,
+      "g_dst": 183.8,
+      "model_dst": 97.2,
+      "model_src": 96.6,
+      "calibrated": 242.0,
+      "carry": 241.4,
+      "mean": 96.1
+     },
+     {
+      "subject": 149,
+      "order": "B>A",
+      "g_src": 183.8,
+      "g_dst": 241.4,
+      "model_dst": 96.6,
+      "model_src": 97.2,
+      "calibrated": 183.1,
+      "carry": 183.8,
+      "mean": 96.1
+     }
+    ]
+   }
+  }
+ }
+}

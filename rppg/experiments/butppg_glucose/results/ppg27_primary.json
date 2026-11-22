@@ -1,0 +1,234 @@
+{
+ "hand_raw+ridge": {
+  "n_recordings": 1246,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 22.15,
+   "baseline_mae": 22.29,
+   "rmse": 34.69,
+   "baseline_rmse": 34.59,
+   "pearson_r": -0.181,
+   "gain": 0.147,
+   "ci95": [
+    -0.883,
+    1.142
+   ],
+   "fold_wins": [
+    16,
+    25
+   ],
+   "perm_p": 0.1239
+  },
+  "session": {
+   "mae": 21.63,
+   "baseline_mae": 22.07,
+   "rmse": 33.66,
+   "pearson_r": -0.279,
+   "gain": 0.445,
+   "ci95": [
+    -0.421,
+    1.403
+   ],
+   "perm_p": 0.0709
+  },
+  "pred_sd_mgdl": 6.5,
+  "clarke": {
+   "zone_a_pooled_pct": 62.6,
+   "zone_a_per_subject_median": 70.4,
+   "zone_a_per_subject_iqr": 61.0,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 61.7
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 79.0
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 60.6,
+   "zone_a_per_subject_median": 76.5,
+   "zone_a_per_subject_iqr": 83.3,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 58.3
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 80.2
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "permutations": 1000,
+  "gate_recording": {
+   "criteria": {
+    "gain_positive": true,
+    "fold_wins_ge_80pct": false,
+    "ci_excludes_zero": false,
+    "perm_p_le_0.05": false
+   },
+   "passes": false
+  },
+  "gate_session": {
+   "criteria": {
+    "gain_positive": true,
+    "ci_excludes_zero": false,
+    "perm_p_le_0.05": false
+   },
+   "passes": false
+  },
+  "tracking": {
+   "r_between_subject_means": -0.449,
+   "r_within_subject_session_means": -0.277
+  },
+  "runtime_s": 73.1,
+  "subset": "finger_still",
+  "features": "hand_raw",
+  "model": "ridge"
+ },
+ "pap_inv+ridge": {
+  "n_recordings": 1246,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 22.25,
+   "baseline_mae": 22.29,
+   "rmse": 34.81,
+   "baseline_rmse": 34.59,
+   "pearson_r": -0.134,
+   "gain": 0.04,
+   "ci95": [
+    -0.535,
+    0.587
+   ],
+   "fold_wins": [
+    15,
+    25
+   ],
+   "perm_p": 0.1798
+  },
+  "session": {
+   "mae": 21.32,
+   "baseline_mae": 22.07,
+   "rmse": 33.51,
+   "pearson_r": -0.249,
+   "gain": 0.756,
+   "ci95": [
+    -0.082,
+    1.741
+   ],
+   "perm_p": 0.033
+  },
+  "pred_sd_mgdl": 7.82,
+  "clarke": {
+   "zone_a_pooled_pct": 60.6,
+   "zone_a_per_subject_median": 71.8,
+   "zone_a_per_subject_iqr": 67.3,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 61.2
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 72.7
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 60.6,
+   "zone_a_per_subject_median": 76.5,
+   "zone_a_per_subject_iqr": 83.3,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 58.3
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 80.2
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "permutations": 1000,
+  "gate_recording": {
+   "criteria": {
+    "gain_positive": true,
+    "fold_wins_ge_80pct": false,
+    "ci_excludes_zero": false,
+    "perm_p_le_0.05": false
+   },
+   "passes": false
+  },
+  "gate_session": {
+   "criteria": {
+    "gain_positive": true,
+    "ci_excludes_zero": false,
+    "perm_p_le_0.05": true
+   },
+   "passes": false
+  },
+  "tracking": {
+   "r_between_subject_means": -0.365,
+   "r_within_subject_session_means": -0.231
+  },
+  "runtime_s": 1517.5,
+  "subset": "finger_still",
+  "features": "pap_inv",
+  "model": "ridge"
+ }
+}

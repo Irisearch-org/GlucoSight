@@ -1,0 +1,1634 @@
+{
+ "finger_still|hand_inv+ridge": {
+  "n_recordings": 1209,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 22.53,
+   "baseline_mae": 22.5,
+   "rmse": 34.79,
+   "baseline_rmse": 34.77,
+   "pearson_r": -0.177,
+   "gain": -0.03,
+   "ci95": [
+    -0.957,
+    0.854
+   ],
+   "fold_wins": [
+    16,
+    25
+   ]
+  },
+  "session": {
+   "mae": 21.84,
+   "baseline_mae": 22.16,
+   "rmse": 33.65,
+   "pearson_r": -0.254,
+   "gain": 0.317,
+   "ci95": [
+    -0.47,
+    1.144
+   ]
+  },
+  "pred_sd_mgdl": 6.42,
+  "clarke": {
+   "zone_a_pooled_pct": 60.6,
+   "zone_a_per_subject_median": 70.7,
+   "zone_a_per_subject_iqr": 66.8,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 813,
+     "zone_a_pct": 59.7
+    },
+    "[100, 140)": {
+     "n_recordings": 322,
+     "zone_a_pct": 77.0
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 74,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 60.4,
+   "zone_a_per_subject_median": 76.6,
+   "zone_a_per_subject_iqr": 83.4,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 813,
+     "zone_a_pct": 58.2
+    },
+    "[100, 140)": {
+     "n_recordings": 322,
+     "zone_a_pct": 79.7
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 74,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.474,
+   "r_within_subject_session_means": -0.324
+  },
+  "runtime_s": 0.4,
+  "subset": "finger_still",
+  "features": "hand_inv",
+  "model": "ridge"
+ },
+ "finger_still|hand_inv+rf": {
+  "n_recordings": 1209,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 22.58,
+   "baseline_mae": 22.5,
+   "rmse": 34.92,
+   "baseline_rmse": 34.77,
+   "pearson_r": 0.136,
+   "gain": -0.08,
+   "ci95": [
+    -2.877,
+    2.784
+   ],
+   "fold_wins": [
+    13,
+    25
+   ]
+  },
+  "session": {
+   "mae": 19.91,
+   "baseline_mae": 22.16,
+   "rmse": 31.27,
+   "pearson_r": 0.25,
+   "gain": 2.245,
+   "ci95": [
+    0.375,
+    4.283
+   ]
+  },
+  "pred_sd_mgdl": 16.63,
+  "clarke": {
+   "zone_a_pooled_pct": 60.5,
+   "zone_a_per_subject_median": 70.5,
+   "zone_a_per_subject_iqr": 45.3,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 813,
+     "zone_a_pct": 67.8
+    },
+    "[100, 140)": {
+     "n_recordings": 322,
+     "zone_a_pct": 55.8
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 74,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 60.4,
+   "zone_a_per_subject_median": 76.6,
+   "zone_a_per_subject_iqr": 83.4,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 813,
+     "zone_a_pct": 58.2
+    },
+    "[100, 140)": {
+     "n_recordings": 322,
+     "zone_a_pct": 79.7
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 74,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": 0.347,
+   "r_within_subject_session_means": -0.187
+  },
+  "runtime_s": 913.3,
+  "subset": "finger_still",
+  "features": "hand_inv",
+  "model": "rf"
+ },
+ "finger_still|hand_red+ridge": {
+  "n_recordings": 1246,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 22.15,
+   "baseline_mae": 22.29,
+   "rmse": 34.69,
+   "baseline_rmse": 34.59,
+   "pearson_r": -0.181,
+   "gain": 0.147,
+   "ci95": [
+    -0.883,
+    1.142
+   ],
+   "fold_wins": [
+    16,
+    25
+   ]
+  },
+  "session": {
+   "mae": 21.63,
+   "baseline_mae": 22.07,
+   "rmse": 33.66,
+   "pearson_r": -0.279,
+   "gain": 0.445,
+   "ci95": [
+    -0.421,
+    1.403
+   ]
+  },
+  "pred_sd_mgdl": 6.5,
+  "clarke": {
+   "zone_a_pooled_pct": 62.6,
+   "zone_a_per_subject_median": 70.4,
+   "zone_a_per_subject_iqr": 61.0,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 61.7
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 79.0
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 60.6,
+   "zone_a_per_subject_median": 76.5,
+   "zone_a_per_subject_iqr": 83.3,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 58.3
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 80.2
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.449,
+   "r_within_subject_session_means": -0.277
+  },
+  "runtime_s": 0.6,
+  "subset": "finger_still",
+  "features": "hand_red",
+  "model": "ridge"
+ },
+ "finger_still|hand_green+ridge": {
+  "n_recordings": 1195,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 22.53,
+   "baseline_mae": 22.71,
+   "rmse": 35.04,
+   "baseline_rmse": 35.13,
+   "pearson_r": -0.2,
+   "gain": 0.178,
+   "ci95": [
+    -0.719,
+    1.017
+   ],
+   "fold_wins": [
+    20,
+    25
+   ]
+  },
+  "session": {
+   "mae": 21.72,
+   "baseline_mae": 22.15,
+   "rmse": 33.64,
+   "pearson_r": -0.277,
+   "gain": 0.432,
+   "ci95": [
+    -0.395,
+    1.233
+   ]
+  },
+  "pred_sd_mgdl": 5.99,
+  "clarke": {
+   "zone_a_pooled_pct": 61.1,
+   "zone_a_per_subject_median": 72.8,
+   "zone_a_per_subject_iqr": 65.3,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 811,
+     "zone_a_pct": 59.9
+    },
+    "[100, 140)": {
+     "n_recordings": 310,
+     "zone_a_pct": 78.7
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 74,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 60.0,
+   "zone_a_per_subject_median": 76.6,
+   "zone_a_per_subject_iqr": 84.3,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 811,
+     "zone_a_pct": 57.9
+    },
+    "[100, 140)": {
+     "n_recordings": 310,
+     "zone_a_pct": 79.7
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 74,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.503,
+   "r_within_subject_session_means": -0.289
+  },
+  "runtime_s": 0.5,
+  "subset": "finger_still",
+  "features": "hand_green",
+  "model": "ridge"
+ },
+ "finger_still|pap_raw+ridge": {
+  "n_recordings": 1246,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 22.1,
+   "baseline_mae": 22.29,
+   "rmse": 34.59,
+   "baseline_rmse": 34.59,
+   "pearson_r": -0.105,
+   "gain": 0.194,
+   "ci95": [
+    -0.524,
+    0.842
+   ],
+   "fold_wins": [
+    18,
+    25
+   ]
+  },
+  "session": {
+   "mae": 21.17,
+   "baseline_mae": 22.07,
+   "rmse": 33.31,
+   "pearson_r": -0.191,
+   "gain": 0.904,
+   "ci95": [
+    -0.048,
+    2.06
+   ]
+  },
+  "pred_sd_mgdl": 7.82,
+  "clarke": {
+   "zone_a_pooled_pct": 60.8,
+   "zone_a_per_subject_median": 69.2,
+   "zone_a_per_subject_iqr": 66.3,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 60.8
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 74.5
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 60.6,
+   "zone_a_per_subject_median": 76.5,
+   "zone_a_per_subject_iqr": 83.3,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 58.3
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 80.2
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.246,
+   "r_within_subject_session_means": -0.265
+  },
+  "runtime_s": 23.4,
+  "subset": "finger_still",
+  "features": "pap_raw",
+  "model": "ridge"
+ },
+ "finger_still|pap_red_inv+ridge": {
+  "n_recordings": 1246,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 22.25,
+   "baseline_mae": 22.29,
+   "rmse": 34.81,
+   "baseline_rmse": 34.59,
+   "pearson_r": -0.134,
+   "gain": 0.04,
+   "ci95": [
+    -0.535,
+    0.587
+   ],
+   "fold_wins": [
+    15,
+    25
+   ]
+  },
+  "session": {
+   "mae": 21.32,
+   "baseline_mae": 22.07,
+   "rmse": 33.51,
+   "pearson_r": -0.249,
+   "gain": 0.756,
+   "ci95": [
+    -0.082,
+    1.741
+   ]
+  },
+  "pred_sd_mgdl": 7.82,
+  "clarke": {
+   "zone_a_pooled_pct": 60.6,
+   "zone_a_per_subject_median": 71.8,
+   "zone_a_per_subject_iqr": 67.3,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 61.2
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 72.7
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 60.6,
+   "zone_a_per_subject_median": 76.5,
+   "zone_a_per_subject_iqr": 83.3,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 58.3
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 80.2
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.365,
+   "r_within_subject_session_means": -0.231
+  },
+  "runtime_s": 20.5,
+  "subset": "finger_still",
+  "features": "pap_red_inv",
+  "model": "ridge"
+ },
+ "finger_still|hand_raw+ridge|LOSO": {
+  "n_recordings": 1246,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "LOSO",
+  "recording": {
+   "mae": 22.74,
+   "baseline_mae": 22.52,
+   "rmse": 35.06,
+   "baseline_rmse": 34.6,
+   "pearson_r": -0.243,
+   "gain": -0.228,
+   "ci95": [
+    -1.288,
+    0.852
+   ],
+   "fold_wins": [
+    10,
+    18
+   ]
+  },
+  "session": {
+   "mae": 22.11,
+   "baseline_mae": 22.29,
+   "rmse": 33.93,
+   "pearson_r": -0.478,
+   "gain": 0.179,
+   "ci95": [
+    -0.811,
+    1.208
+   ]
+  },
+  "pred_sd_mgdl": 6.57,
+  "clarke": {
+   "zone_a_pooled_pct": 61.9,
+   "zone_a_per_subject_median": 73.0,
+   "zone_a_per_subject_iqr": 63.6,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 60.8
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 78.8
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 54.7,
+   "zone_a_per_subject_median": 50.7,
+   "zone_a_per_subject_iqr": 100.0,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 50.5
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 77.9
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.538,
+   "r_within_subject_session_means": -0.287
+  },
+  "runtime_s": 0.3,
+  "subset": "finger_still",
+  "features": "hand_raw",
+  "model": "ridge"
+ },
+ "finger_all|hand_raw+ridge": {
+  "n_recordings": 1764,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 22.01,
+   "baseline_mae": 22.18,
+   "rmse": 34.46,
+   "baseline_rmse": 34.45,
+   "pearson_r": -0.212,
+   "gain": 0.173,
+   "ci95": [
+    -0.528,
+    0.973
+   ],
+   "fold_wins": [
+    15,
+    25
+   ]
+  },
+  "session": {
+   "mae": 21.68,
+   "baseline_mae": 22.04,
+   "rmse": 33.67,
+   "pearson_r": -0.296,
+   "gain": 0.354,
+   "ci95": [
+    -0.365,
+    1.17
+   ]
+  },
+  "pred_sd_mgdl": 5.78,
+  "clarke": {
+   "zone_a_pooled_pct": 61.5,
+   "zone_a_per_subject_median": 72.7,
+   "zone_a_per_subject_iqr": 67.8,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 1195,
+     "zone_a_pct": 60.4
+    },
+    "[100, 140)": {
+     "n_recordings": 463,
+     "zone_a_pct": 78.4
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 106,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 60.8,
+   "zone_a_per_subject_median": 76.3,
+   "zone_a_per_subject_iqr": 83.2,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 1195,
+     "zone_a_pct": 58.6
+    },
+    "[100, 140)": {
+     "n_recordings": 463,
+     "zone_a_pct": 80.3
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 106,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.521,
+   "r_within_subject_session_means": -0.238
+  },
+  "runtime_s": 0.4,
+  "subset": "finger_all",
+  "features": "hand_raw",
+  "model": "ridge"
+ },
+ "ear_still|hand_raw+ridge": {
+  "n_recordings": 1263,
+  "n_sessions": 35,
+  "n_subjects": 20,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 16.23,
+   "baseline_mae": 16.16,
+   "rmse": 19.23,
+   "baseline_rmse": 19.16,
+   "pearson_r": -0.477,
+   "gain": -0.071,
+   "ci95": [
+    -0.166,
+    0.002
+   ],
+   "fold_wins": [
+    6,
+    25
+   ]
+  },
+  "session": {
+   "mae": 16.02,
+   "baseline_mae": 15.96,
+   "rmse": 19.16,
+   "pearson_r": -0.477,
+   "gain": -0.065,
+   "ci95": [
+    -0.176,
+    0.012
+   ]
+  },
+  "pred_sd_mgdl": 2.18,
+  "clarke": {
+   "zone_a_pooled_pct": 65.2,
+   "zone_a_per_subject_median": 76.7,
+   "zone_a_per_subject_iqr": 50.8,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 625,
+     "zone_a_pct": 56.5
+    },
+    "[100, 140)": {
+     "n_recordings": 605,
+     "zone_a_pct": 77.7
+    },
+    "[140, 180)": {
+     "n_recordings": 33,
+     "zone_a_pct": 0.0
+    },
+    "[180, 250)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 65.2,
+   "zone_a_per_subject_median": 78.9,
+   "zone_a_per_subject_iqr": 50.8,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 625,
+     "zone_a_pct": 56.7
+    },
+    "[100, 140)": {
+     "n_recordings": 605,
+     "zone_a_pct": 77.7
+    },
+    "[140, 180)": {
+     "n_recordings": 33,
+     "zone_a_pct": 0.0
+    },
+    "[180, 250)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.88,
+   "r_within_subject_session_means": -0.084
+  },
+  "runtime_s": 0.4,
+  "subset": "ear_still",
+  "features": "hand_raw",
+  "model": "ridge"
+ },
+ "all|hand_raw+ridge": {
+  "n_recordings": 3532,
+  "n_sessions": 70,
+  "n_subjects": 38,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 18.98,
+   "baseline_mae": 18.97,
+   "rmse": 27.43,
+   "baseline_rmse": 27.43,
+   "pearson_r": -0.226,
+   "gain": -0.003,
+   "ci95": [
+    -0.31,
+    0.333
+   ],
+   "fold_wins": [
+    13,
+    25
+   ]
+  },
+  "session": {
+   "mae": 18.72,
+   "baseline_mae": 18.81,
+   "rmse": 27.01,
+   "pearson_r": -0.297,
+   "gain": 0.083,
+   "ci95": [
+    -0.213,
+    0.394
+   ]
+  },
+  "pred_sd_mgdl": 3.4,
+  "clarke": {
+   "zone_a_pooled_pct": 64.1,
+   "zone_a_per_subject_median": 74.5,
+   "zone_a_per_subject_iqr": 54.0,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 2065,
+     "zone_a_pct": 58.8
+    },
+    "[100, 140)": {
+     "n_recordings": 1316,
+     "zone_a_pct": 79.6
+    },
+    "[140, 180)": {
+     "n_recordings": 45,
+     "zone_a_pct": 0.0
+    },
+    "[180, 250)": {
+     "n_recordings": 106,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 64.5,
+   "zone_a_per_subject_median": 83.1,
+   "zone_a_per_subject_iqr": 58.4,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 2065,
+     "zone_a_pct": 57.7
+    },
+    "[100, 140)": {
+     "n_recordings": 1316,
+     "zone_a_pct": 82.5
+    },
+    "[140, 180)": {
+     "n_recordings": 45,
+     "zone_a_pct": 0.0
+    },
+    "[180, 250)": {
+     "n_recordings": 106,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.536,
+   "r_within_subject_session_means": -0.191
+  },
+  "runtime_s": 0.9,
+  "subset": "all",
+  "features": "hand_raw",
+  "model": "ridge"
+ },
+ "finger_still|pap_inv+ridge|LOSO": {
+  "n_recordings": 1246,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "LOSO",
+  "recording": {
+   "mae": 22.43,
+   "baseline_mae": 22.52,
+   "rmse": 34.87,
+   "baseline_rmse": 34.6,
+   "pearson_r": -0.181,
+   "gain": 0.089,
+   "ci95": [
+    -0.558,
+    0.737
+   ],
+   "fold_wins": [
+    10,
+    18
+   ]
+  },
+  "session": {
+   "mae": 21.54,
+   "baseline_mae": 22.29,
+   "rmse": 33.6,
+   "pearson_r": -0.44,
+   "gain": 0.745,
+   "ci95": [
+    -0.127,
+    1.72
+   ]
+  },
+  "pred_sd_mgdl": 7.12,
+  "clarke": {
+   "zone_a_pooled_pct": 58.7,
+   "zone_a_per_subject_median": 72.7,
+   "zone_a_per_subject_iqr": 71.1,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 58.7
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 71.8
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 54.7,
+   "zone_a_per_subject_median": 50.7,
+   "zone_a_per_subject_iqr": 100.0,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 50.5
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 77.9
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.505,
+   "r_within_subject_session_means": -0.22
+  },
+  "runtime_s": 16.9,
+  "subset": "finger_still",
+  "features": "pap_inv",
+  "model": "ridge"
+ },
+ "finger_all|pap_inv+ridge": {
+  "n_recordings": 1764,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 21.99,
+   "baseline_mae": 22.18,
+   "rmse": 34.58,
+   "baseline_rmse": 34.45,
+   "pearson_r": -0.148,
+   "gain": 0.191,
+   "ci95": [
+    -0.33,
+    0.707
+   ],
+   "fold_wins": [
+    15,
+    25
+   ]
+  },
+  "session": {
+   "mae": 21.34,
+   "baseline_mae": 22.04,
+   "rmse": 33.5,
+   "pearson_r": -0.282,
+   "gain": 0.695,
+   "ci95": [
+    0.051,
+    1.387
+   ]
+  },
+  "pred_sd_mgdl": 7.23,
+  "clarke": {
+   "zone_a_pooled_pct": 61.2,
+   "zone_a_per_subject_median": 72.3,
+   "zone_a_per_subject_iqr": 68.6,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 1195,
+     "zone_a_pct": 60.9
+    },
+    "[100, 140)": {
+     "n_recordings": 463,
+     "zone_a_pct": 75.9
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 106,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 60.8,
+   "zone_a_per_subject_median": 76.3,
+   "zone_a_per_subject_iqr": 83.2,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 1195,
+     "zone_a_pct": 58.6
+    },
+    "[100, 140)": {
+     "n_recordings": 463,
+     "zone_a_pct": 80.3
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 106,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.481,
+   "r_within_subject_session_means": -0.197
+  },
+  "runtime_s": 24.7,
+  "subset": "finger_all",
+  "features": "pap_inv",
+  "model": "ridge"
+ },
+ "ear_still|pap_inv+ridge": {
+  "n_recordings": 1263,
+  "n_sessions": 35,
+  "n_subjects": 20,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 16.91,
+   "baseline_mae": 16.16,
+   "rmse": 20.09,
+   "baseline_rmse": 19.16,
+   "pearson_r": -0.404,
+   "gain": -0.75,
+   "ci95": [
+    -1.738,
+    -0.118
+   ],
+   "fold_wins": [
+    3,
+    25
+   ]
+  },
+  "session": {
+   "mae": 16.72,
+   "baseline_mae": 15.96,
+   "rmse": 20.02,
+   "pearson_r": -0.517,
+   "gain": -0.761,
+   "ci95": [
+    -1.981,
+    -0.01
+   ]
+  },
+  "pred_sd_mgdl": 4.11,
+  "clarke": {
+   "zone_a_pooled_pct": 62.7,
+   "zone_a_per_subject_median": 65.2,
+   "zone_a_per_subject_iqr": 59.0,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 625,
+     "zone_a_pct": 52.8
+    },
+    "[100, 140)": {
+     "n_recordings": 605,
+     "zone_a_pct": 76.4
+    },
+    "[140, 180)": {
+     "n_recordings": 33,
+     "zone_a_pct": 0.0
+    },
+    "[180, 250)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 65.2,
+   "zone_a_per_subject_median": 78.9,
+   "zone_a_per_subject_iqr": 50.8,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 625,
+     "zone_a_pct": 56.7
+    },
+    "[100, 140)": {
+     "n_recordings": 605,
+     "zone_a_pct": 77.7
+    },
+    "[140, 180)": {
+     "n_recordings": 33,
+     "zone_a_pct": 0.0
+    },
+    "[180, 250)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.605,
+   "r_within_subject_session_means": -0.173
+  },
+  "runtime_s": 26.9,
+  "subset": "ear_still",
+  "features": "pap_inv",
+  "model": "ridge"
+ },
+ "all|pap_inv+ridge": {
+  "n_recordings": 3532,
+  "n_sessions": 70,
+  "n_subjects": 38,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 19.18,
+   "baseline_mae": 18.97,
+   "rmse": 27.71,
+   "baseline_rmse": 27.43,
+   "pearson_r": -0.168,
+   "gain": -0.21,
+   "ci95": [
+    -0.569,
+    0.141
+   ],
+   "fold_wins": [
+    8,
+    25
+   ]
+  },
+  "session": {
+   "mae": 18.76,
+   "baseline_mae": 18.81,
+   "rmse": 27.09,
+   "pearson_r": -0.309,
+   "gain": 0.042,
+   "ci95": [
+    -0.318,
+    0.407
+   ]
+  },
+  "pred_sd_mgdl": 4.96,
+  "clarke": {
+   "zone_a_pooled_pct": 63.2,
+   "zone_a_per_subject_median": 75.0,
+   "zone_a_per_subject_iqr": 54.9,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 2065,
+     "zone_a_pct": 57.9
+    },
+    "[100, 140)": {
+     "n_recordings": 1316,
+     "zone_a_pct": 78.9
+    },
+    "[140, 180)": {
+     "n_recordings": 45,
+     "zone_a_pct": 0.0
+    },
+    "[180, 250)": {
+     "n_recordings": 106,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 64.5,
+   "zone_a_per_subject_median": 83.1,
+   "zone_a_per_subject_iqr": 58.4,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 2065,
+     "zone_a_pct": 57.7
+    },
+    "[100, 140)": {
+     "n_recordings": 1316,
+     "zone_a_pct": 82.5
+    },
+    "[140, 180)": {
+     "n_recordings": 45,
+     "zone_a_pct": 0.0
+    },
+    "[180, 250)": {
+     "n_recordings": 106,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.489,
+   "r_within_subject_session_means": -0.316
+  },
+  "runtime_s": 33.4,
+  "subset": "all",
+  "features": "pap_inv",
+  "model": "ridge"
+ },
+ "finger_still|hand_raw+rf|LOSO": {
+  "n_recordings": 1246,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "LOSO",
+  "recording": {
+   "mae": 22.31,
+   "baseline_mae": 22.52,
+   "rmse": 34.88,
+   "baseline_rmse": 34.6,
+   "pearson_r": 0.096,
+   "gain": 0.204,
+   "ci95": [
+    -1.972,
+    2.65
+   ],
+   "fold_wins": [
+    12,
+    18
+   ]
+  },
+  "session": {
+   "mae": 20.09,
+   "baseline_mae": 22.29,
+   "rmse": 31.77,
+   "pearson_r": 0.183,
+   "gain": 2.196,
+   "ci95": [
+    -0.038,
+    4.458
+   ]
+  },
+  "pred_sd_mgdl": 15.19,
+  "clarke": {
+   "zone_a_pooled_pct": 61.3,
+   "zone_a_per_subject_median": 64.9,
+   "zone_a_per_subject_iqr": 46.6,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 67.3
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 60.0
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 54.7,
+   "zone_a_per_subject_median": 50.7,
+   "zone_a_per_subject_iqr": 100.0,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 841,
+     "zone_a_pct": 50.5
+    },
+    "[100, 140)": {
+     "n_recordings": 330,
+     "zone_a_pct": 77.9
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 75,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": 0.251,
+   "r_within_subject_session_means": -0.137
+  },
+  "runtime_s": 546.5,
+  "subset": "finger_still",
+  "features": "hand_raw",
+  "model": "rf"
+ },
+ "finger_all|hand_raw+rf": {
+  "n_recordings": 1764,
+  "n_sessions": 35,
+  "n_subjects": 18,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 22.2,
+   "baseline_mae": 22.18,
+   "rmse": 35.03,
+   "baseline_rmse": 34.45,
+   "pearson_r": 0.084,
+   "gain": -0.021,
+   "ci95": [
+    -2.155,
+    2.06
+   ],
+   "fold_wins": [
+    14,
+    25
+   ]
+  },
+  "session": {
+   "mae": 20.06,
+   "baseline_mae": 22.04,
+   "rmse": 32.0,
+   "pearson_r": 0.159,
+   "gain": 1.977,
+   "ci95": [
+    0.6,
+    3.382
+   ]
+  },
+  "pred_sd_mgdl": 15.46,
+  "clarke": {
+   "zone_a_pooled_pct": 61.3,
+   "zone_a_per_subject_median": 70.3,
+   "zone_a_per_subject_iqr": 48.9,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 1195,
+     "zone_a_pct": 67.1
+    },
+    "[100, 140)": {
+     "n_recordings": 463,
+     "zone_a_pct": 60.4
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 106,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 60.8,
+   "zone_a_per_subject_median": 76.3,
+   "zone_a_per_subject_iqr": 83.2,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 1195,
+     "zone_a_pct": 58.6
+    },
+    "[100, 140)": {
+     "n_recordings": 463,
+     "zone_a_pct": 80.3
+    },
+    "[140, 180)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[180, 250)": {
+     "n_recordings": 106,
+     "zone_a_pct": 0.0
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": 0.223,
+   "r_within_subject_session_means": -0.158
+  },
+  "runtime_s": 1350.9,
+  "subset": "finger_all",
+  "features": "hand_raw",
+  "model": "rf"
+ },
+ "ear_still|hand_raw+rf": {
+  "n_recordings": 1263,
+  "n_sessions": 35,
+  "n_subjects": 20,
+  "cv": "5-fold x 5 repeats, subject-grouped",
+  "recording": {
+   "mae": 17.79,
+   "baseline_mae": 16.16,
+   "rmse": 21.28,
+   "baseline_rmse": 19.16,
+   "pearson_r": -0.32,
+   "gain": -1.637,
+   "ci95": [
+    -2.909,
+    -0.715
+   ],
+   "fold_wins": [
+    1,
+    25
+   ]
+  },
+  "session": {
+   "mae": 17.55,
+   "baseline_mae": 15.96,
+   "rmse": 20.96,
+   "pearson_r": -0.531,
+   "gain": -1.591,
+   "ci95": [
+    -3.241,
+    -0.451
+   ]
+  },
+  "pred_sd_mgdl": 6.88,
+  "clarke": {
+   "zone_a_pooled_pct": 61.1,
+   "zone_a_per_subject_median": 61.6,
+   "zone_a_per_subject_iqr": 52.9,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 625,
+     "zone_a_pct": 50.8
+    },
+    "[100, 140)": {
+     "n_recordings": 605,
+     "zone_a_pct": 75.0
+    },
+    "[140, 180)": {
+     "n_recordings": 33,
+     "zone_a_pct": 0.0
+    },
+    "[180, 250)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "clarke_baseline": {
+   "zone_a_pooled_pct": 65.2,
+   "zone_a_per_subject_median": 78.9,
+   "zone_a_per_subject_iqr": 50.8,
+   "zone_a_by_range": {
+    "[0, 100)": {
+     "n_recordings": 625,
+     "zone_a_pct": 56.7
+    },
+    "[100, 140)": {
+     "n_recordings": 605,
+     "zone_a_pct": 77.7
+    },
+    "[140, 180)": {
+     "n_recordings": 33,
+     "zone_a_pct": 0.0
+    },
+    "[180, 250)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    },
+    "[250, 10000)": {
+     "n_recordings": 0,
+     "zone_a_pct": null
+    }
+   }
+  },
+  "tracking": {
+   "r_between_subject_means": -0.58,
+   "r_within_subject_session_means": -0.462
+  },
+  "runtime_s": 1025.8,
+  "subset": "ear_still",
+  "features": "hand_raw",
+  "model": "rf"
+ }
+}
