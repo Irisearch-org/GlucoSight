@@ -69,6 +69,37 @@ test.describe("Pinned action row on the prediction flow", () => {
       expect(await isHitAtCentre(actionLanjut(page))).toBe(true);
     });
   });
+
+  test("keyboard (Chromium): with pinch-zoom shrinking the visual viewport to 260px, the focused field and the action stay inside it", async ({ browser, browserName }) => {
+    test.skip(browserName !== "chromium", "pinch-zoom is driven through a Chromium CDP session");
+    await withViewport(browser, { width: 360, height: 560, mobile: true }, async (page) => {
+      await openSource(page);
+      await enterMeter(page);
+      const field = page.getByLabel("Gula darah");
+      await field.focus();
+      // The layout viewport keeps its 560px height, as it does with the on-screen keyboard; only the visual viewport shrinks.
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send("Emulation.setPageScaleFactor", { pageScaleFactor: 560 / 260 });
+      await expect.poll(() => page.evaluate(() => window.visualViewport!.height)).toBeLessThan(300);
+
+      const visible = await page.evaluate(() => ({
+        top: window.visualViewport!.offsetTop,
+        bottom: window.visualViewport!.offsetTop + window.visualViewport!.height,
+      }));
+      const action = await actionLanjut(page).evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return { top: r.top, bottom: r.bottom };
+      });
+      const focused = await field.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return { top: r.top, bottom: r.bottom };
+      });
+      expect(focused.top).toBeGreaterThanOrEqual(visible.top);
+      expect(focused.bottom).toBeLessThanOrEqual(visible.bottom);
+      expect(action.top).toBeGreaterThanOrEqual(visible.top);
+      expect(action.bottom).toBeLessThanOrEqual(visible.bottom + 2);
+    });
+  });
 });
 
 test.describe("App bar and progress at 320px", () => {
@@ -114,9 +145,7 @@ test.describe("Step transitions", () => {
       const info = await page.evaluate(async () => {
         const btn = [...document.querySelectorAll("button")].find((b) => b.textContent?.trim() === "Lanjut");
         btn!.click();
-        const { promise, resolve } = Promise.withResolvers<void>();
-        setTimeout(resolve, 0);
-        await promise;
+        await new Promise((resolve) => setTimeout(resolve, 0));
         const el = document.querySelector(".wizard-page") as HTMLElement;
         return el.getAnimations().map((a) => ({
           playState: a.playState,
@@ -138,9 +167,7 @@ test.describe("Step transitions", () => {
       const state = await page.evaluate(async () => {
         const byText = (text: string) => [...document.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent?.trim()) === text) as HTMLButtonElement;
         byText("Kembali").click();
-        const { promise, resolve } = Promise.withResolvers<void>();
-        setTimeout(resolve, 0);
-        await promise;
+        await new Promise((resolve) => setTimeout(resolve, 0));
         byText("Lanjut").click();
         const pages = document.querySelectorAll(".wizard-page");
         return { pages: pages.length, anims: (pages[0] as HTMLElement).getAnimations().map((a) => a.playState) };

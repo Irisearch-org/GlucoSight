@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { box, openHome, primaryTab } from "./fixtures";
+import { overflowReport } from "./geometry";
 
 export const SHORT_PHONES = [
   { width: 320, height: 480 },
@@ -48,9 +49,6 @@ export function isHitAtCentre(target: Locator) {
 }
 
 export async function noOverflow(page: Page) {
-  return page.evaluate(() => {
-    const w = window.innerWidth;
-    const wide = [...document.querySelectorAll("body *")].filter((el) => el.getBoundingClientRect().right > w + 0.5);
-    return document.documentElement.scrollWidth <= w && wide.length === 0;
-  });
+  const report = await overflowReport(page);
+  return report.scrollWidth <= report.viewportWidth && report.spills.length === 0;
 }

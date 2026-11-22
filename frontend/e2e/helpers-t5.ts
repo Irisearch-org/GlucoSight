@@ -1,6 +1,8 @@
 import { expect, type Page } from "@playwright/test";
 import type { DishRow, PhotoItem } from "../src/api";
 import { actionLanjut, openSummary } from "./helpers-t3";
+import { stubCamera as stubFakeCamera } from "./camera";
+import { deferred } from "./util";
 
 /** 60+ characters: the longest dish name the layout has to hold. */
 export const LONG_NAME = "Sup iga sapi bumbu kuning dengan kentang, wortel dan daun bawang segar";
@@ -42,31 +44,10 @@ export type CameraStub =
 
 /** Call before navigation: replaces getUserMedia with a canvas-backed stream (or a failure). */
 export async function stubCamera(page: Page, mode: CameraStub) {
-  await page.addInitScript((m: CameraStub) => {
-    if (m.kind === "missing") {
-      Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: undefined });
-      return;
-    }
-    const getUserMedia = async () => {
-      if (m.kind === "denied") throw new DOMException("Permission denied", "NotAllowedError");
-      const canvas = document.createElement("canvas");
-      canvas.width = m.width;
-      canvas.height = m.height;
-      canvas.style.cssText = "position:fixed;left:-99999px;top:0";
-      document.body.appendChild(canvas);
-      const ctx = canvas.getContext("2d")!;
-      const paint = () => {
-        ctx.fillStyle = "#7a9";
-        ctx.fillRect(0, 0, m.width, m.height);
-        ctx.fillStyle = "#234";
-        ctx.fillRect(m.width * 0.2, m.height * 0.3, m.width * 0.6, m.height * 0.4);
-      };
-      paint();
-      window.setInterval(paint, 200);
-      return canvas.captureStream(5);
-    };
-    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia } });
-  }, mode);
+  const frame = { width: 640, height: 480 };
+  if (mode.kind === "stream") return stubFakeCamera(page, { width: mode.width, height: mode.height, pulse: false });
+  if (mode.kind === "denied") return stubFakeCamera(page, { ...frame, fail: "denied" });
+  return stubFakeCamera(page, { ...frame, unsupported: true });
 }
 
 export interface MealStub {
@@ -78,7 +59,7 @@ export interface MealStub {
 
 export async function stubMeal(page: Page, items: PhotoItem[] = PHOTO_ITEMS, opts: { hold?: boolean } = {}): Promise<MealStub> {
   const photos: string[] = [];
-  const { promise: gate, resolve: open } = Promise.withResolvers<void>();
+  const { promise: gate, resolve: open } = deferred();
   if (!opts.hold) open();
   await page.route("**/meal/photo", async (route) => {
     const body: unknown = route.request().postDataJSON();
@@ -116,14 +97,16 @@ export async function makeJpeg(page: Page, width: number, height: number): Promi
 }
 
 export async function imageSize(page: Page, dataUrl: string) {
-  return page.evaluate((src) => {
-    const { promise, resolve, reject } = Promise.withResolvers<{ w: number; h: number }>();
-    const img = new Image();
-    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
-    img.onerror = () => reject(new Error("image did not decode"));
-    img.src = src;
-    return promise;
-  }, dataUrl);
+  return page.evaluate(
+    (src) =>
+      new Promise<{ w: number; h: number }>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+        img.onerror = () => reject(new Error("image did not decode"));
+        img.src = src;
+      }),
+    dataUrl,
+  );
 }
 
 /** Opens the Galeri picker and hands it a file (the picker itself is native, so it is intercepted). */

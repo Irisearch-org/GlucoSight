@@ -1,6 +1,8 @@
 import { expect, type Page } from "@playwright/test";
 import { historyRecords, mockApi, loadSession, primaryTab, tapMasuk } from "./fixtures";
 import { actionLanjut } from "./helpers-t3";
+import { stubCamera } from "./camera";
+import { deferred } from "./util";
 
 export const FOOD = "Nasi putih";
 export const LONG_FOOD = "Sop-buntut-kuah-merah-khas-Tebet-porsi-besar-dengan-kentang-wortel-dan-bawang-goreng";
@@ -58,7 +60,7 @@ async function mockFoodAndPredict(page: Page, opts: ResultOptions) {
   const food = opts.food ?? FOOD;
   await page.route("**/dishes**", (r) => r.fulfill({ json: { items: [dishRow(food)] } }));
   await page.route("**/predict", async (r) => {
-    if (opts.predict === "hang") { const { promise, resolve } = Promise.withResolvers<void>(); setTimeout(resolve, 1500); await promise; }
+    if (opts.predict === "hang") { const gate = deferred(); setTimeout(gate.resolve, 1500); await gate.promise; }
     if (opts.predict === "fail") return r.fulfill({ status: 500, json: { detail: "Model sedang tidak tersedia." } });
     return r.fulfill({ json: predictResponse(opts) });
   });
@@ -90,42 +92,9 @@ export async function openFreshResult(page: Page, opts: ResultOptions = {}) {
   await expect(page.getByRole("heading", { name: RESULT_HEADING })).toBeVisible();
 }
 
-/** Fake rear camera: a lit "finger" frame with a 1.2 Hz pulse; the torch switches the frame between lit and dark. */
-export const CAMERA_STUB = () => {
-  const makeStream = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 160;
-    canvas.height = 120;
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-    const stream = canvas.captureStream(30);
-    const track = stream.getVideoTracks()[0];
-    let lit = false;
-    const start = performance.now();
-    const draw = () => {
-      const s = Math.sin(2 * Math.PI * 1.2 * ((performance.now() - start) / 1000));
-      ctx.fillStyle = lit ? `rgb(230, ${Math.round(40 + 6 * s)}, ${Math.round(40 + 3 * s)})` : "rgb(0, 0, 0)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    };
-    draw();
-    window.setInterval(draw, 33);
-    Object.assign(track, {
-      getCapabilities: () => ({ torch: true }),
-      applyConstraints: async (c?: { advanced?: Array<{ torch?: boolean }> }) => {
-        const torch = c?.advanced?.[0]?.torch;
-        if (typeof torch === "boolean") lit = torch;
-      },
-    });
-    return stream;
-  };
-  Object.defineProperty(navigator, "mediaDevices", {
-    configurable: true,
-    value: { getUserMedia: async () => makeStream() },
-  });
-};
-
 /** Finger scan (PPG) from the Source screen with the camera stub. Stops after pressing "Lihat prediksi". */
 export async function startPpgPrediction(page: Page, opts: ResultOptions = {}) {
-  await page.addInitScript(CAMERA_STUB);
+  await stubCamera(page, { width: 160, height: 120, torch: "works", pulse: true });
   await signedInHome(page, []);
   await mockFoodAndPredict(page, { ...opts, source: "ppg" });
   await page.route("**/glucose/ppg", (r) => r.fulfill({ json: g0Reading("ppg") }));

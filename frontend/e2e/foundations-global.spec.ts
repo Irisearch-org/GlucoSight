@@ -182,7 +182,8 @@ test.describe("Pressed state", () => {
       if (!box) throw new Error("no button box");
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
       await page.mouse.down();
-      await page.waitForTimeout(250);
+      // Checked at once, not after a wait: a press effect would already be running, and a disabled button starts none.
+      expect(await next.evaluate((el) => el.getAnimations().length)).toBe(0);
       expect(await scaleOf(next)).toBe(1);
       await page.mouse.up();
     });
@@ -300,7 +301,8 @@ test.describe("Reduced motion", () => {
       await withContext(browser, { ...TOUCH, reducedMotion: true }, async (page) => {
         await enterHome(page);
         await go(page);
-        await page.waitForTimeout(50);
+        // Two frames: any transition or animation the navigation started is created before the scan.
+        await page.evaluate(() => new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))));
         expect(await motionOffenders(page)).toEqual([]);
       });
     });

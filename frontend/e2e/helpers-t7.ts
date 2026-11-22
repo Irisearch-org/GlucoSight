@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { loadSession, tapMasuk } from "./fixtures";
+import { overflowReport } from "./geometry";
 
 // Worst-case account data for the Home, History, Profile and Auth screens (issue #39).
 export const LONG_NAME = "Abcdefghij".repeat(6); // 60 characters, no spaces
@@ -73,23 +74,8 @@ export async function openAuth(page: Page, mode: "login" | "register") {
 // Fails on any visible element that spills past the right edge of the viewport, unless an ancestor
 // clips it (scrolling or hidden) and that ancestor is itself inside the viewport.
 export async function expectNoHorizontalOverflow(page: Page, label: string) {
-  const result = await page.evaluate(() => {
-    const vw = window.innerWidth;
-    const clipped = (el: Element) => {
-      for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
-        if (getComputedStyle(p).overflowX !== "visible" && p.getBoundingClientRect().right <= vw + 0.5) return true;
-      }
-      return false;
-    };
-    const spills: string[] = [];
-    for (const el of Array.from(document.querySelectorAll("body *"))) {
-      const r = el.getBoundingClientRect();
-      if (r.width === 0 || r.height === 0) continue;
-      if (r.right > vw + 0.5 && !clipped(el)) spills.push(`${el.tagName.toLowerCase()}.${String(el.className)} right=${Math.round(r.right)}`);
-    }
-    return { scrollWidth: document.documentElement.scrollWidth, innerWidth: vw, spills: spills.slice(0, 8) };
-  });
-  expect(result.scrollWidth, `${label}: document scrollWidth`).toBeLessThanOrEqual(result.innerWidth);
+  const result = await overflowReport(page);
+  expect(result.scrollWidth, `${label}: document scrollWidth`).toBeLessThanOrEqual(result.viewportWidth);
   expect(result.spills, `${label}: elements past the right edge`).toEqual([]);
 }
 

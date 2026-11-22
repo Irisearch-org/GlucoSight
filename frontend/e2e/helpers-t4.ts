@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { openSource } from "./helpers-t3";
+import { stubCamera as stubFakeCamera } from "./camera";
 
 export type CameraMode = "torch" | "no-torch" | "denied" | "unsupported";
 
@@ -7,49 +8,18 @@ export const FALLBACK = "Masukkan hasil glukometer/CGM";
 export const SOURCE_HEADING = "Dari mana data gula darah Anda?";
 
 /**
- * Fake rear camera. "torch": the torch lights the canvas bright red with a 72 bpm
- * pulse (chrominance-modulated so POS can see it); "no-torch": the lens ignores the
- * torch and stays dark; "denied": getUserMedia rejects; "unsupported": no mediaDevices.
+ * Fake rear camera for the finger scan. "torch": the torch lights the frame red with a 72 bpm-equivalent
+ * pulse; "no-torch": the lens ignores the torch; "denied": getUserMedia rejects; "unsupported": no mediaDevices.
  */
 export async function stubCamera(page: Page, mode: CameraMode) {
-  await page.addInitScript((m: CameraMode) => {
-    if (m === "unsupported") {
-      Object.defineProperty(navigator, "mediaDevices", { configurable: true, get: () => undefined });
-      return;
-    }
-    const canvas = document.createElement("canvas");
-    canvas.width = 64;
-    canvas.height = 48;
-    const ctx = canvas.getContext("2d")!;
-    const stream = canvas.captureStream(30);
-    const track = stream.getVideoTracks()[0];
-    // WebKit hands out fresh track wrappers that lose our own properties unless one is kept alive.
-    const tracks = [track];
-    Object.assign(stream, { getVideoTracks: () => tracks });
-    let lit = false;
-    const started = performance.now();
-    window.setInterval(() => {
-      const s = Math.sin((2 * Math.PI * 1.2 * (performance.now() - started)) / 1000);
-      const rgb = lit && m === "torch" ? [200 + 12 * s, 90 - 6 * s, 70 - 4 * s] : [25, 20, 20];
-      ctx.fillStyle = `rgb(${rgb.map((v) => Math.round(v)).join(",")})`;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }, 33);
-    Object.assign(track, {
-      getCapabilities: () => (m === "torch" ? { torch: true } : {}),
-      applyConstraints: async (c: { advanced?: { torch?: boolean }[] }) => {
-        lit = !!c.advanced?.[0]?.torch;
-      },
-    });
-    Object.defineProperty(navigator, "mediaDevices", {
-      configurable: true,
-      value: {
-        getUserMedia: async () => {
-          if (m === "denied") throw new DOMException("Permission denied", "NotAllowedError");
-          return stream;
-        },
-      },
-    });
-  }, mode);
+  const frame = { width: 64, height: 48, pulse: true } as const;
+  const options = {
+    torch: { ...frame, torch: "works" },
+    "no-torch": { ...frame, torch: "absent" },
+    denied: { ...frame, fail: "denied" },
+    unsupported: { width: 64, height: 48, unsupported: true },
+  } as const;
+  await stubFakeCamera(page, options[mode]);
 }
 
 export const PPG_READING = {

@@ -34,14 +34,26 @@ export async function withLanding(
   }
 }
 
-// Scrolls top to bottom in steps, so every reveal observer sees its section pass the viewport.
+// Scrolls top to bottom in steps. After each step it waits until every reveal the viewport touches has finished
+// fading in (the Landing reveal observer fires on intersection; its 2.5 s safety timer covers anything it misses).
 export async function scrollThrough(page: Page, step = 240) {
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
-  for (let y = 0; y <= height; y += step) {
-    await page.evaluate((top) => window.scrollTo(0, top), y);
-    await page.waitForTimeout(60);
+  const tops = [...Array.from({ length: Math.floor(height / step) + 1 }, (_, i) => i * step), height];
+  for (const top of tops) {
+    await page.evaluate((y) => window.scrollTo(0, y), top);
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          [...document.querySelectorAll<HTMLElement>(".lp-reveal")]
+            .filter((el) => {
+              const r = el.getBoundingClientRect();
+              return r.bottom > 0 && r.top < window.innerHeight;
+            })
+            .every((el) => getComputedStyle(el).opacity === "1"),
+        ),
+      )
+      .toBe(true);
   }
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
 }
 
 export const noHorizontalOverflow = (page: Page) =>
