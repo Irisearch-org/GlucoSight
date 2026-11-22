@@ -1,6 +1,6 @@
 // Step 2: the meal. Photo (camera → per-item confirm) or manual item-by-item entry.
 // Every food is a row of the dish table (row_id) with grams or a portion of its standard serving.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { identifyMealPhoto, searchDishes, type DishRow } from "../api";
 import {
   PORTION_LABELS, PORTION_SCALE, entryFor, entryFromPhoto, entryGrams, errorText, fmt, isResolved, mealNutrition, pickRow,
@@ -22,12 +22,18 @@ function toManual(draft: Draft, patch: Patch, go: (s: Screen) => void) {
 
 // ------------------------------------------------------------------ pieces
 
+const SUGGESTION_MAX = 260;
+const SUGGESTION_GAP = 6;
+const SUGGESTION_MIN_BELOW = 160;
+
 /** Autocomplete over the dish table (GET /dishes), debounced. Picking a result calls `onPick` and clears the box. */
 function DishSearch({ onPick, autoFocus = false }: { onPick: (row: DishRow) => void; autoFocus?: boolean }) {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const [results, setResults] = useState<DishRow[] | null>(null);
   const [error, setError] = useState("");
+  const [placement, setPlacement] = useState({ above: false, maxHeight: SUGGESTION_MAX });
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const q = query.trim();
@@ -44,9 +50,39 @@ function DishSearch({ onPick, autoFocus = false }: { onPick: (row: DishRow) => v
   const pick = (row: DishRow) => { setQuery(""); setResults(null); onPick(row); };
   const open = focused && query.trim() !== "" && (results !== null || error !== "");
 
-  return <div className="search-wrap"><Icon name="search"/>
+  // Below the box when there is room, otherwise above it; measured against the visual viewport so an open keyboard counts.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const measure = () => {
+      const wrap = wrapRef.current;
+      if (!wrap) return;
+      const r = wrap.getBoundingClientRect();
+      const vv = window.visualViewport;
+      const top = vv?.offsetTop ?? 0;
+      const bottom = top + (vv?.height ?? window.innerHeight);
+      const below = bottom - r.bottom - SUGGESTION_GAP;
+      const aboveRoom = r.top - top - SUGGESTION_GAP;
+      const above = below < SUGGESTION_MIN_BELOW && aboveRoom > below;
+      const room = above ? aboveRoom : below;
+      setPlacement({ above, maxHeight: Math.min(SUGGESTION_MAX, Math.max(96, room)) });
+    };
+    measure();
+    const vv = window.visualViewport;
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure);
+    vv?.addEventListener("resize", measure);
+    vv?.addEventListener("scroll", measure);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure);
+      vv?.removeEventListener("resize", measure);
+      vv?.removeEventListener("scroll", measure);
+    };
+  }, [open]);
+
+  return <div className="search-wrap" ref={wrapRef}><Icon name="search"/>
     <input value={query} autoFocus={autoFocus} onChange={(e) => setQuery(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder="Cari atau ketik nama makanan…"/>
-    {open && <div className="suggestions" onMouseDown={(e) => e.preventDefault()}>
+    {open && <div className={`suggestions${placement.above ? " suggestions--above" : ""}`} style={{ maxHeight: placement.maxHeight }} onMouseDown={(e) => e.preventDefault()}>
       {error && <span className="suggestions__label">{error}</span>}
       {results?.length === 0 && <span className="suggestions__label">Makanan tidak ditemukan. Coba kata lain.</span>}
       {results?.map((r) => <button onClick={() => pick(r)} key={r.id}>
