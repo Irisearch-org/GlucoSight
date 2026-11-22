@@ -16,7 +16,9 @@ const MAX_EDGE = 1280;
 /** Gallery photos over MAX_EDGE on the long edge are re-encoded as JPEG 0.85 at that size; smaller ones pass through unchanged. */
 export async function photoToDataUrl(file: File): Promise<string> {
   const original = await readDataUrl(file);
-  const img = await loadImage(original);
+  // Not decodable here: send the original and let the server judge it. The downscale is only an optimisation.
+  const img = await loadImage(original).catch(() => null);
+  if (!img) return original;
   const long = Math.max(img.naturalWidth, img.naturalHeight);
   if (long <= MAX_EDGE) return original;
   const scale = MAX_EDGE / long;
@@ -30,19 +32,19 @@ export async function photoToDataUrl(file: File): Promise<string> {
 }
 
 function readDataUrl(file: File): Promise<string> {
-  const { promise, resolve, reject } = Promise.withResolvers<string>();
-  const reader = new FileReader();
-  reader.onload = () => resolve(reader.result as string);
-  reader.onerror = () => reject(new UserError("Gagal membaca foto."));
-  reader.readAsDataURL(file);
-  return promise;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new UserError("Gagal membaca foto."));
+    reader.readAsDataURL(file);
+  });
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
-  const { promise, resolve, reject } = Promise.withResolvers<HTMLImageElement>();
-  const img = new Image();
-  img.onload = () => resolve(img);
-  img.onerror = () => reject(new UserError("Gagal membaca foto."));
-  img.src = src;
-  return promise;
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new UserError("Gagal membaca foto."));
+    img.src = src;
+  });
 }
