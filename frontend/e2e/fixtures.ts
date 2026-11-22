@@ -111,3 +111,20 @@ export function contrastRatio(a: number[], b: number[]): number {
   const lb = lum(b);
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
+
+// Signed-out session: the app shows Landing, and Masuk/Daftar lead to Auth.
+export async function signedOut(page: Page) {
+  await mockApi(page);
+  await page.route("**/auth/me", (r) => r.fulfill({ status: 401, json: { error: "Belum masuk" } }));
+}
+
+// Three saved predictions, one per glucose range, so History shows every badge tone.
+export function historyRecords(now = Date.now()) {
+  const base = { portion: "Sedang", g0: 110, sourceId: "meter", basis: "Model latih", usageMessage: "Hanya untuk riset.", modelVersion: "v1" };
+  const at = (hoursAgo: number) => new Date(now - hoursAgo * 3_600_000).toISOString();
+  return [
+    { ...base, id: "h1", createdAt: at(1), food: "Nasi goreng", t60: 130, t120: 118, range: "normal" },
+    { ...base, id: "h2", createdAt: at(2), food: "Soto ayam", t60: 165, t120: 150, range: "borderline" },
+    { ...base, id: "h3", createdAt: at(3), food: "Rendang", t60: 210, t120: 190, range: "high" },
+  ];
+}
