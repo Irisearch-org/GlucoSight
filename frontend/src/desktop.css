@@ -35,7 +35,9 @@
 
   .bottom-nav__brand { display: flex; align-items: center; gap: 6px; min-height: 48px; margin-bottom: 18px; }
   .bottom-nav button.bottom-nav__toggle { display: grid; place-items: center; flex: none; width: 48px; height: 48px; padding: 0; border-radius: 14px; color: #5b7077; }
-  .bottom-nav button.bottom-nav__toggle:hover { background: var(--soft); color: var(--teal); }
+  @media (hover: hover) {
+    .bottom-nav button.bottom-nav__toggle:hover { background: var(--soft); color: var(--teal); }
+  }
 
   /* One highlight that glides to the active tab; ui.tsx sets --pill-top to that tab's offset. */
   .bottom-nav__pill {
@@ -48,11 +50,13 @@
   .bottom-nav button:not(.bottom-nav__toggle) {
     position: relative; z-index: 1; flex: none; flex-direction: row; justify-content: flex-start; gap: 14px;
     height: 48px; min-height: 48px; padding: 0 14px; border-radius: 14px; font-size: 14px; font-weight: 700; white-space: nowrap;
-    transition: color .3s ease, background .2s ease;
+    transition: color .3s ease, background .2s ease, transform .1s ease-out;
     box-sizing: border-box;
     margin: 0;
   }
-  .bottom-nav button:not(.active):not(.bottom-nav__toggle):hover { background: rgba(18,169,163,.1); color: var(--teal-dark); }
+  @media (hover: hover) {
+    .bottom-nav button:not(.active):not(.bottom-nav__toggle):hover { background: rgba(18,169,163,.1); color: var(--teal-dark); }
+  }
   .bottom-nav button.active { background: transparent; color: #fff; }
 
   .bottom-nav__main-icon { display: grid; place-items: center; width: 22px; height: 22px; border: 0; border-radius: 0; box-shadow: none; background: none; color: inherit; flex: none; }
@@ -74,8 +78,4 @@
 
 @media (min-width: 1400px) {
   .shell { max-width: 920px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bottom-nav, .bottom-nav button, .bottom-nav__pill, body:has(.with-nav) { transition: none !important; }
 }

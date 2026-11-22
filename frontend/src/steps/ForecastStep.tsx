@@ -105,15 +105,18 @@ function ResultGauge({ from, to, band, label }: { from: number; to: number; band
   </>;
 }
 
-/** Shown while the prediction is computed: a glucose curve drawn over and over, with a dot riding its head. */
+/** Shown while the prediction is computed: a glucose curve drawn over and over, with a dot riding its head. Reduced motion: a static, fully drawn curve. */
 function LoadingCurve() {
   const d = "M6 66C40 64 56 58 84 36S128 10 152 16S186 42 194 44";
+  const reduce = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   return <svg className="result-curve" viewBox="0 0 200 80" aria-hidden="true">
     <path d={d} fill="none" stroke="#d6ecea" strokeWidth="3" strokeLinecap="round"/>
-    <path id="rc-path" className="result-curve__line" d={d} pathLength="1" fill="none" stroke="#12a9a3" strokeWidth="3" strokeLinecap="round"/>
-    <circle r="5.5" fill="#fff" stroke="#0FA0A0" strokeWidth="3">
-      <animateMotion dur="2.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".5 .1 .3 1"><mpath href="#rc-path"/></animateMotion>
-    </circle>
+    <path id="rc-path" className={reduce ? undefined : "result-curve__line"} d={d} pathLength="1" fill="none" stroke="#12a9a3" strokeWidth="3" strokeLinecap="round"/>
+    {reduce
+      ? <circle cx="194" cy="44" r="5.5" fill="#fff" stroke="#0FA0A0" strokeWidth="3"/>
+      : <circle r="5.5" fill="#fff" stroke="#0FA0A0" strokeWidth="3">
+        <animateMotion dur="2.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".5 .1 .3 1"><mpath href="#rc-path"/></animateMotion>
+      </circle>}
   </svg>;
 }
 
