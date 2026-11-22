@@ -5,7 +5,7 @@ import {
   RANGE_LABEL, RANGE_TONE, SOURCE_LABEL, entryGrams, glucoseOf, num, type Draft,
 } from "../flow";
 import type { HistoryRecord, Profile } from "../storage";
-import { Badge, Button, ErrorBox, Icon, WizardLayout, type Screen } from "../ui";
+import { Badge, Button, Disclaimer, ErrorBox, Icon, WizardLayout, type Screen } from "../ui";
 
 /** What only the live response knows; a record reopened from history has none of it. */
 export interface ForecastDetail {
@@ -98,8 +98,10 @@ function ResultGauge({ from, to, band, label }: { from: number; to: number; band
     return () => cancelAnimationFrame(raf);
   }, [from, to, reduce]);
   return <>
-    <div className={`result-number result-number--${rangeOf(v)}`}>{Math.round(v)} <small>mg/dL</small></div>
-    {band !== null && <p className="result-band">± {Math.round(band)} mg/dL</p>}
+    <div className="result-reading">
+      <div className={`result-number result-number--${rangeOf(v)}`}>{Math.round(v)} <small>mg/dL</small></div>
+      {band !== null && <p className="result-band">± {Math.round(band)} mg/dL</p>}
+    </div>
     <p>{label}</p>
     <div className="range"><div><i style={{ left: `${markerPercent(v)}%` }}/></div><span><b>Normal</b><b>Waspada</b><b>Tinggi</b></span></div>
   </>;
@@ -134,6 +136,9 @@ export function Result({ state, nav, go, onRetry, backTo }: {
       const { record: r, detail } = state;
       return <>
         <div className="result-intro"><Badge tone="teal"><Icon name="sparkle" size={13}/> {state.fromHistory ? "Prediksi tersimpan" : "Prediksi selesai"}</Badge><h1>Respons gula darah Anda</h1></div>
+        {r.sourceId === "ppg" && <div className="tip-card tip-card--warn"><Icon name="info"/><div><strong>Prediksi dimulai dari estimasi kasar</strong><p>Prediksi ini dimulai dari estimasi kasar kamera dan kurang andal. Gunakan glukometer bila tersedia.</p></div></div>}
+        {state.fromHistory && <div className="tip-card"><Icon name="info"/><p>Rentang galat hanya tersedia pada prediksi baru.</p></div>}
+        {detail?.outsideTraining && <div className="tip-card tip-card--warn"><Icon name="info"/><div><strong>Model belum dilatih untuk jenis diabetes ini</strong><p>Prediksi tetap ditampilkan, tetapi bisa kurang tepat untuk Anda.</p></div></div>}
         <article className="result-card">
           <div className="result-card__top"><span>Prediksi T+60</span><Badge tone={RANGE_TONE[r.range]}>{RANGE_LABEL[r.range]}</Badge></div>
           <ResultGauge from={r.g0} to={r.t60} band={detail?.band60 ?? null} label="Perkiraan 60 menit setelah suapan pertama"/>
@@ -142,12 +147,11 @@ export function Result({ state, nav, go, onRetry, backTo }: {
           <div className="result-card__top"><span>Prediksi T+120</span><Badge tone={RANGE_TONE[rangeOf(r.t120)]}>{RANGE_LABEL[rangeOf(r.t120)]}</Badge></div>
           <ResultGauge from={r.g0} to={r.t120} band={detail?.band120 ?? null} label="Perkiraan 120 menit setelah suapan pertama"/>
         </article>
-        {detail?.outsideTraining && <div className="tip-card tip-card--warn"><Icon name="info"/><div><strong>Model belum dilatih untuk jenis diabetes ini</strong><p>Prediksi tetap ditampilkan, tetapi bisa kurang tepat untuk Anda.</p></div></div>}
         <div className="baseline"><span className="baseline__icon"><Icon name="drop"/></span><div><span>Gula sebelum makan</span><strong>{r.g0} mg/dL <small>· {SOURCE_LABEL[r.sourceId]}</small></strong></div>{r.sourceId !== "ppg" && <Badge tone="green">Terukur</Badge>}</div>
         <section className="inputs-used"><strong>Data yang digunakan</strong>
           <div><span><Icon name="drop"/> Gula darah</span><b>{r.g0} mg/dL</b></div>
           <div><span><Icon name="gallery"/> Makanan</span><b>{r.food} · {r.portion}</b></div></section>
-        <div className="disclaimer"><span className="disclaimer__icon"><Icon name="info" size={17}/></span><div><p>{r.usageMessage}</p></div></div>
+        <Disclaimer detail={r.usageMessage}/>
         <div className="sticky-actions"><Button onClick={() => nav("home")}>Selesai</Button><Button variant="secondary" onClick={() => nav("source")}>Prediksi lagi</Button></div>
       </>;
     })()}
