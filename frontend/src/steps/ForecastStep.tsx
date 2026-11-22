@@ -90,7 +90,7 @@ function ResultGauge({ from, to, band, label }: { from: number; to: number; band
     let raf = 0;
     const t0 = performance.now();
     const tick = (now: number) => {
-      const p = Math.min(1, (now - t0) / 1500);
+      const p = Math.min(1, (now - t0) / 600);
       setV(from + (to - from) * (1 - Math.pow(1 - p, 3)));
       if (p < 1) raf = requestAnimationFrame(tick);
     };

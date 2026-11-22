@@ -16,10 +16,13 @@
   --green-text: #137a53;
   --amber-text: #8a5a06;
   --red-text: #a33423;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 * { box-sizing: border-box; }
 html, body, #root { min-height: 100%; min-height: 100vh; min-height: 100dvh; }
+html, body { overscroll-behavior-y: none; }
+html { -webkit-tap-highlight-color: transparent; }
 body {
   margin: 0;
   font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
@@ -234,7 +237,7 @@ img { max-width: 100%; display: block; }
 
 .search-wrap { position: relative; display: flex; align-items: center; gap: .5rem; border: 1px solid var(--line); border-radius: .75rem; padding: 0 .75rem; background: var(--card); margin-bottom: .875rem; }
 .search-wrap input { flex: 1; border: none; outline: none; padding: .6875rem 0; background: none; min-height: 2.75rem; }
-.suggestions { position: absolute; top: calc(100% + .375rem); left: 0; right: 0; background: var(--card); border: 1px solid var(--line); border-radius: .875rem; box-shadow: 0 10px 24px rgba(0,0,0,.08); z-index: 10; overflow-y: auto; }
+.suggestions { position: absolute; top: calc(100% + .375rem); left: 0; right: 0; background: var(--card); border: 1px solid var(--line); border-radius: .875rem; box-shadow: 0 10px 24px rgba(0,0,0,.08); z-index: 10; overflow-y: auto; overscroll-behavior: contain; }
 .suggestions--above { top: auto; bottom: calc(100% + .375rem); }
 .suggestions__label { display: block; padding: .625rem .875rem .25rem; font-size: .6875rem; color: var(--muted); font-weight: 700; }
 .suggestions button { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: .625rem .875rem; background: none; border: none; text-align: left; font-size: .8125rem; min-height: 2.75rem; overflow-wrap: anywhere; }
@@ -349,13 +352,13 @@ img { max-width: 100%; display: block; }
 .progress__item.is-active .progress__dot { background: var(--teal-dark); color: #fff; }
 .progress__item.is-done .progress__dot { background: var(--soft); color: var(--teal-dark); }
 
-.wizard-page { animation: wizard-enter 180ms ease-out; }
+.wizard-page { animation: wizard-enter 180ms var(--ease-out); }
 @keyframes wizard-enter { from { transform: translateY(.5rem); } to { transform: none; } }
 
 @media (max-width: 899px) {
   .wizard-page { padding-bottom: 8px; }
   .wizard-page > .sticky-actions {
-    position: sticky; bottom: var(--kb-inset, 0px); z-index: 4;
+    position: sticky; bottom: 0; z-index: 4; transform: translateY(calc(-1 * var(--kb-inset, 0px)));
     margin: 20px -16px 0; padding: 0 16px max(16px, env(safe-area-inset-bottom, 0px));
     background: var(--bg);
   }
@@ -407,7 +410,7 @@ img { max-width: 100%; display: block; }
 .scan-result__secondary { font-size: .8125rem; color: var(--muted); margin: 0; }
 .dish-chips { display: flex; flex-wrap: wrap; gap: .375rem; margin: .375rem 0 .5rem; }
 .chip { border: 1px solid var(--line); border-radius: 999px; background: var(--card); padding: .375rem .75rem; font-size: .8125rem; cursor: pointer; min-height: 2.75rem; max-width: 100%; text-align: left; white-space: normal; overflow-wrap: anywhere; }
-@media (hover: hover) { .chip:hover { border-color: var(--teal); background: var(--soft); } }
+@media (hover: hover) and (pointer: fine) { .chip:hover { border-color: var(--teal); background: var(--soft); } }
 .chip--dashed { border-style: dashed; color: var(--muted); }
 .food-row--pending { border-color: #f6d9ba; }
 .food-nutri__line { margin: 0; font-size: .75rem; color: var(--muted); }
@@ -416,7 +419,7 @@ img { max-width: 100%; display: block; }
 /* global foundations */
 
 /* Pressed feedback: every enabled button eases to 97%. Class transitions (.button, desktop nav) carry transform too. */
-button { transition: transform .1s ease-out; }
+button { transition: transform .1s var(--ease-out); }
 button:not(:disabled):active { transform: scale(.97); }
 
 /* Keyboard focus ring. Mouse clicks do not match :focus-visible, so they show no ring. */
@@ -434,9 +437,11 @@ button { -webkit-touch-callout: none; user-select: none; }
   input, select, textarea { font-size: max(1rem, 1em); }
 }
 
-/* Reduced motion: no transitions or animations anywhere (the spinner and the curve stay still). */
+/* Reduced motion: no transitions or animations anywhere; spinners are hidden (the status text stays) and presses do not scale. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .loader { display: none; }
+  button:not(:disabled):active { transform: none; }
 }
 
 /* Safe areas: the landing header clears the notch and rounded corners (it has no padding of its own). */

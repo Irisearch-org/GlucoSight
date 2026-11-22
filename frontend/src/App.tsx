@@ -12,7 +12,7 @@ import { Camera, Confirm, Manual } from "./steps/MealStep";
 import { Result, buildPredictBody, toDetail, toRecord, type ResultState } from "./steps/ForecastStep";
 import { Scan, Source, SourceCard, Summary, sourceOptions } from "./steps/GlucoseStep";
 import {
-  AppBar, Badge, BottomNav, Brand, Button, Disclaimer, ErrorBox, Field, Icon, SelectField, initials, type Screen,
+  AppBar, Badge, PrimaryNav, Brand, Button, Disclaimer, ErrorBox, Field, Icon, SelectField, initials, type Screen,
 } from "./ui";
 
 // -------------------------------------------------------------------- auth
@@ -113,7 +113,7 @@ function Home({ profile, history, apiState, nav, go, onOpen }: {
         </section>}
       </>}
     </main>
-    <BottomNav active="home" go={nav}/>
+    <PrimaryNav active="home" go={nav}/>
   </div>;
 }
 
@@ -143,7 +143,7 @@ function History({ history, nav, go, onOpen }: { history: HistoryRecord[]; nav: 
       </button>)}</div>
       {!visible.length && <div className="history-empty"><Icon name="chart" size={34}/><strong>Belum ada hasil</strong><p>{history.length ? "Tidak ada prediksi dengan status ini." : "Prediksi yang Anda buat akan muncul di sini."}</p></div>}
     </main>
-    <BottomNav active="history" go={nav}/>
+    <PrimaryNav active="history" go={nav}/>
   </div>;
 }
 
@@ -193,7 +193,7 @@ function ProfileScreen({ profile, historyCount, nav, go, onSave, onSignOut }: {
       setSaving(false);
     }}>{saving ? "Menyimpan…" : saved ? "Tersimpan ✓" : "Simpan perubahan"}</Button>
     <Button variant="text" onClick={onSignOut}>Keluar</Button>
-  </main><BottomNav active="profile" go={nav}/></div>;
+  </main><PrimaryNav active="profile" go={nav}/></div>;
 }
 
 // ---------------------------------------------------------------------- app

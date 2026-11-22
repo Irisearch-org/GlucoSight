@@ -73,11 +73,6 @@ function useReveal(root: RefObject<HTMLDivElement | null>) {
   }, [root]);
 }
 
-/** Headline split into words that rise out from behind a mask, one after another. */
-function Words({ text, start = 0, step = 0.07 }: { text: string; start?: number; step?: number }) {
-  return <>{text.split(" ").map((w, i) => <span key={i}><span className="lp-w"><span style={{ animationDelay: `${start + i * step}s` }}>{w}</span></span>{" "}</span>)}</>;
-}
-
 /** A button that leans toward the pointer. */
 function Magnetic({ className, onClick, children }: { className: string; onClick: () => void; children: ReactNode }) {
   const ref = useRef<HTMLButtonElement>(null);
@@ -149,24 +144,24 @@ export default function Landing({ onLogin, onRegister }: { onLogin: () => void; 
       <section className="lp-hero">
         <div className="lp-wrap lp-hero__in">
           <div className="lp-hero__copy">
-            <span className="lp-pill lp-enter" style={{ animationDelay: ".05s" }}><Icon name="sparkle" size={14}/> Untuk penderita diabetes tipe 2</span>
+            <span className="lp-pill"><Icon name="sparkle" size={14}/> Untuk penderita diabetes tipe 2</span>
             <h1>
-              <Words text="Perkirakan gula darah setelah makan," start={0.15}/>
-              <em className="lp-em"><Words text="cukup dengan ponsel." start={0.6}/>
+              Perkirakan gula darah setelah makan,{" "}
+              <em className="lp-em">cukup dengan ponsel.
                 <svg className="lp-squig" viewBox="0 0 240 14" preserveAspectRatio="none" aria-hidden="true"><path d="M3 9c10-9 20-9 30 0s20 9 30 0 20-9 30 0 20 9 30 0 20-9 30 0 20 9 30 0 20-9 30 0 20 9 24 0" pathLength="1" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round"/></svg>
               </em>
             </h1>
-            <p className="lp-enter" style={{ animationDelay: ".95s" }}>GlucoSight menggabungkan gula darah sebelum makan, foto makanan, dan scan jari untuk memperkirakan gula darah Anda 60 menit setelah makan.</p>
-            <div className="lp-hero__actions lp-enter" style={{ animationDelay: "1.1s" }}>
+            <p>GlucoSight menggabungkan gula darah sebelum makan, foto makanan, dan scan jari untuk memperkirakan gula darah Anda 60 menit setelah makan.</p>
+            <div className="lp-hero__actions">
               <button className="lp-btn lp-btn--solid lp-btn--lg" onClick={onRegister}>Mulai prediksi <Icon name="chevron" size={18}/></button>
             </div>
-            <ul className="lp-hero__facts lp-enter" style={{ animationDelay: "1.25s" }}>
+            <ul className="lp-hero__facts">
               <li><Icon name="check" size={16}/> Bahasa Indonesia</li>
               <li><Icon name="check" size={16}/> Tanpa wajib CGM</li>
               <li><Icon name="check" size={16}/> Foto makanan Indonesia</li>
             </ul>
           </div>
-          <div className="lp-hero__art lp-enter" style={{ animationDelay: ".4s" }} onPointerMove={tilt} onPointerLeave={untilt}><PhoneMock/></div>
+          <div className="lp-hero__art" onPointerMove={tilt} onPointerLeave={untilt}><PhoneMock/></div>
         </div>
       </section>
 
@@ -174,7 +169,7 @@ export default function Landing({ onLogin, onRegister }: { onLogin: () => void; 
         <div className="lp-wrap">
           <div className="lp-head lp-reveal"><span>Cara kerja</span><h2>Tiga langkah, tanpa ribet</h2><p>Dari gula darah sebelum makan sampai perkiraan 60 menit setelahnya.</p></div>
           <ol className="lp-steps">
-            {steps.map((s, i) => <li className="lp-step lp-spot lp-reveal" style={{ transitionDelay: `${i * 0.14}s` }} key={s.title}>
+            {steps.map((s, i) => <li className="lp-step lp-spot lp-reveal" style={{ transitionDelay: `${i * 0.06}s` }} key={s.title}>
               <span className="lp-step__num">{i + 1}</span>
               <span className="lp-step__icon lp-ic"><Icon name={s.icon} size={26}/></span>
               <h3>{s.title}</h3><p>{s.text}</p>
@@ -187,7 +182,7 @@ export default function Landing({ onLogin, onRegister }: { onLogin: () => void; 
         <div className="lp-wrap">
           <div className="lp-head lp-reveal"><span>Fitur</span><h2>Dibuat untuk kebiasaan makan Anda</h2><p>Sederhana dipakai, dirancang untuk kebutuhan sehari-hari.</p></div>
           <div className="lp-features">
-            {features.map((f, i) => <article className="lp-feature lp-spot lp-reveal" style={{ transitionDelay: `${(i % 3) * 0.12}s` }} key={f.title}>
+            {features.map((f, i) => <article className="lp-feature lp-spot lp-reveal" style={{ transitionDelay: `${(i % 3) * 0.06}s` }} key={f.title}>
               <span className="lp-feature__icon lp-ic"><Icon name={f.icon} size={22}/></span>
               <h3>{f.title}</h3>
               <p>{f.text}</p>
