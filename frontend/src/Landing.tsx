@@ -60,7 +60,7 @@ function useReveal(root: RefObject<HTMLDivElement | null>) {
         }
       });
     // threshold 0: the hidden state is clipped, so a ratio-based threshold would never be reached.
-    }, { threshold: 0, rootMargin: "0px 0px -8% 0px" });
+    }, { threshold: 0, rootMargin: "0px" });
     items.forEach((el) => io.observe(el));
     // Safety net: anything already on screen after a moment is shown, whatever the observer did.
     const safety = window.setTimeout(() => {
