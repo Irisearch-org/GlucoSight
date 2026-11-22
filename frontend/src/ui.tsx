@@ -33,8 +33,11 @@ const paths: Record<IconName, ReactNode> = {
   menu: <path d="M4 7h16M4 12h16M4 17h16"/>,
 };
 
+/** Icon sizes in px, multiplied by --icon-scale (1.15 inside desktop zoomed regions, see desktop.css). */
+export const scalePx = (px: number) => `calc(${px}px * var(--icon-scale, 1))`;
+
 export function Icon({ name, size = 22, className = "" }: { name: IconName; size?: number; className?: string }) {
-  return <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
+  return <svg className={className} style={{ width: scalePx(size), height: scalePx(size) }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
 
 /**

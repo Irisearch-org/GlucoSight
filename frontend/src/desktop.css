@@ -15,10 +15,20 @@
   .shell.with-nav { padding-bottom: 0; }
   .auth-screen { max-width: 520px; }
 
-  /* A little larger text: the app was drawn with phone-sized type. */
-  .page, .appbar, .progress-wrap, .auth-card { zoom: 1.15; }
-  .with-nav .page { padding-bottom: 36px; }
-  .wizard-page { min-height: 560px; }
+  /* rem-based desktop scale: the root grows 15% so zoomed regions (.page, .appbar,
+     .progress-wrap, .auth-card) keep the larger type that zoom used to give them.
+     Unzoomed text (Landing, Primary nav) stays on the 16px base. */
+  html { font-size: 18.4px; }
+  body { font-size: 16px; }
+  .page, .appbar, .progress-wrap, .auth-card { font-size: 1rem; --icon-scale: 1.15; }
+  /* The auth card is a zoomed region: its brand keeps the size zoom gave it (px x 1.15). */
+  .auth-card .brand { gap: .625rem; }
+  .auth-card .brand svg { width: 3rem; height: 3rem; }
+  .auth-card .brand strong { font-size: 1.0625rem; }
+  .auth-card .brand--compact strong { font-size: .9375rem; }
+  .auth-card .brand small { font-size: .6875rem; }
+  .with-nav .page { padding-bottom: 2.25rem; }
+  .wizard-page { min-height: 35rem; }
   .with-nav .appbar .brand { display: none; }
   /* The home screen already greets the user; its top bar would only hold an avatar. */
   .shell--home .appbar { display: none; }
@@ -72,7 +82,7 @@
 
   /* Use the width: several columns instead of one long stack */
   .history-list { grid-template-columns: repeat(2, 1fr); }
-  .option-list { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .option-list { grid-template-columns: repeat(auto-fit, minmax(11.875rem, 1fr)); }
   .history-filters { flex-wrap: wrap; overflow: visible; }
 }
 

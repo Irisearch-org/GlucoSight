@@ -182,7 +182,7 @@ function ProfileScreen({ profile, historyCount, nav, go, onSave, onSignOut }: {
     </section>
     <section className="settings-section"><div className="section-title"><h2>Sumber gula default</h2><span>Dipilih otomatis saat memulai prediksi</span></div>
       <div className="option-list">{sourceOptions.filter((o) => o.id !== "ppg").map((o) => <SourceCard key={o.id} option={o} selected={form.defaultSource === o.id} onClick={() => set({ defaultSource: o.id })}/>)}</div>
-      <p className="helper" style={{ marginTop: 10 }}><Icon name="info" size={15}/> Scan Jari dipilih langsung saat memulai prediksi.</p>
+      <p className="helper" style={{ marginTop: ".625rem" }}><Icon name="info" size={15}/> Scan Jari dipilih langsung saat memulai prediksi.</p>
     </section>
     {saveError && <p className="field-hint" role="alert">{saveError}</p>}
     <Button onClick={async () => {
