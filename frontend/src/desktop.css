@@ -89,3 +89,35 @@
 @media (min-width: 1400px) {
   .shell { max-width: 920px; }
 }
+
+/* Tablet portrait (600-899px): one centred column, 640px maximum, 24px gutters. */
+@media (min-width: 600px) and (max-width: 899px) {
+  .shell { max-width: 640px; }
+  .page { padding-left: 24px; padding-right: 24px; }
+  .progress-wrap { padding-left: 24px; padding-right: 24px; }
+  .appbar {
+    padding-left: calc(24px + env(safe-area-inset-left, 0px));
+    padding-right: calc(24px + env(safe-area-inset-right, 0px));
+  }
+  .wizard-page > .sticky-actions {
+    margin-left: -24px; margin-right: -24px;
+    padding-left: 24px; padding-right: 24px;
+  }
+  .history-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .option-list { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .camera-view { max-width: 420px; }
+}
+
+/* Wide phones (481-599px): 20px gutters, column stays at the 480px phone maximum. */
+@media (min-width: 481px) and (max-width: 599px) {
+  .page { padding-left: 20px; padding-right: 20px; }
+  .progress-wrap { padding-left: 20px; padding-right: 20px; }
+  .appbar {
+    padding-left: calc(20px + env(safe-area-inset-left, 0px));
+    padding-right: calc(20px + env(safe-area-inset-right, 0px));
+  }
+  .wizard-page > .sticky-actions {
+    margin-left: -20px; margin-right: -20px;
+    padding-left: 20px; padding-right: 20px;
+  }
+}
