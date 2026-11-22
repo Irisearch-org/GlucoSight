@@ -161,6 +161,8 @@ test.describe("Dish search above the keyboard", () => {
 });
 
 test.describe("Manual entry with a 20-item meal", () => {
+  // Twenty search-and-pick rounds, each waiting on a debounced request; the default 30s is too tight on a loaded machine.
+  test.setTimeout(120_000);
   for (const { width, height } of [{ width: 320, height: 568 }, { width: 390, height: 844 }]) {
     test(`${width}x${height}: long names stay inside their rows, every remove target is reachable, and the action is reachable`, async ({ browser }) => {
       expect(LONG_NAME.length).toBeGreaterThanOrEqual(60);
