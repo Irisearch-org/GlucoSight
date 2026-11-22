@@ -321,6 +321,32 @@ test.describe("Reduced motion", () => {
       expect(line.offset).toBe("0px");
     });
   });
+
+  test("Loading spinner is hidden under reduced motion; the status text stays", async ({ browser }) => {
+    await withContext(browser, { ...TOUCH, reducedMotion: true }, async (page) => {
+      await reachConfirm(page, true);
+      await page.route("**/predict", () => { /* never answers: keeps the loading screen up */ });
+      await page.getByRole("button", { name: "Lihat prediksi", exact: true }).click();
+      await expect(page.getByText("Model prediksi", { exact: false }).first()).toBeVisible();
+      await expect(page.locator(".loader").first()).toBeHidden();
+    });
+  });
+
+  test("A pressed button is not scaled under reduced motion", async ({ browser }) => {
+    await withContext(browser, { ...TOUCH, reducedMotion: true }, async (page) => {
+      await enterHome(page);
+      const profil = tab(page, "Profil");
+      const b = await profil.boundingBox();
+      if (!b) throw new Error("Profil tab has no bounding box");
+      await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+      await page.mouse.down();
+      try {
+        expect(await profil.evaluate((el) => getComputedStyle(el).transform)).toBe("none");
+      } finally {
+        await page.mouse.up();
+      }
+    });
+  });
 });
 
 test.describe("Input size on touch", () => {
