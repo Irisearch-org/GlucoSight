@@ -11,11 +11,40 @@ export function frameToDataUrl(video: HTMLVideoElement): string | null {
   return canvas.toDataURL("image/jpeg", 0.85);
 }
 
-export function photoToDataUrl(file: File): Promise<string> {
+const MAX_EDGE = 1280;
+
+/** Gallery photos over MAX_EDGE on the long edge are re-encoded as JPEG 0.85 at that size; smaller ones pass through unchanged. */
+export async function photoToDataUrl(file: File): Promise<string> {
+  const original = await readDataUrl(file);
+  // Not decodable here: send the original and let the server judge it. The downscale is only an optimisation.
+  const img = await loadImage(original).catch(() => null);
+  if (!img) return original;
+  const long = Math.max(img.naturalWidth, img.naturalHeight);
+  if (long <= MAX_EDGE) return original;
+  const scale = MAX_EDGE / long;
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(img.naturalWidth * scale);
+  canvas.height = Math.round(img.naturalHeight * scale);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new UserError("Gagal membaca foto.");
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.85);
+}
+
+function readDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = () => reject(new UserError("Gagal membaca foto."));
     reader.readAsDataURL(file);
+  });
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new UserError("Gagal membaca foto."));
+    img.src = src;
   });
 }
