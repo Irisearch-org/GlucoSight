@@ -5,3 +5,5 @@ dist/
 __pycache__/
 *.pyc
 RIWAYAT_PERUBAHAN.md
+test-results/
+playwright-report/
