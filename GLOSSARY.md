@@ -58,3 +58,28 @@ threshold. Resolves through the same matcher and dish table as the photo
 path.
 _Avoid_: fallback lookup, safe mode — there is one dish table, not a
 second lookup.
+
+**Primary nav**:
+The app's single navigation component, listing Home, Prediction, History
+and Profile. Shown as a tab bar on phones and a left sidebar on desktop; it
+is the same component, not two.
+_Avoid_: bottom nav, navbar, sidebar, dashboard navbar — each names one
+layout of the component, or is a generic web term.
+
+**Home**:
+The first screen after sign-in (Beranda): greeting, the call to start a
+prediction, and the latest result.
+_Avoid_: dashboard — the app has no separate dashboard screen.
+
+**Landing**:
+The public marketing page shown before sign-in. Not part of the signed-in
+app and has no Primary nav.
+_Avoid_: home page, homepage — "Home" is the signed-in screen.
+
+**Error range**:
+The measured held-out error shown beside every served estimate: the ±25
+mg/dL around a finger-scan glucose, and the ± band around each forecast
+horizon. It is what keeps a weak estimate honest; a number is never shown
+without it where one exists.
+_Avoid_: confidence, accuracy score — the app deliberately shows no
+confidence percentage.
