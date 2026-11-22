@@ -107,7 +107,7 @@ test.describe("App bar and progress at 320px", () => {
 });
 
 test.describe("Step transitions", () => {
-  test("entering Summary runs a short opacity and transform animation", async ({ browser }) => {
+  test("entering Summary runs a short transform animation that never fades the text", async ({ browser }) => {
     await withViewport(browser, { width: 390, height: 844, mobile: true }, async (page) => {
       await openSource(page);
       await enterMeter(page);
@@ -128,7 +128,7 @@ test.describe("Step transitions", () => {
       expect(info[0].playState).toBe("running");
       expect(info[0].duration).toBeLessThan(200);
       const motion = [...new Set(info[0].props.filter((p) => !["offset", "computedOffset", "easing", "composite"].includes(p)))].sort();
-      expect(motion).toEqual(["opacity", "transform"]);
+      expect(motion).toEqual(["transform"]);
     });
   });
 
