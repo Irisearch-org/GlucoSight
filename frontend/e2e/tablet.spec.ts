@@ -85,6 +85,8 @@ test.describe("Tablet portrait (600-899px)", () => {
         const list = page.locator(".option-list");
         const cards = list.locator(".option-card");
         await expect(cards).toHaveCount(3);
+        // The step entrance animation moves the cards by a few px; measure once it has settled.
+        await page.waitForFunction(() => document.getAnimations().length === 0);
         const colWidth = (await box(list)).width;
         const fits = Math.floor((colWidth + 10) / 250);
         expect(fits).toBeGreaterThanOrEqual(2);
