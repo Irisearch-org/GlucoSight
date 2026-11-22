@@ -33,7 +33,7 @@ settled (ADR 0004, per stage, no end-to-end number): forecaster
 | T4 | Forecaster sensitivity | Atwater ±20/30/50%; carb perturbation from dish-ID errors; feature-set selection frequencies; the failed pre-specified design (negative result) | #12, #17 |
 | T5 | **Dish identification** | dev and test: VLM + embedding (served), VLM + difflib (pre-registered), MobileNetV2 on its 10-class overlap; top-1 class and family, abstain, false match; paired bootstrap vs MobileNet | #18 |
 | F2 | Manual-entry operating point | coverage vs false-match curve over similarity/margin, with the chosen 0.80/0.05 point and the old 0.75 point marked | #19 |
-| T6 | **PPG glucose (negative result)** | mean vs ridge / RF / PaPaGei-S: MAE, gain, CI, perm p; Clarke stratified by range; prediction–truth correlation 0.045 | #16 |
+| T6 | **PPG glucose (negative result)** | PPG_Dataset (23 subjects): mean vs ridge / RF / PaPaGei-S: MAE, gain, CI, perm p; Clarke stratified by range; prediction–truth correlation 0.045. **BUT PPG v2, phone camera (18 finger subjects):** the same comparison (r = −0.18), plus the within-person calibration simulation vs carry-over | #16, #27, #28 |
 | T7 | PPG heart rate | HR vs ECG on Brno: pooled MAE 3.76 bpm with the quality filter stated and the per-subject range 1.27–30.85 | `rppg/reports/brno_validation.md` |
 | T8 | Text dish identity (separate finding) | ShanghaiT2DM, −0.555 ± 0.252 mg/dL over 5 resplits, permutation control | ADR 0001, [`NLP_DISH_IDENTITY_TEST.md`](NLP_DISH_IDENTITY_TEST.md) |
 
