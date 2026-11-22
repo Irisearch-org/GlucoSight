@@ -75,6 +75,7 @@ results/
 *.jpg
 *.jpeg
 !docs/**/*.png
+!paper/figures/*.png
 
 # ── DVC ─────────────────────────────────────────────────
 /.dvc/cache
