@@ -101,13 +101,15 @@ export function Progress({ current }: { current: number }) {
   </div>;
 }
 
-export function Field({ label, placeholder, type = "text", suffix, value, onChange, min, max, step }: {
+export function Field({ label, placeholder, type = "text", suffix, value, onChange, min, max, step, autoComplete, inputMode }: {
   label: string; placeholder?: string; type?: string; suffix?: string; value?: string;
   onChange?: (value: string) => void; min?: number; max?: number; step?: number;
+  autoComplete?: string; inputMode?: "text" | "numeric" | "decimal" | "email";
 }) {
   return <label className="field"><span>{label}</span>
     <div className="field__input">
       <input type={type} placeholder={placeholder} value={value} min={min} max={max} step={step}
+        autoComplete={autoComplete} inputMode={inputMode}
         readOnly={onChange === undefined && value !== undefined} onChange={(e) => onChange?.(e.target.value)}/>
       {suffix && <b>{suffix}</b>}
     </div>
@@ -194,7 +196,6 @@ export function ErrorBox({ title, children }: { title: string; children?: ReactN
 }
 
 export function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return "G";
-  return (parts[0][0] + (parts[1]?.[0] ?? "")).toUpperCase();
+  const letters = name.trim().split(/\s+/).map((word) => Array.from(word).find((ch) => /[\p{L}\p{N}]/u.test(ch))).filter((ch): ch is string => !!ch);
+  return letters.length ? letters.slice(0, 2).join("").toUpperCase() : "G";
 }

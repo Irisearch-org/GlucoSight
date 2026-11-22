@@ -12,7 +12,7 @@ import { Camera, Confirm, Manual } from "./steps/MealStep";
 import { Result, buildPredictBody, toDetail, toRecord, type ResultState } from "./steps/ForecastStep";
 import { Scan, Source, SourceCard, Summary, sourceOptions } from "./steps/GlucoseStep";
 import {
-  AppBar, Badge, BottomNav, Brand, Button, ErrorBox, Field, Icon, SelectField, initials, type Screen,
+  AppBar, Badge, BottomNav, Brand, Button, Disclaimer, ErrorBox, Field, Icon, SelectField, initials, type Screen,
 } from "./ui";
 
 // -------------------------------------------------------------------- auth
@@ -53,10 +53,10 @@ function Auth({ register, profile, go, onSubmit }: {
         const message = await onSubmit(!!register, name.trim(), email.trim(), password);
         if (message) { setError(message); setBusy(false); }
       }}>
-        {register && <Field label="Nama lengkap" value={name} onChange={setName}/>}
-        <Field label="Email" type="email" value={email} onChange={setEmail}/>
-        <Field label="Kata sandi" type="password" placeholder={register ? "Minimal 8 karakter" : "Kata sandi"} value={password} onChange={setPassword}/>
-        {register && <Field label="Konfirmasi kata sandi" type="password" placeholder="Ulangi kata sandi" value={confirm} onChange={setConfirm}/>}
+        {register && <Field label="Nama lengkap" value={name} onChange={setName} autoComplete="name"/>}
+        <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" inputMode="email"/>
+        <Field label="Kata sandi" type="password" placeholder={register ? "Minimal 8 karakter" : "Kata sandi"} value={password} onChange={setPassword} autoComplete={register ? "new-password" : "current-password"}/>
+        {register && <Field label="Konfirmasi kata sandi" type="password" placeholder="Ulangi kata sandi" value={confirm} onChange={setConfirm} autoComplete="new-password"/>}
         {(hint || error) && <p className="field-hint" role="alert">{error || hint}</p>}
         <button className="button button--primary" type="submit" disabled={!valid || busy}><span>{busy ? "Memproses…" : register ? "Daftar" : "Masuk"}</span></button>
       </form>
@@ -92,6 +92,7 @@ function Home({ profile, history, apiState, nav, go, onOpen }: {
         <div className="prediction-cta__art"><div className="plate"><Icon name="sparkle" size={25}/></div><i className="line line-a"/><i className="line line-b"/></div>
         <div className="prediction-cta__copy"><Badge tone="teal">Prediksi baru</Badge><h2>Prediksi gula<br/>setelah makan</h2><p>Kenali respons tubuh Anda dalam 60 menit.</p><span>Mulai prediksi <Icon name="chevron" size={17}/></span></div>
       </button>
+      <Disclaimer/>
       <div className="section-heading"><div><span>Terakhir</span><h2>Prediksi terbaru</h2></div>{history.length > 0 && <button onClick={() => go("history")}>Lihat riwayat</button>}</div>
       {last ? <button className="last-card last-card--button" onClick={() => onOpen(last)}>
         <div className="last-card__top"><FoodIcon size={43}/><div><h3>{last.food}</h3><p>{formatWhen(last.createdAt)}</p></div><Badge tone={RANGE_TONE[last.range]}>{RANGE_LABEL[last.range]}</Badge></div>
