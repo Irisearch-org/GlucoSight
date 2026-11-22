@@ -72,7 +72,9 @@ function Wave({ data }: { data: number[] }) {
   return <svg className="wave" viewBox="0 0 300 70" preserveAspectRatio="none"><polyline points={points}/></svg>;
 }
 
-export function Scan({ go, onUse }: { go: (s: Screen) => void; onUse: (r: G0Reading) => void }) {
+const MANUAL_FALLBACK = "Masukkan hasil glukometer/CGM";
+
+export function Scan({ go, onUse, onManual }: { go: (s: Screen) => void; onUse: (r: G0Reading) => void; onManual: () => void }) {
   const [phase, setPhase] = useState<ScanPhase>("ready");
   const [frame, setFrame] = useState<FrameInfo | null>(null);
   const [error, setError] = useState("");
@@ -80,6 +82,7 @@ export function Scan({ go, onUse }: { go: (s: Screen) => void; onUse: (r: G0Read
   const videoRef = useRef<HTMLVideoElement>(null);
   const recRef = useRef<PpgRecorder | null>(null);
 
+  const [fallbackFirst, setFallbackFirst] = useState(false);
   useEffect(() => () => recRef.current?.dispose(), []);
   // The camera is closed on every error, so the last frame (and its "Jari terdeteksi") is stale.
   useEffect(() => { if (phase === "error") setFrame(null); }, [phase]);
@@ -99,6 +102,7 @@ export function Scan({ go, onUse }: { go: (s: Screen) => void; onUse: (r: G0Read
     if (!videoRef.current) return;
     setPhase("starting");
     setError("");
+    setFallbackFirst(false);
     const rec: PpgRecorder = new PpgRecorder(videoRef.current, setFrame, (capture, problem) => {
       rec.dispose();
       if (!capture) {
@@ -114,6 +118,7 @@ export function Scan({ go, onUse }: { go: (s: Screen) => void; onUse: (r: G0Read
       if (!rec.torchVerified) {
         rec.dispose();
         setError("Flash tidak menyala di perangkat atau browser ini, sehingga jari tidak dapat dipindai. Coba Chrome di Android, atau masukkan hasil glukometer/CGM.");
+        setFallbackFirst(true);
         setPhase("error");
         return;
       }
@@ -123,9 +128,12 @@ export function Scan({ go, onUse }: { go: (s: Screen) => void; onUse: (r: G0Read
       setError(e instanceof DOMException && e.name === "NotAllowedError"
         ? "Izin kamera ditolak. Izinkan akses kamera di pengaturan browser."
         : "Kamera tidak dapat dibuka di perangkat ini.");
+      setFallbackFirst(true);
       setPhase("error");
     }
   };
+
+  const retry = () => { setFrame(null); setPhase("ready"); };
 
   const cancel = () => { recRef.current?.dispose(); setFrame(null); setPhase("ready"); };
   const remaining = Math.max(0, Math.ceil(PPG_SECONDS - (frame?.elapsed ?? 0)));
@@ -166,13 +174,15 @@ export function Scan({ go, onUse }: { go: (s: Screen) => void; onUse: (r: G0Read
     {phase === "error" && <ErrorBox title="Pemindaian belum berhasil">{error}</ErrorBox>}
     {phase === "ready" && !cameraSupported() && <p className="field-hint">Kamera belum dapat dipakai di halaman ini.</p>}
     <div className="sticky-actions">
-      {phase === "ready" && <Button icon="camera" disabled={!cameraSupported()} onClick={openCamera}>Mulai pindai</Button>}
+      {phase === "ready" && <Button icon="camera" variant={cameraSupported() ? "primary" : "secondary"} disabled={!cameraSupported()} onClick={openCamera}>Mulai pindai</Button>}
+      {phase === "ready" && !cameraSupported() && <Button onClick={onManual}>{MANUAL_FALLBACK}</Button>}
       {phase === "starting" && <Button disabled>Memeriksa flash…</Button>}
       {phase === "aim" && <Button disabled={!frame?.fingerOn} onClick={() => { recRef.current?.record(); setPhase("recording"); }}>Mulai merekam</Button>}
       {phase === "recording" && <><Button disabled>Merekam… {remaining} detik</Button><Button variant="text" onClick={cancel}>Batalkan</Button></>}
       {phase === "processing" && <Button disabled>Memproses…</Button>}
       {phase === "done" && outcome && <><Button onClick={() => onUse(outcome)}>Gunakan hasil</Button><Button variant="text" onClick={() => { setOutcome(null); setFrame(null); setPhase("ready"); }}>Ulangi scan</Button></>}
-      {phase === "error" && <Button onClick={() => { setFrame(null); setPhase("ready"); }}>Ulangi scan</Button>}
+      {phase === "error" && fallbackFirst && <><Button onClick={onManual}>{MANUAL_FALLBACK}</Button><Button variant="secondary" onClick={retry}>Ulangi scan</Button></>}
+      {phase === "error" && !fallbackFirst && <><Button onClick={retry}>Ulangi scan</Button><Button variant="text" onClick={onManual}>{MANUAL_FALLBACK}</Button></>}
     </div>
   </WizardLayout>;
 }

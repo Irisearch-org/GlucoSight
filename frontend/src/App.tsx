@@ -313,7 +313,7 @@ export default function App() {
     case "history": return <History history={history} nav={nav} go={go} onOpen={openRecord}/>;
     case "profile": return <ProfileScreen profile={profile} historyCount={history.length} nav={nav} go={go} onSave={async (p) => { setProfile(await saveProfileRemote(p)); }} onSignOut={signOut}/>;
     case "source": return <Source draft={draft} patch={patch} go={go}/>;
-    case "scan": return <Scan go={go} onUse={(r) => { patch({ source: "ppg", ppg: r }); go("summary"); }}/>;
+    case "scan": return <Scan go={go} onUse={(r) => { patch({ source: "ppg", ppg: r }); go("summary"); }} onManual={() => { patch({ source: "meter" }); go("source"); }}/>;
     case "summary": return <Summary draft={draft} go={go}/>;
     case "camera": return <Camera draft={draft} patch={patch} go={go}/>;
     case "confirm": return <Confirm draft={draft} patch={patch} go={go} onPredict={runPrediction}/>;
