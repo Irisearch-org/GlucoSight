@@ -1,0 +1,1516 @@
+{
+  "arms": {
+    "served_full": {
+      "n_meals": 3045,
+      "n_participants": 100,
+      "metrics": {
+        "gbdt": {
+          "mae": 32.62780979880126,
+          "rmse": 41.61547871438558
+        },
+        "b0": {
+          "mae": 41.03987583038431,
+          "rmse": 52.16336669443099
+        },
+        "b1": {
+          "mae": 38.0943842364532,
+          "rmse": 49.78066691025298
+        },
+        "b2": {
+          "mae": 32.684931888684076,
+          "rmse": 41.48853250811253
+        }
+      },
+      "mean_error_gbdt_minus_y": -5.6776732496417734,
+      "mean_error_b2_minus_y": 3.255621864984811,
+      "clarke": {
+        "gbdt": {
+          "zones_pct": {
+            "A": 55.99,
+            "B": 41.74,
+            "C": 0.13,
+            "D": 2.13,
+            "E": 0.0
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 55.01,
+            "iqr_zone_a": 26.56,
+            "min_zone_a": 18.18,
+            "max_zone_a": 100.0,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 7.27,
+              "zone_ab_pct": 93.43
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 64.19,
+              "zone_ab_pct": 99.88
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 71.64,
+              "zone_ab_pct": 100.0
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 55.47,
+              "zone_ab_pct": 98.05
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 24.0,
+              "zone_ab_pct": 83.5
+            }
+          ]
+        },
+        "b0": {
+          "zones_pct": {
+            "A": 46.47,
+            "B": 44.99,
+            "C": 0.0,
+            "D": 8.54,
+            "E": 0.0
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 50.0,
+            "iqr_zone_a": 27.83,
+            "min_zone_a": 0.0,
+            "max_zone_a": 100.0,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 0.0,
+              "zone_ab_pct": 94.46
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 24.91,
+              "zone_ab_pct": 100.0
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 100.0,
+              "zone_ab_pct": 100.0
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 37.47,
+              "zone_ab_pct": 94.65
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 0.0,
+              "zone_ab_pct": 0.0
+            }
+          ]
+        },
+        "b1": {
+          "zones_pct": {
+            "A": 51.59,
+            "B": 44.4,
+            "C": 0.16,
+            "D": 3.81,
+            "E": 0.03
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 50.0,
+            "iqr_zone_a": 29.87,
+            "min_zone_a": 0.0,
+            "max_zone_a": 94.74,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 65.05,
+              "zone_ab_pct": 96.54
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 60.6,
+              "zone_ab_pct": 99.76
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 51.39,
+              "zone_ab_pct": 99.89
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 42.34,
+              "zone_ab_pct": 96.72
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 33.5,
+              "zone_ab_pct": 59.0
+            }
+          ]
+        },
+        "b2": {
+          "zones_pct": {
+            "A": 55.57,
+            "B": 41.81,
+            "C": 0.43,
+            "D": 2.2,
+            "E": 0.0
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 54.92,
+            "iqr_zone_a": 22.81,
+            "min_zone_a": 0.0,
+            "max_zone_a": 100.0,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 18.69,
+              "zone_ab_pct": 92.74
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 53.77,
+              "zone_ab_pct": 99.64
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 68.08,
+              "zone_ab_pct": 99.78
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 59.12,
+              "zone_ab_pct": 97.81
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 45.5,
+              "zone_ab_pct": 82.0
+            }
+          ]
+        }
+      },
+      "gate": {
+        "b2": {
+          "improvement_mgdl": 0.057122089882817306,
+          "fold_wins_by_repeat": [
+            3,
+            2,
+            2,
+            3,
+            2
+          ],
+          "fold_wins_total": 12,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            -1.4405445392984855,
+            1.545255613771808
+          ],
+          "permutation_p": 0.004975124378109453,
+          "checks": {
+            "positive_gain": true,
+            "fold_wins_every_repeat": false,
+            "bootstrap_ci_excludes_zero": false,
+            "permutation_p": true
+          },
+          "passes": false,
+          "reasons": [
+            "pass: MAE gain 0.06 mg/dL vs b2",
+            "FAIL: GBDT beat b2 in [3, 2, 2, 3, 2] folds per repetition (min 4 each)",
+            "FAIL: participant bootstrap 95% CI [-1.44, 1.55]",
+            "pass: within-participant macro permutation p = 0.005"
+          ]
+        },
+        "b1": {
+          "improvement_mgdl": 5.466574437651943,
+          "fold_wins_by_repeat": [
+            5,
+            4,
+            5,
+            5,
+            5
+          ],
+          "fold_wins_total": 24,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            2.936180769257372,
+            8.150673165402797
+          ],
+          "permutation_p": null,
+          "checks": {
+            "positive_gain": true,
+            "fold_wins_every_repeat": true,
+            "bootstrap_ci_excludes_zero": true
+          },
+          "passes": true,
+          "reasons": [
+            "pass: MAE gain 5.47 mg/dL vs b1",
+            "pass: GBDT beat b1 in [5, 4, 5, 5, 5] folds per repetition (min 4 each)",
+            "pass: participant bootstrap 95% CI [2.94, 8.15]"
+          ]
+        },
+        "b0": {
+          "improvement_mgdl": 8.412066031583052,
+          "fold_wins_by_repeat": [
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "fold_wins_total": 25,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            6.126956798825215,
+            10.603293405625049
+          ],
+          "permutation_p": null,
+          "checks": {
+            "positive_gain": true,
+            "fold_wins_every_repeat": true,
+            "bootstrap_ci_excludes_zero": true
+          },
+          "passes": true,
+          "reasons": [
+            "pass: MAE gain 8.41 mg/dL vs b0",
+            "pass: GBDT beat b0 in [5, 5, 5, 5, 5] folds per repetition (min 4 each)",
+            "pass: participant bootstrap 95% CI [6.13, 10.60]"
+          ]
+        },
+        "b2_sh": {
+          "improvement_mgdl": -0.3543868086777451,
+          "fold_wins_by_repeat": [
+            2,
+            3,
+            2,
+            3,
+            2
+          ],
+          "fold_wins_total": 12,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            -1.9530032800995032,
+            1.1985994972989205
+          ],
+          "permutation_p": null,
+          "checks": {
+            "positive_gain": false,
+            "fold_wins_every_repeat": false,
+            "bootstrap_ci_excludes_zero": false
+          },
+          "passes": false,
+          "reasons": [
+            "FAIL: MAE gain -0.35 mg/dL vs b2_sh",
+            "FAIL: GBDT beat b2_sh in [2, 3, 2, 3, 2] folds per repetition (min 4 each)",
+            "FAIL: participant bootstrap 95% CI [-1.95, 1.20]"
+          ]
+        }
+      },
+      "permutation": {
+        "n": 200,
+        "observed_gain_mgdl": 0.057122089882817306,
+        "observed_gain_like_for_like_mgdl": 0.057122089882817306,
+        "p": 0.004975124378109453,
+        "null_mean": -7.860784882846031,
+        "null_p95": -7.316040479754499
+      },
+      "sensitivity_no_insulin_no_overlap_vs_b2": {
+        "n_meals_per_repeat": 2651,
+        "n_participants": 93,
+        "gain_mgdl": 0.5486310749774397,
+        "mae_gbdt": 31.831585733321514,
+        "mae_base": 32.380216808298954,
+        "bootstrap_ci_95": [
+          -1.0450101197471635,
+          2.175538919886255
+        ]
+      }
+    },
+    "served_full_noprofile": {
+      "n_meals": 3045,
+      "n_participants": 100,
+      "metrics": {
+        "gbdt": {
+          "mae": 37.65245840998452,
+          "rmse": 49.55551406595639
+        },
+        "b0": {
+          "mae": 41.03987583038431,
+          "rmse": 52.16336669443099
+        },
+        "b1": {
+          "mae": 38.0943842364532,
+          "rmse": 49.78066691025298
+        },
+        "b2": {
+          "mae": 32.684931888684076,
+          "rmse": 41.48853250811253
+        }
+      },
+      "mean_error_gbdt_minus_y": -27.758447096990146,
+      "mean_error_b2_minus_y": 3.255621864984811,
+      "clarke": {
+        "gbdt": {
+          "zones_pct": {
+            "A": 51.23,
+            "B": 42.76,
+            "C": 0.0,
+            "D": 6.01,
+            "E": 0.0
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 50.0,
+            "iqr_zone_a": 33.87,
+            "min_zone_a": 0.0,
+            "max_zone_a": 100.0,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 40.83,
+              "zone_ab_pct": 94.46
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 87.9,
+              "zone_ab_pct": 100.0
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 53.17,
+              "zone_ab_pct": 100.0
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 24.94,
+              "zone_ab_pct": 95.86
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 12.5,
+              "zone_ab_pct": 33.5
+            }
+          ]
+        },
+        "b0": {
+          "zones_pct": {
+            "A": 46.47,
+            "B": 44.99,
+            "C": 0.0,
+            "D": 8.54,
+            "E": 0.0
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 50.0,
+            "iqr_zone_a": 27.83,
+            "min_zone_a": 0.0,
+            "max_zone_a": 100.0,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 0.0,
+              "zone_ab_pct": 94.46
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 24.91,
+              "zone_ab_pct": 100.0
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 100.0,
+              "zone_ab_pct": 100.0
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 37.47,
+              "zone_ab_pct": 94.65
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 0.0,
+              "zone_ab_pct": 0.0
+            }
+          ]
+        },
+        "b1": {
+          "zones_pct": {
+            "A": 51.59,
+            "B": 44.4,
+            "C": 0.16,
+            "D": 3.81,
+            "E": 0.03
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 50.0,
+            "iqr_zone_a": 29.87,
+            "min_zone_a": 0.0,
+            "max_zone_a": 94.74,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 65.05,
+              "zone_ab_pct": 96.54
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 60.6,
+              "zone_ab_pct": 99.76
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 51.39,
+              "zone_ab_pct": 99.89
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 42.34,
+              "zone_ab_pct": 96.72
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 33.5,
+              "zone_ab_pct": 59.0
+            }
+          ]
+        },
+        "b2": {
+          "zones_pct": {
+            "A": 55.57,
+            "B": 41.81,
+            "C": 0.43,
+            "D": 2.2,
+            "E": 0.0
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 54.92,
+            "iqr_zone_a": 22.81,
+            "min_zone_a": 0.0,
+            "max_zone_a": 100.0,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 18.69,
+              "zone_ab_pct": 92.74
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 53.77,
+              "zone_ab_pct": 99.64
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 68.08,
+              "zone_ab_pct": 99.78
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 59.12,
+              "zone_ab_pct": 97.81
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 45.5,
+              "zone_ab_pct": 82.0
+            }
+          ]
+        }
+      },
+      "gate": {
+        "b2": {
+          "improvement_mgdl": -4.967526521300442,
+          "fold_wins_by_repeat": [
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "fold_wins_total": 1,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            -7.4584946884744,
+            -2.475648102188845
+          ],
+          "permutation_p": 0.004975124378109453,
+          "checks": {
+            "positive_gain": false,
+            "fold_wins_every_repeat": false,
+            "bootstrap_ci_excludes_zero": false,
+            "permutation_p": true
+          },
+          "passes": false,
+          "reasons": [
+            "FAIL: MAE gain -4.97 mg/dL vs b2",
+            "FAIL: GBDT beat b2 in [0, 0, 1, 0, 0] folds per repetition (min 4 each)",
+            "FAIL: participant bootstrap 95% CI [-7.46, -2.48]",
+            "pass: within-participant macro permutation p = 0.005"
+          ]
+        },
+        "b1": {
+          "improvement_mgdl": 0.44192582646868317,
+          "fold_wins_by_repeat": [
+            4,
+            3,
+            3,
+            3,
+            4
+          ],
+          "fold_wins_total": 17,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            -1.5677548039555922,
+            2.457563246243054
+          ],
+          "permutation_p": null,
+          "checks": {
+            "positive_gain": true,
+            "fold_wins_every_repeat": false,
+            "bootstrap_ci_excludes_zero": false
+          },
+          "passes": false,
+          "reasons": [
+            "pass: MAE gain 0.44 mg/dL vs b1",
+            "FAIL: GBDT beat b1 in [4, 3, 3, 3, 4] folds per repetition (min 4 each)",
+            "FAIL: participant bootstrap 95% CI [-1.57, 2.46]"
+          ]
+        },
+        "b0": {
+          "improvement_mgdl": 3.3874174203997924,
+          "fold_wins_by_repeat": [
+            4,
+            5,
+            5,
+            5,
+            4
+          ],
+          "fold_wins_total": 23,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            0.30867433455093585,
+            6.6657339779008264
+          ],
+          "permutation_p": null,
+          "checks": {
+            "positive_gain": true,
+            "fold_wins_every_repeat": true,
+            "bootstrap_ci_excludes_zero": true
+          },
+          "passes": true,
+          "reasons": [
+            "pass: MAE gain 3.39 mg/dL vs b0",
+            "pass: GBDT beat b0 in [4, 5, 5, 5, 4] folds per repetition (min 4 each)",
+            "pass: participant bootstrap 95% CI [0.31, 6.67]"
+          ]
+        },
+        "b2_sh": {
+          "improvement_mgdl": -5.379035419861005,
+          "fold_wins_by_repeat": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "fold_wins_total": 0,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            -7.666291166128891,
+            -3.054778319098649
+          ],
+          "permutation_p": null,
+          "checks": {
+            "positive_gain": false,
+            "fold_wins_every_repeat": false,
+            "bootstrap_ci_excludes_zero": false
+          },
+          "passes": false,
+          "reasons": [
+            "FAIL: MAE gain -5.38 mg/dL vs b2_sh",
+            "FAIL: GBDT beat b2_sh in [0, 0, 0, 0, 0] folds per repetition (min 4 each)",
+            "FAIL: participant bootstrap 95% CI [-7.67, -3.05]"
+          ]
+        }
+      },
+      "permutation": {
+        "n": 200,
+        "observed_gain_mgdl": -4.967526521300442,
+        "observed_gain_like_for_like_mgdl": -4.967526521300442,
+        "p": 0.004975124378109453,
+        "null_mean": -11.163509856280532,
+        "null_p95": -10.705552823562327
+      },
+      "sensitivity_no_insulin_no_overlap_vs_b2": {
+        "n_meals_per_repeat": 2651,
+        "n_participants": 93,
+        "gain_mgdl": -3.959959386357909,
+        "mae_gbdt": 36.34017619465686,
+        "mae_base": 32.380216808298954,
+        "bootstrap_ci_95": [
+          -6.6771887593275965,
+          -1.2558841773718072
+        ]
+      }
+    },
+    "retrained_g0_hour": {
+      "n_meals": 3045,
+      "n_participants": 100,
+      "metrics": {
+        "gbdt": {
+          "mae": 31.346127928326915,
+          "rmse": 39.79049903896271
+        },
+        "b0": {
+          "mae": 41.03987583038431,
+          "rmse": 52.16336669443099
+        },
+        "b1": {
+          "mae": 38.0943842364532,
+          "rmse": 49.78066691025298
+        },
+        "b2": {
+          "mae": 32.684931888684076,
+          "rmse": 41.48853250811253
+        }
+      },
+      "mean_error_gbdt_minus_y": 3.0128469685573394,
+      "mean_error_b2_minus_y": 3.255621864984811,
+      "clarke": {
+        "gbdt": {
+          "zones_pct": {
+            "A": 58.39,
+            "B": 39.44,
+            "C": 0.56,
+            "D": 1.61,
+            "E": 0.0
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 60.34,
+            "iqr_zone_a": 19.08,
+            "min_zone_a": 0.0,
+            "max_zone_a": 100.0,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 0.35,
+              "zone_ab_pct": 93.43
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 54.85,
+              "zone_ab_pct": 99.64
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 77.98,
+              "zone_ab_pct": 99.11
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 61.68,
+              "zone_ab_pct": 98.05
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 55.5,
+              "zone_ab_pct": 90.0
+            }
+          ]
+        },
+        "b0": {
+          "zones_pct": {
+            "A": 46.47,
+            "B": 44.99,
+            "C": 0.0,
+            "D": 8.54,
+            "E": 0.0
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 50.0,
+            "iqr_zone_a": 27.83,
+            "min_zone_a": 0.0,
+            "max_zone_a": 100.0,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 0.0,
+              "zone_ab_pct": 94.46
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 24.91,
+              "zone_ab_pct": 100.0
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 100.0,
+              "zone_ab_pct": 100.0
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 37.47,
+              "zone_ab_pct": 94.65
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 0.0,
+              "zone_ab_pct": 0.0
+            }
+          ]
+        },
+        "b1": {
+          "zones_pct": {
+            "A": 51.59,
+            "B": 44.4,
+            "C": 0.16,
+            "D": 3.81,
+            "E": 0.03
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 50.0,
+            "iqr_zone_a": 29.87,
+            "min_zone_a": 0.0,
+            "max_zone_a": 94.74,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 65.05,
+              "zone_ab_pct": 96.54
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 60.6,
+              "zone_ab_pct": 99.76
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 51.39,
+              "zone_ab_pct": 99.89
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 42.34,
+              "zone_ab_pct": 96.72
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 33.5,
+              "zone_ab_pct": 59.0
+            }
+          ]
+        },
+        "b2": {
+          "zones_pct": {
+            "A": 55.57,
+            "B": 41.81,
+            "C": 0.43,
+            "D": 2.2,
+            "E": 0.0
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 54.92,
+            "iqr_zone_a": 22.81,
+            "min_zone_a": 0.0,
+            "max_zone_a": 100.0,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 18.69,
+              "zone_ab_pct": 92.74
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 53.77,
+              "zone_ab_pct": 99.64
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 68.08,
+              "zone_ab_pct": 99.78
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 59.12,
+              "zone_ab_pct": 97.81
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 45.5,
+              "zone_ab_pct": 82.0
+            }
+          ]
+        }
+      },
+      "gate": {
+        "b2": {
+          "improvement_mgdl": 1.3388039603571613,
+          "fold_wins_by_repeat": [
+            3,
+            4,
+            4,
+            4,
+            4
+          ],
+          "fold_wins_total": 19,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            0.016313163585614736,
+            2.753382675209354
+          ],
+          "permutation_p": 0.004975124378109453,
+          "checks": {
+            "positive_gain": true,
+            "fold_wins_every_repeat": false,
+            "bootstrap_ci_excludes_zero": true,
+            "permutation_p": true
+          },
+          "passes": false,
+          "reasons": [
+            "pass: MAE gain 1.34 mg/dL vs b2",
+            "FAIL: GBDT beat b2 in [3, 4, 4, 4, 4] folds per repetition (min 4 each)",
+            "pass: participant bootstrap 95% CI [0.02, 2.75]",
+            "pass: within-participant macro permutation p = 0.005"
+          ]
+        },
+        "b1": {
+          "improvement_mgdl": 6.748256308126287,
+          "fold_wins_by_repeat": [
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "fold_wins_total": 25,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            3.8609017475130116,
+            9.777495531402353
+          ],
+          "permutation_p": null,
+          "checks": {
+            "positive_gain": true,
+            "fold_wins_every_repeat": true,
+            "bootstrap_ci_excludes_zero": true
+          },
+          "passes": true,
+          "reasons": [
+            "pass: MAE gain 6.75 mg/dL vs b1",
+            "pass: GBDT beat b1 in [5, 5, 5, 5, 5] folds per repetition (min 4 each)",
+            "pass: participant bootstrap 95% CI [3.86, 9.78]"
+          ]
+        },
+        "b0": {
+          "improvement_mgdl": 9.693747902057396,
+          "fold_wins_by_repeat": [
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "fold_wins_total": 25,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            7.205700934570707,
+            12.192556278205906
+          ],
+          "permutation_p": null,
+          "checks": {
+            "positive_gain": true,
+            "fold_wins_every_repeat": true,
+            "bootstrap_ci_excludes_zero": true
+          },
+          "passes": true,
+          "reasons": [
+            "pass: MAE gain 9.69 mg/dL vs b0",
+            "pass: GBDT beat b0 in [5, 5, 5, 5, 5] folds per repetition (min 4 each)",
+            "pass: participant bootstrap 95% CI [7.21, 12.19]"
+          ]
+        },
+        "b2_sh": {
+          "improvement_mgdl": 0.9272950617965989,
+          "fold_wins_by_repeat": [
+            3,
+            4,
+            3,
+            3,
+            4
+          ],
+          "fold_wins_total": 17,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            -0.6704197794509992,
+            2.4674401093458496
+          ],
+          "permutation_p": null,
+          "checks": {
+            "positive_gain": true,
+            "fold_wins_every_repeat": false,
+            "bootstrap_ci_excludes_zero": false
+          },
+          "passes": false,
+          "reasons": [
+            "pass: MAE gain 0.93 mg/dL vs b2_sh",
+            "FAIL: GBDT beat b2_sh in [3, 4, 3, 3, 4] folds per repetition (min 4 each)",
+            "FAIL: participant bootstrap 95% CI [-0.67, 2.47]"
+          ]
+        }
+      },
+      "permutation": {
+        "n": 200,
+        "observed_gain_mgdl": 1.3388039603571613,
+        "observed_gain_like_for_like_mgdl": 1.3388039603571613,
+        "p": 0.004975124378109453,
+        "null_mean": -5.4251870132590305,
+        "null_p95": -4.842205810260437
+      },
+      "sensitivity_no_insulin_no_overlap_vs_b2": {
+        "n_meals_per_repeat": 2651,
+        "n_participants": 93,
+        "gain_mgdl": 1.7155675689873924,
+        "mae_gbdt": 30.66464923931156,
+        "mae_base": 32.380216808298954,
+        "bootstrap_ci_95": [
+          0.31686108615984704,
+          3.167348572852123
+        ]
+      }
+    },
+    "retrained_g0_hour_profile": {
+      "n_meals": 3045,
+      "n_participants": 100,
+      "metrics": {
+        "gbdt": {
+          "mae": 32.701971989478054,
+          "rmse": 40.898518199642666
+        },
+        "b0": {
+          "mae": 41.03987583038431,
+          "rmse": 52.16336669443099
+        },
+        "b1": {
+          "mae": 38.0943842364532,
+          "rmse": 49.78066691025298
+        },
+        "b2": {
+          "mae": 32.684931888684076,
+          "rmse": 41.48853250811253
+        }
+      },
+      "mean_error_gbdt_minus_y": 8.658080282439393,
+      "mean_error_b2_minus_y": 3.255621864984811,
+      "clarke": {
+        "gbdt": {
+          "zones_pct": {
+            "A": 56.81,
+            "B": 41.64,
+            "C": 0.46,
+            "D": 1.08,
+            "E": 0.0
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 60.0,
+            "iqr_zone_a": 22.02,
+            "min_zone_a": 0.0,
+            "max_zone_a": 100.0,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 10.73,
+              "zone_ab_pct": 92.04
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 44.07,
+              "zone_ab_pct": 99.52
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 68.74,
+              "zone_ab_pct": 99.77
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 71.53,
+              "zone_ab_pct": 99.15
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 62.5,
+              "zone_ab_pct": 94.5
+            }
+          ]
+        },
+        "b0": {
+          "zones_pct": {
+            "A": 46.47,
+            "B": 44.99,
+            "C": 0.0,
+            "D": 8.54,
+            "E": 0.0
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 50.0,
+            "iqr_zone_a": 27.83,
+            "min_zone_a": 0.0,
+            "max_zone_a": 100.0,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 0.0,
+              "zone_ab_pct": 94.46
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 24.91,
+              "zone_ab_pct": 100.0
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 100.0,
+              "zone_ab_pct": 100.0
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 37.47,
+              "zone_ab_pct": 94.65
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 0.0,
+              "zone_ab_pct": 0.0
+            }
+          ]
+        },
+        "b1": {
+          "zones_pct": {
+            "A": 51.59,
+            "B": 44.4,
+            "C": 0.16,
+            "D": 3.81,
+            "E": 0.03
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 50.0,
+            "iqr_zone_a": 29.87,
+            "min_zone_a": 0.0,
+            "max_zone_a": 94.74,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 65.05,
+              "zone_ab_pct": 96.54
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 60.6,
+              "zone_ab_pct": 99.76
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 51.39,
+              "zone_ab_pct": 99.89
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 42.34,
+              "zone_ab_pct": 96.72
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 33.5,
+              "zone_ab_pct": 59.0
+            }
+          ]
+        },
+        "b2": {
+          "zones_pct": {
+            "A": 55.57,
+            "B": 41.81,
+            "C": 0.43,
+            "D": 2.2,
+            "E": 0.0
+          },
+          "per_participant_zone_a": {
+            "median_zone_a": 54.92,
+            "iqr_zone_a": 22.81,
+            "min_zone_a": 0.0,
+            "max_zone_a": 100.0,
+            "n_participants": 100,
+            "n_participants_excluded": 0,
+            "min_meals": 5
+          },
+          "zone_a_by_reference_range": [
+            {
+              "range": "[0, 100)",
+              "n": 1445,
+              "zone_a_pct": 18.69,
+              "zone_ab_pct": 92.74
+            },
+            {
+              "range": "[100, 140)",
+              "n": 4175,
+              "zone_a_pct": 53.77,
+              "zone_ab_pct": 99.64
+            },
+            {
+              "range": "[140, 180)",
+              "n": 4495,
+              "zone_a_pct": 68.08,
+              "zone_ab_pct": 99.78
+            },
+            {
+              "range": "[180, 250)",
+              "n": 4110,
+              "zone_a_pct": 59.12,
+              "zone_ab_pct": 97.81
+            },
+            {
+              "range": "[250, 10000)",
+              "n": 1000,
+              "zone_a_pct": 45.5,
+              "zone_ab_pct": 82.0
+            }
+          ]
+        }
+      },
+      "gate": {
+        "b2": {
+          "improvement_mgdl": -0.01704010079397733,
+          "fold_wins_by_repeat": [
+            2,
+            3,
+            2,
+            4,
+            2
+          ],
+          "fold_wins_total": 13,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            -2.13509788665192,
+            2.112930784808352
+          ],
+          "permutation_p": 0.004975124378109453,
+          "checks": {
+            "positive_gain": false,
+            "fold_wins_every_repeat": false,
+            "bootstrap_ci_excludes_zero": false,
+            "permutation_p": true
+          },
+          "passes": false,
+          "reasons": [
+            "FAIL: MAE gain -0.02 mg/dL vs b2",
+            "FAIL: GBDT beat b2 in [2, 3, 2, 4, 2] folds per repetition (min 4 each)",
+            "FAIL: participant bootstrap 95% CI [-2.14, 2.11]",
+            "pass: within-participant macro permutation p = 0.005"
+          ]
+        },
+        "b1": {
+          "improvement_mgdl": 5.392412246975148,
+          "fold_wins_by_repeat": [
+            5,
+            4,
+            5,
+            4,
+            5
+          ],
+          "fold_wins_total": 23,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            1.751924113424792,
+            9.01385554271566
+          ],
+          "permutation_p": null,
+          "checks": {
+            "positive_gain": true,
+            "fold_wins_every_repeat": true,
+            "bootstrap_ci_excludes_zero": true
+          },
+          "passes": true,
+          "reasons": [
+            "pass: MAE gain 5.39 mg/dL vs b1",
+            "pass: GBDT beat b1 in [5, 4, 5, 4, 5] folds per repetition (min 4 each)",
+            "pass: participant bootstrap 95% CI [1.75, 9.01]"
+          ]
+        },
+        "b0": {
+          "improvement_mgdl": 8.337903840906257,
+          "fold_wins_by_repeat": [
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "fold_wins_total": 25,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            5.203496680064911,
+            11.446105001838237
+          ],
+          "permutation_p": null,
+          "checks": {
+            "positive_gain": true,
+            "fold_wins_every_repeat": true,
+            "bootstrap_ci_excludes_zero": true
+          },
+          "passes": true,
+          "reasons": [
+            "pass: MAE gain 8.34 mg/dL vs b0",
+            "pass: GBDT beat b0 in [5, 5, 5, 5, 5] folds per repetition (min 4 each)",
+            "pass: participant bootstrap 95% CI [5.20, 11.45]"
+          ]
+        },
+        "b2_sh": {
+          "improvement_mgdl": -0.4285489993545397,
+          "fold_wins_by_repeat": [
+            2,
+            3,
+            2,
+            2,
+            2
+          ],
+          "fold_wins_total": 11,
+          "n_folds": 25,
+          "bootstrap_ci_95": [
+            -2.850812760329181,
+            1.944485908661308
+          ],
+          "permutation_p": null,
+          "checks": {
+            "positive_gain": false,
+            "fold_wins_every_repeat": false,
+            "bootstrap_ci_excludes_zero": false
+          },
+          "passes": false,
+          "reasons": [
+            "FAIL: MAE gain -0.43 mg/dL vs b2_sh",
+            "FAIL: GBDT beat b2_sh in [2, 3, 2, 2, 2] folds per repetition (min 4 each)",
+            "FAIL: participant bootstrap 95% CI [-2.85, 1.94]"
+          ]
+        }
+      },
+      "permutation": {
+        "n": 200,
+        "observed_gain_mgdl": -0.01704010079397733,
+        "observed_gain_like_for_like_mgdl": -0.01704010079397733,
+        "p": 0.004975124378109453,
+        "null_mean": -7.37739593836711,
+        "null_p95": -6.839199834490401
+      },
+      "sensitivity_no_insulin_no_overlap_vs_b2": {
+        "n_meals_per_repeat": 2651,
+        "n_participants": 93,
+        "gain_mgdl": 0.1389853415841884,
+        "mae_gbdt": 32.241231466714765,
+        "mae_base": 32.380216808298954,
+        "bootstrap_ci_95": [
+          -2.2775974560373444,
+          2.585086589911446
+        ]
+      }
+    }
+  },
+  "meta": {
+    "served_full": {
+      "columns": [
+        "g0_mgdl",
+        "src_meter",
+        "src_ppg",
+        "hour_sin",
+        "hour_cos",
+        "carbs_g",
+        "protein_g",
+        "fat_g",
+        "fibre_g",
+        "age_y",
+        "female",
+        "bmi",
+        "dm_band"
+      ],
+      "params": {
+        "offset": false,
+        "num_leaves": 8,
+        "min_child_samples": 20,
+        "n_estimators": 100
+      },
+      "set": "full"
+    },
+    "retrained_g0_hour": {
+      "columns": [
+        "g0_mgdl",
+        "src_meter",
+        "src_ppg",
+        "hour_sin",
+        "hour_cos"
+      ],
+      "params": {
+        "offset": false,
+        "num_leaves": 4,
+        "min_child_samples": 60,
+        "n_estimators": 100
+      },
+      "inner_mae": 30.95415266637789,
+      "training_rows": 6136
+    },
+    "retrained_g0_hour_profile": {
+      "columns": [
+        "g0_mgdl",
+        "src_meter",
+        "src_ppg",
+        "hour_sin",
+        "hour_cos",
+        "age_y",
+        "female",
+        "bmi",
+        "dm_band"
+      ],
+      "params": {
+        "offset": true,
+        "num_leaves": 4,
+        "min_child_samples": 20,
+        "n_estimators": 100
+      },
+      "inner_mae": 30.55603997379566,
+      "training_rows": 6136
+    }
+  },
+  "b0_cgmacros": 155.92698826597132,
+  "b2_excursion_cgmacros": 30.957887874837027,
+  "n_cgmacros_meals": 1534,
+  "n_cgmacros_participants": 45
+}

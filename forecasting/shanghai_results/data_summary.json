@@ -1,0 +1,68 @@
+{
+  "rebuild_identical_to_committed_response_csv": true,
+  "n_grams_missing": 0,
+  "vocabulary_size": 1825,
+  "meals_with_no_parsed_dish": 7,
+  "cgmacros_cleaning": {
+    "meal_events_total": 1706,
+    "fibre_gt_carbs_raw_rows": 33,
+    "dropped_all_zero_marker": 44,
+    "dropped_missing_composition": 0,
+    "atwater_kcal_zero_rows": 1,
+    "atwater_deviation_counts": {
+      "gt_20pct": 107,
+      "gt_30pct": 85,
+      "gt_50pct": 58
+    },
+    "dropped_atwater_primary": 85,
+    "dropped_atwater_primary_participants": 33,
+    "median_atwater_ratio_kept": 1.0071942446043165,
+    "fibre_gt_carbs_set_nan": 24,
+    "fibre_gt_carbs_by_participant": {
+      "19": 14,
+      "16": 9,
+      "10": 1
+    },
+    "meal_events_kept": 1577,
+    "participants_kept": 45,
+    "n_participants_with_meals": 45
+  },
+  "cohort_sizes": {
+    "T60": {
+      "meals": 3045,
+      "participants": 100
+    },
+    "T120": {
+      "meals": 3028,
+      "participants": 100
+    }
+  },
+  "profile": {
+    "n_periods": 109,
+    "n_subjects": 100,
+    "type_of_diabetes": {
+      "T2DM": 109
+    },
+    "age_years": {
+      "mean": 60.30275229357798,
+      "sd": 14.00628469199661,
+      "min": 22.0,
+      "max": 97.0
+    },
+    "female_share_periods": 0.45871559633027525,
+    "bmi": {
+      "mean": 24.093780081185315,
+      "sd": 3.3123704720317466,
+      "min": 17.08744499978641,
+      "max": 36.7309458218549
+    },
+    "diabetes_duration_years_median": 7.0,
+    "periods_with_insulin_in_agent_text_HEURISTIC_regex": 56,
+    "periods_with_metformin_in_agent_text": 47,
+    "periods_with_any_agent_listed": 104,
+    "meals_insulin_near_meal_within_30min": 373,
+    "meals_total": 3060,
+    "hba1c_mmol_per_mol_recorded_periods": 101,
+    "note": "medication / insulin / HbA1c are reported only; none enters a model input"
+  }
+}
