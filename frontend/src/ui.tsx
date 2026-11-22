@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 
 export type Screen =
   | "landing" | "login" | "register" | "home" | "history" | "profile"
@@ -101,13 +101,13 @@ export function Progress({ current }: { current: number }) {
   </div>;
 }
 
-export function Field({ label, placeholder, type = "text", suffix, value, onChange, min, max, step }: {
-  label: string; placeholder?: string; type?: string; suffix?: string; value?: string;
+export function Field({ label, placeholder, type = "text", inputMode, suffix, value, onChange, min, max, step }: {
+  label: string; placeholder?: string; type?: string; inputMode?: "decimal" | "numeric" | "text"; suffix?: string; value?: string;
   onChange?: (value: string) => void; min?: number; max?: number; step?: number;
 }) {
   return <label className="field"><span>{label}</span>
     <div className="field__input">
-      <input type={type} placeholder={placeholder} value={value} min={min} max={max} step={step}
+      <input type={type} inputMode={inputMode} placeholder={placeholder} value={value} min={min} max={max} step={step}
         readOnly={onChange === undefined && value !== undefined} onChange={(e) => onChange?.(e.target.value)}/>
       {suffix && <b>{suffix}</b>}
     </div>
@@ -170,8 +170,30 @@ export function BottomNav({ active, go }: { active: "home" | "prediction" | "his
   </nav>;
 }
 
+/** Keeps the pinned action row above the on-screen keyboard and keeps the focused field visible when the keyboard opens (iOS Safari, and browsers whose layout viewport does not shrink). */
+function useKeyboardInset(ref: RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const vv = window.visualViewport;
+    const el = ref.current;
+    if (!vv || !el) return;
+    let height = vv.height;
+    const update = () => {
+      el.style.setProperty("--kb-inset", `${Math.round(Math.max(0, window.innerHeight - vv.height - vv.offsetTop))}px`);
+      const focused = document.activeElement;
+      if (vv.height < height && focused instanceof HTMLInputElement && el.contains(focused)) focused.scrollIntoView({ block: "center" });
+      height = vv.height;
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => { vv.removeEventListener("resize", update); vv.removeEventListener("scroll", update); };
+  }, [ref]);
+}
+
 export function WizardLayout({ current, title, back, children }: { current: number; title: string; back: () => void; children: ReactNode }) {
-  return <div className="shell wizard"><AppBar title={title} onBack={back}/><Progress current={current}/><main className="page wizard-page">{children}</main></div>;
+  const shell = useRef<HTMLDivElement>(null);
+  useKeyboardInset(shell);
+  return <div className="shell wizard" ref={shell}><AppBar title={title} onBack={back}/><Progress current={current}/><main className="page wizard-page">{children}</main></div>;
 }
 
 /** Compact research disclaimer with an expandable detail block, shown on Beranda and Hasil. */

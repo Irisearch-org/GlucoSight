@@ -12,7 +12,7 @@ import { Badge, Button, ErrorBox, Field, Icon, WizardLayout, type IconName, type
 export const sourceOptions: { id: SourceId; icon: IconName; title: string; sub: string; badge?: string; tone?: Tone }[] = [
   { id: "meter", icon: "meter", title: "Glukometer", sub: "Masukkan hasil fingerstick", badge: "Terukur", tone: "green" },
   { id: "cgm", icon: "pulse", title: "CGM", sub: "Masukkan pembacaan terakhir dari aplikasi CGM", badge: "Terukur", tone: "green" },
-  { id: "ppg", icon: "camera", title: "Scan Jari (PPG)", sub: "Estimasi kasar lewat kamera ponsel" },
+  { id: "ppg", icon: "camera", title: "Scan Jari (PPG)", sub: "Estimasi kasar lewat kamera ponsel · butuh Chrome di Android" },
 ];
 
 export function SourceCard({ option, selected, onClick }: { option: (typeof sourceOptions)[number]; selected: boolean; onClick: () => void }) {
@@ -41,14 +41,14 @@ export function Source({ draft, patch, go }: { draft: Draft; patch: (p: Partial<
       onClick={() => { patch({ source: o.id }); if (o.id === "ppg") go("scan"); }}/>)}</div>
     {draft.source === "meter" && <section className="reveal-card">
       <div className="reveal-card__head"><Icon name="drop"/><div><strong>Hasil pengukuran</strong><span>Masukkan data terbaru</span></div></div>
-      <Field label="Gula darah" type="number" value={draft.meterValue} onChange={(v) => patch({ meterValue: v })} suffix="mg/dL" min={GLUCOSE_MIN} max={GLUCOSE_MAX}/>
+      <Field label="Gula darah" type="number" inputMode="decimal" value={draft.meterValue} onChange={(v) => patch({ meterValue: v })} suffix="mg/dL" min={GLUCOSE_MIN} max={GLUCOSE_MAX}/>
       <Field label="Waktu tes" type="datetime-local" value={draft.meterTime} onChange={(v) => patch({ meterTime: v })}/>
       <p className="helper"><Icon name="clock" size={15}/> Harus diukur &lt; {FRESH_WITHIN_MIN} menit sebelum makan</p>
       {touched && problem && <p className="field-hint">{problem}</p>}
     </section>}
     {draft.source === "cgm" && <section className="reveal-card">
       <div className="reveal-card__head"><Icon name="pulse"/><div><strong>Pembacaan CGM terakhir</strong><span>Salin dari aplikasi CGM Anda</span></div></div>
-      <Field label="Gula darah" type="number" value={draft.cgmValue} onChange={(v) => patch({ cgmValue: v })} suffix="mg/dL" min={GLUCOSE_MIN} max={GLUCOSE_MAX}/>
+      <Field label="Gula darah" type="number" inputMode="decimal" value={draft.cgmValue} onChange={(v) => patch({ cgmValue: v })} suffix="mg/dL" min={GLUCOSE_MIN} max={GLUCOSE_MAX}/>
       <Field label="Waktu pembacaan" type="datetime-local" value={draft.cgmTime} onChange={(v) => patch({ cgmTime: v })}/>
       <p className="helper"><Icon name="info" size={15}/> Sambungan otomatis ke perangkat CGM belum tersedia.</p>
       {touched && problem && <p className="field-hint">{problem}</p>}

@@ -43,7 +43,7 @@ img { max-width: 100%; display: block; }
   padding: calc(14px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) 14px calc(16px + env(safe-area-inset-left, 0px)); background: rgba(244,250,249,.92); backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--line);
 }
-.appbar__title { flex: 1; font-weight: 700; font-size: 16px; }
+.appbar__title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: 16px; }
 .appbar__action { flex: none; }
 .icon-button { display: grid; place-items: center; width: 44px; height: 44px; border: none; border-radius: 10px; background: var(--soft); color: var(--teal-dark); }
 .avatar { width: 44px; height: 44px; border-radius: 50%; border: none; background: var(--teal-dark); color: #fff; font-weight: 700; font-size: 13px; }
@@ -363,6 +363,22 @@ img { max-width: 100%; display: block; }
 .progress__dot { width: 24px; height: 24px; border-radius: 50%; background: #eef2f2; display: grid; place-items: center; font-size: 11px; font-weight: 700; }
 .progress__item.is-active .progress__dot { background: var(--teal-dark); color: #fff; }
 .progress__item.is-done .progress__dot { background: var(--soft); color: var(--teal-dark); }
+
+.wizard-page { animation: wizard-enter 180ms ease-out; }
+@keyframes wizard-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 899px) {
+  .wizard-page { padding-bottom: 8px; }
+  .wizard-page > .sticky-actions {
+    position: sticky; bottom: var(--kb-inset, 0px); z-index: 4;
+    margin: 20px -16px 0; padding: 0 16px max(16px, env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+  }
+  .wizard-page > .sticky-actions::before {
+    content: ""; position: absolute; left: 0; right: 0; top: -24px; height: 24px; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(244,250,249,0), var(--bg));
+  }
+}
 
 /* --------------------------------------------------------------- disclaimer/error */
 
