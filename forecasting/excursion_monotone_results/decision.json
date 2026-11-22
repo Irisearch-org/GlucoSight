@@ -1,0 +1,25 @@
+{
+  "per_horizon": {
+    "T60": {
+      "criteria": {
+        "paired_gain_positive": true,
+        "paired_ci_excludes_zero": false,
+        "folds_won_majority": true,
+        "passes_gate_vs_b2": true
+      },
+      "all_met": false,
+      "paired_gain": 0.09308150915298086
+    },
+    "T120": {
+      "criteria": {
+        "paired_gain_positive": true,
+        "paired_ci_excludes_zero": false,
+        "folds_won_majority": true,
+        "passes_gate_vs_b2": true
+      },
+      "all_met": false,
+      "paired_gain": 0.1998917116709329
+    }
+  },
+  "adopt_mono_c": false
+}
