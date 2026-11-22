@@ -26,6 +26,8 @@ cd frontend
 npm install
 npm run dev            # desktop browser
 npm run dev:phone      # phone on the same LAN: HTTPS (self-signed), required for the camera
+npx playwright install chromium webkit   # once, for the browser UI tests
+npm run test:ui       # layout suite at phone/tablet/desktop widths (API mocked, no backend needed)
 ```
 
 Phone browsers expose the camera (meal photo and finger scan) only on a secure context, which is why
