@@ -123,41 +123,49 @@ export function SelectField({ label, value, options, onChange }: { label: string
   </label>;
 }
 
-const NAV_ORDER = ["home", "prediction", "history", "profile"] as const;
-// Where the sidebar's highlight sat on the previous screen. Each screen mounts
-// its own BottomNav, so this is what lets the highlight glide between menus.
-let lastNavIndex = 0;
+const SIDEBAR_KEY = "glucosight.v1.sidebar";
+// Pill offset (px from the top of the Primary nav) on the previous screen. Each screen mounts
+// its own Primary nav, so this is what lets the highlight glide between menus.
+let lastPillTop = 0;
 
-/** A bottom tab bar on phones; on desktop the same element becomes the left sidebar (see desktop.css). */
+/**
+ * The Primary nav: a tab bar on phones; from 900px up it becomes a left rail (see desktop.css).
+ * Below 1100px it starts collapsed to icons; the user's choice is remembered once made.
+ */
 export function BottomNav({ active, go }: { active: "home" | "prediction" | "history" | "profile"; go: (s: Screen) => void }) {
-  // Desktop sidebar: collapsed to an icon rail unless the user opened it; the choice is remembered.
   const [open, setOpen] = useState(() => {
-    try { return localStorage.getItem("glucosight.v1.sidebar") === "open"; } catch { return false; }
+    try {
+      const saved = localStorage.getItem(SIDEBAR_KEY);
+      if (saved) return saved === "open";
+    } catch { /* storage blocked: use the width default */ }
+    return window.matchMedia("(min-width: 1100px)").matches;
   });
+  const nav = useRef<HTMLElement>(null);
   const pill = useRef<HTMLSpanElement>(null);
-  const index = NAV_ORDER.indexOf(active);
   useLayoutEffect(() => {
     const el = pill.current;
-    if (!el) return;
-    el.style.setProperty("--i", String(lastNavIndex)); // start where it was last time ...
-    void el.offsetWidth;                               // ... commit that position ...
-    el.style.setProperty("--i", String(index));        // ... then let the transition carry it over
-    lastNavIndex = index;
-  }, [index]);
+    const navEl = nav.current;
+    if (!el || !navEl) return;
+    const target = navEl.querySelector<HTMLElement>("button.active")?.offsetTop ?? 0;
+    el.style.setProperty("--pill-top", `${lastPillTop}px`); // start where it was last time ...
+    void el.offsetWidth;                                     // ... commit that position ...
+    el.style.setProperty("--pill-top", `${target}px`);       // ... then let the transition carry it over
+    lastPillTop = target;
+  }, [active, open]);
   const toggle = () => {
     const next = !open;
     setOpen(next);
-    try { localStorage.setItem("glucosight.v1.sidebar", next ? "open" : "closed"); } catch { /* storage blocked */ }
+    try { localStorage.setItem(SIDEBAR_KEY, next ? "open" : "closed"); } catch { /* storage blocked */ }
   };
-  return <nav className={`bottom-nav ${open ? "bottom-nav--open" : ""}`} aria-label="Menu utama">
+  return <nav ref={nav} className={`bottom-nav ${open ? "bottom-nav--open" : ""}`} aria-label="Menu utama">
     <div className="bottom-nav__brand">
       <button className="bottom-nav__toggle" onClick={toggle} aria-expanded={open} aria-label={open ? "Tutup menu" : "Buka menu"} title={open ? "Tutup menu" : "Buka menu"}><Icon name="menu"/></button>
       {open && <Brand compact/>}
     </div>
     <span className="bottom-nav__pill" ref={pill} aria-hidden="true"/>
     <button title="Beranda" className={active === "home" ? "active" : ""} onClick={() => go("home")}><Icon name="home"/><span>Beranda</span></button>
-    <button title="Prediksi" className={`bottom-nav__main ${active === "prediction" ? "active" : ""}`} onClick={() => go("source")}><span className="bottom-nav__main-icon"><Icon name="chart"/></span><span>Prediksi</span></button>
-    <button title="Riwayat" className={`bottom-nav__history ${active === "history" ? "active" : ""}`} onClick={() => go("history")}><Icon name="clock"/><span>Riwayat</span></button>
+    <button title="Prediksi" className={active === "prediction" ? "active" : ""} onClick={() => go("source")}><span className="bottom-nav__main-icon"><Icon name="chart"/></span><span>Prediksi</span></button>
+    <button title="Riwayat" className={active === "history" ? "active" : ""} onClick={() => go("history")}><Icon name="clock"/><span>Riwayat</span></button>
     <button title="Profil" className={active === "profile" ? "active" : ""} onClick={() => go("profile")}><Icon name="user"/><span>Profil</span></button>
   </nav>;
 }
