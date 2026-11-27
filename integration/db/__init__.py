@@ -9,6 +9,10 @@ install (root, no password, 127.0.0.1:3306).
     GLUCOSIGHT_DB_USER      root
     GLUCOSIGHT_DB_PASSWORD  (empty)
     GLUCOSIGHT_DB_NAME      glucosight
+
+On Heroku the JawsDB add-on sets ``JAWSDB_URL`` (``mysql://user:pass@host:port/name``);
+its parts replace the defaults above, and any ``GLUCOSIGHT_DB_*`` variable that is set
+still wins over the URL.
 """
 
 from __future__ import annotations
@@ -18,6 +22,7 @@ import re
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
+from urllib.parse import unquote, urlsplit
 
 import pymysql
 from pymysql.cursors import DictCursor
@@ -25,17 +30,32 @@ from pymysql.cursors import DictCursor
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
 
 
+def _settings() -> dict[str, str]:
+    s = {"host": "127.0.0.1", "port": "3306", "user": "root", "password": "", "name": "glucosight"}
+    url = os.environ.get("JAWSDB_URL")
+    if url:
+        u = urlsplit(url)
+        s.update(host=u.hostname or s["host"], port=str(u.port or 3306), user=unquote(u.username or ""),
+                 password=unquote(u.password or ""), name=u.path.lstrip("/") or s["name"])
+    for key in s:
+        override = os.environ.get(f"GLUCOSIGHT_DB_{key.upper()}")
+        if override is not None:
+            s[key] = override
+    return s
+
+
 def db_name() -> str:
-    return os.environ.get("GLUCOSIGHT_DB_NAME", "glucosight")
+    return _settings()["name"]
 
 
 def connect(*, with_database: bool = True) -> pymysql.connections.Connection:
+    s = _settings()
     return pymysql.connect(
-        host=os.environ.get("GLUCOSIGHT_DB_HOST", "127.0.0.1"),
-        port=int(os.environ.get("GLUCOSIGHT_DB_PORT", "3306")),
-        user=os.environ.get("GLUCOSIGHT_DB_USER", "root"),
-        password=os.environ.get("GLUCOSIGHT_DB_PASSWORD", ""),
-        database=db_name() if with_database else None,
+        host=s["host"],
+        port=int(s["port"]),
+        user=s["user"],
+        password=s["password"],
+        database=s["name"] if with_database else None,
         charset="utf8mb4",
         cursorclass=DictCursor,
         autocommit=True,

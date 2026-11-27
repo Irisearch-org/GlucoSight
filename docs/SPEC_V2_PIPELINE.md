@@ -124,11 +124,11 @@ frontend/src/
 
 ## 7. Demo ([demo](https://github.com/Irisearch-org/GlucoSight/issues/25))
 
-- **Runs locally:** uvicorn + Vite, `npm run dev:phone` for phone cameras over LAN HTTPS.
+- **Runs locally:** uvicorn + Vite, `npm run dev:phone` for phone cameras over LAN HTTPS. **Also hosted** on Heroku (`glucosight-iris`), see `integration/README.md` § Deploy to Heroku.
 - **Reviewers get** a recorded walkthrough and an anonymised code mirror of a release tag.
 - **Gemini key:** backend-only, paid tier.
 - **Photos:** not stored; history keeps dish names and macros only.
-- **TKPI table:** built locally, never shipped.
+- **TKPI table:** built locally, never committed. The Heroku deploy carries it inside the private slug only, serving rows one at a time with a citation.
 
 ## 8. Open items (known, not blocking implementation)
 

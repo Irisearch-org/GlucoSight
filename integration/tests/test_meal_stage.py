@@ -217,7 +217,8 @@ def test_serving_less_row_is_fine_with_explicit_grams():
 
 # --- key file and the vision namer (HTTP seam) ------------------------------------------
 
-def test_load_gemini_key(tmp_path):
+def test_load_gemini_key(tmp_path, monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     f = tmp_path / "k.env"
     f.write_text("OTHER=1\nGEMINI_API_KEY='abc123'\n")
     assert load_gemini_key(f) == "abc123"
@@ -226,6 +227,8 @@ def test_load_gemini_key(tmp_path):
     f.write_text("OTHER=1\n")
     with pytest.raises(GeminiKeyError):
         load_gemini_key(f)
+    monkeypatch.setenv("GEMINI_API_KEY", "from-env")  # Heroku config var: no file needed
+    assert load_gemini_key(tmp_path / "absent.env") == "from-env"
 
 
 def _jpeg() -> bytes:

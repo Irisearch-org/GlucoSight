@@ -15,6 +15,7 @@ import base64
 import io
 import json
 import math
+import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -68,11 +69,15 @@ class VisionUnavailable(GeminiUnavailable):
 
 
 class GeminiKeyError(RuntimeError):
-    """The Gemini key file is missing or has no GEMINI_API_KEY (HTTP 503)."""
+    """Neither GEMINI_API_KEY in the environment nor the key file has a key (HTTP 503)."""
 
 
 def load_gemini_key(path: Path) -> str:
-    """Read GEMINI_API_KEY from a gitignored ``KEY=value`` file (``served.json`` vlm.key_file)."""
+    """GEMINI_API_KEY from the environment (Heroku config var), else from the gitignored
+    ``KEY=value`` file (``served.json`` vlm.key_file)."""
+    env = os.environ.get("GEMINI_API_KEY", "").strip()
+    if env:
+        return env
     path = Path(path)
     if not path.is_file():
         raise GeminiKeyError(f"file kunci Gemini tidak ditemukan: {path.name}")

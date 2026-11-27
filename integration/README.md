@@ -109,6 +109,26 @@ used.
 - **The forecaster beats B2** under nested cross-validation for CGM and meter g0 (T+60 28.78 vs 31.68 mg/dL; T+120 28.49 vs 32.05) but **not for PPG g0**, where it runs on a near-constant input and no benefit is claimed.
 - **No end-to-end accuracy number** is claimed (ADR 0004). Numbers: [`docs/METRICS.md`](../docs/METRICS.md).
 
+## Deploy to Heroku
+
+App `glucosight-iris` (Python buildpack, JawsDB MySQL Kitefin, Eco dyno). The root `Procfile` runs
+`integration.db.init_db` as the release phase and uvicorn as the web process; uvicorn serves the built
+frontend from `frontend/dist`. Config vars: `GEMINI_API_KEY` (read before the key file),
+`JAWSDB_URL` (set by the add-on; `GLUCOSIGHT_DB_*` still override it), `GLUCOSIGHT_COOKIE_SECURE=1`.
+
+The gitignored artefacts (models, dish table) and `frontend/dist` reach Heroku through a throwaway local
+commit pushed **only** to the `heroku` remote, never to `origin`:
+
+```bash
+cd frontend && npm run build && cd ..
+git switch -c deploy/heroku
+git add -f frontend/dist data/dish_table/dish_table.csv forecasting/models \
+  rppg/models/weights/ppg_served_model.joblib
+git commit -m "deploy: artefacts for Heroku (never push to origin)"
+git push --force heroku deploy/heroku:main
+git switch - && git branch -D deploy/heroku
+```
+
 ## Tests
 
 ```bash

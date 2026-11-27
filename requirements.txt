@@ -1,0 +1,2 @@
+# Heroku's Python buildpack installs from the repo root; the backend's list lives with the backend.
+-r integration/requirements.txt
