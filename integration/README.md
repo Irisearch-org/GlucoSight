@@ -111,22 +111,33 @@ used.
 
 ## Deploy to Heroku
 
-App `glucosight-iris` (Python buildpack, JawsDB MySQL Kitefin, Eco dyno). The root `Procfile` runs
+App `glucosight-iris` (Python buildpack, JawsDB MySQL Kitefin, Basic dyno). The root `Procfile` runs
 `integration.db.init_db` as the release phase and uvicorn as the web process; uvicorn serves the built
 frontend from `frontend/dist`. Config vars: `GEMINI_API_KEY` (read before the key file),
 `JAWSDB_URL` (set by the add-on; `GLUCOSIGHT_DB_*` still override it), `GLUCOSIGHT_COOKIE_SECURE=1`.
 
-The gitignored artefacts (models, dish table) and `frontend/dist` reach Heroku through a throwaway local
-commit pushed **only** to the `heroku` remote, never to `origin`:
+The gitignored artefacts (models, dish table, its embedding cache) and `frontend/dist` reach Heroku through a
+throwaway local commit pushed **only** to the `heroku` remote, never to `origin`.
+
+Build the embedding cache first. Without it the first photo request embeds all 930 table strings, which
+outlasts Heroku's 30 s router timeout (H12) and takes most of a free-tier daily embedding quota:
 
 ```bash
+python -c "import json; from pathlib import Path; from integration.dishes import DishTable, GeminiEmbedder; \
+from integration.stages.meal import load_gemini_key; s = json.loads(Path('integration/models/served.json').read_text()); \
+DishTable.load(Path(s['dish_table']['path'])).warm(GeminiEmbedder(load_gemini_key(Path(s['vlm']['key_file'])), s['vlm']['embedding_model']))"
+# writes data/dish_table/dish_table.embeddings.npz
+
 cd frontend && npm run build && cd ..
-git switch -c deploy/heroku
-git add -f frontend/dist data/dish_table/dish_table.csv forecasting/models \
-  rppg/models/weights/ppg_served_model.joblib
-git commit -m "deploy: artefacts for Heroku (never push to origin)"
-git push --force heroku deploy/heroku:main
-git switch - && git branch -D deploy/heroku
+git worktree add --detach /tmp/gs-deploy HEAD && cp -R frontend/dist /tmp/gs-deploy/frontend/
+mkdir -p /tmp/gs-deploy/data/dish_table /tmp/gs-deploy/forecasting/models /tmp/gs-deploy/rppg/models/weights
+cp data/dish_table/dish_table.{csv,embeddings.npz} /tmp/gs-deploy/data/dish_table/
+cp forecasting/models/gbdt_cgmacros_T*.{txt,json} /tmp/gs-deploy/forecasting/models/
+cp rppg/models/weights/ppg_served_model.joblib /tmp/gs-deploy/rppg/models/weights/
+cd /tmp/gs-deploy && git add -f frontend/dist data forecasting/models rppg/models/weights \
+  && git commit -m "deploy: artefacts for Heroku (never push to origin)" \
+  && git push --force heroku HEAD:main
+cd - && git worktree remove --force /tmp/gs-deploy
 ```
 
 ## Tests
