@@ -96,7 +96,7 @@ function Home({ profile, history, apiState, nav, go, onOpen }: {
       <div className="section-heading"><div><span>Terakhir</span><h2>Prediksi terbaru</h2></div>{history.length > 0 && <button onClick={() => go("history")}>Lihat riwayat</button>}</div>
       {last ? <button className="last-card last-card--button" onClick={() => onOpen(last)}>
         <div className="last-card__top"><FoodIcon size={43}/><div><h3>{last.food}</h3><p>{formatWhen(last.createdAt)}</p></div><Badge tone={RANGE_TONE[last.range]}>{RANGE_LABEL[last.range]}</Badge></div>
-        <div className="last-card__stats"><div><span>Prediksi T+60</span><strong>{Math.round(last.t60)} <small>mg/dL</small></strong></div><div><span>Sebelum makan</span><strong>{last.g0} <small>mg/dL</small></strong></div></div>
+        <div className="last-card__stats"><div><span>Prediksi T+60</span><strong className={`tone--${last.range}`}>{Math.round(last.t60)} <small>mg/dL</small></strong></div><div><span>Sebelum makan</span><strong>{last.g0} <small>mg/dL</small></strong></div></div>
       </button> : <div className="empty-card"><Icon name="chart" size={28}/><strong>Belum ada prediksi</strong><p>Hasil prediksi Anda akan tersimpan di sini.</p></div>}
       {week.n > 0 && <>
         <button className={`insight-card ${insightOpen ? "is-open" : ""}`} onClick={() => setInsightOpen(!insightOpen)} aria-expanded={insightOpen}>
@@ -169,7 +169,7 @@ function ProfileScreen({ profile, historyCount, nav, go, onSave, onSignOut }: {
   const set = (change: Partial<Profile>) => { setForm({ ...form, ...change }); setSaved(false); };
   const bmi = bmiOf(form.heightCm, form.weightKg);
   return <div className="shell with-nav"><AppBar title="Profil &amp; Pengaturan"/><main className="page profile-page">
-    <div className="profile-hero"><div className="profile-avatar">{initials(form.name)}</div><div><h1>{form.name || "Pengguna"}</h1><p>{form.email || "Belum ada email"}</p></div></div>
+    <div className="profile-hero"><div className="profile-avatar">{initials(form.name)}</div><div><h1>{form.name || "Pengguna"}</h1><p>{form.email || "Belum ada email"}</p><div className="profile-hero__chips"><span>{form.diabetesType}</span>{form.age && <span>{form.age} tahun</span>}</div></div></div>
     <section className="settings-section"><div className="section-title"><h2>Data pribadi</h2><span>Lengkapi data diri Anda</span></div><div className="settings-card">
       <Field label="Nama lengkap" value={form.name} onChange={(v) => set({ name: v })}/>
       <div className="field-grid"><Field label="Usia" type="number" value={form.age} onChange={(v) => set({ age: v })} suffix="tahun"/><SelectField label="Jenis kelamin" value={form.gender} options={["Pria", "Wanita"]} onChange={(v) => set({ gender: v })}/></div>
@@ -192,7 +192,7 @@ function ProfileScreen({ profile, historyCount, nav, go, onSave, onSignOut }: {
       try { await onSave(form); setSaved(true); } catch (e) { setSaveError(errorText(e)); }
       setSaving(false);
     }}>{saving ? "Menyimpan…" : saved ? "Tersimpan ✓" : "Simpan perubahan"}</Button>
-    <Button variant="text" onClick={onSignOut}>Keluar</Button>
+    <Button variant="danger" onClick={onSignOut}>Keluar</Button>
   </main><PrimaryNav active="profile" go={nav}/></div>;
 }
 

@@ -70,7 +70,7 @@ export function Brand({ compact = false, animated = false }: { compact?: boolean
 }
 
 export function Button({ children, variant = "primary", disabled, onClick, icon }: {
-  children: ReactNode; variant?: "primary" | "secondary" | "text"; disabled?: boolean; onClick?: () => void; icon?: IconName;
+  children: ReactNode; variant?: "primary" | "secondary" | "text" | "danger"; disabled?: boolean; onClick?: () => void; icon?: IconName;
 }) {
   return <button className={`button button--${variant}`} disabled={disabled} onClick={onClick}>
     {icon && <Icon name={icon} size={19}/>}<span>{children}</span>

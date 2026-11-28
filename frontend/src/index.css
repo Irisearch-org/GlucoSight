@@ -466,3 +466,49 @@ button { -webkit-touch-callout: none; user-select: none; }
 
 /* Safe areas: the landing header clears the notch and rounded corners (it has no padding of its own). */
 .lp-header { padding-top: env(safe-area-inset-top, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+
+/* -------------------------------------------------- Home and Profile polish */
+
+/* Number fields: no spinners (the phone keypad does the work); selects get a down chevron that opens the menu when tapped. */
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.field__select { position: relative; }
+.field__select select { padding-right: 1.5rem; }
+.field__select svg { position: absolute; right: .75rem; top: 50%; color: var(--muted); transform: translateY(-50%) rotate(90deg); pointer-events: none; }
+
+.tone--normal { color: var(--green-text); }
+.tone--borderline { color: var(--amber-text); }
+.tone--high { color: var(--red-text); }
+.greeting h1 { font-size: 1.625rem; letter-spacing: -.01em; }
+
+/* Latest prediction: the two numbers become tiles. */
+.last-card__stats { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; border-top: none; padding-top: 0; }
+.last-card__stats > div { min-width: 0; background: var(--bg); border-radius: .75rem; padding: .5rem .75rem; }
+.last-card__stats strong { font-size: 1.125rem; font-variant-numeric: tabular-nums; }
+.last-card__stats small { font-size: .6875rem; font-weight: 600; color: var(--muted); }
+
+/* Profile: identity card, BMI tile, sign-out. */
+.profile-hero { padding: 1rem; border-radius: 1.25rem; background: linear-gradient(135deg, #0c8083, #066a70); color: #fff; box-shadow: 0 14px 28px -14px rgba(6,106,112,.55); }
+.profile-avatar { width: 3.75rem; height: 3.75rem; flex: none; background: rgba(4,52,56,.35); box-shadow: inset 0 0 0 1px rgba(255,255,255,.35); }
+.profile-hero h1 { font-size: 1.1875rem; }
+.profile-hero p { color: #fff; }
+.profile-hero__chips { display: flex; flex-wrap: wrap; gap: .375rem; margin-top: .5rem; }
+.profile-hero__chips span { padding: .1875rem .625rem; border-radius: 999px; background: rgba(4,52,56,.28); font-size: .75rem; font-weight: 700; }
+.bmi-row { border: none; border-radius: .75rem; background: var(--soft); padding: .75rem .875rem; margin: .125rem 0 .875rem; }
+.bmi-row strong { font-size: 1.375rem; font-variant-numeric: tabular-nums; }
+.bmi-row strong small { margin-left: .25rem; font-size: .8125rem; font-weight: 700; color: var(--teal-ink); }
+.bmi-row > span { font-size: .75rem; }
+.button--danger { background: #fff; color: var(--red-text); box-shadow: inset 0 0 0 1px #f0cdc7; }
+.profile-page > .button + .button { margin-top: .625rem; }
+
+/* Phones and tablets: the Home call-to-action gets a response-curve motif and a real action pill (desktop keeps its measured size). */
+@media (max-width: 899px) {
+  .prediction-cta { padding: 1.25rem 1.125rem; border-radius: 1.5rem; box-shadow: 0 14px 28px -12px rgba(6,106,112,.55); }
+  .prediction-cta::after {
+    content: ""; position: absolute; right: -.5rem; bottom: -.25rem; width: 10rem; height: 5.5rem; opacity: .22; pointer-events: none;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 80'%3E%3Cpath d='M0 70C34 68 52 60 80 38S128 8 152 14S186 40 200 42' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right bottom / contain;
+  }
+  .prediction-cta__art, .prediction-cta__copy { position: relative; z-index: 1; }
+  .prediction-cta__copy h2 { font-size: 1.1875rem; }
+  .prediction-cta__copy > span:last-of-type { margin-top: .25rem; padding: .4375rem .875rem; border-radius: 999px; background: #fff; color: var(--teal-ink); }
+}
