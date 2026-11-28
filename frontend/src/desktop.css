@@ -69,7 +69,9 @@
   }
   .bottom-nav button.active { background: transparent; color: #fff; }
 
-  .bottom-nav__main-icon { display: grid; place-items: center; width: 22px; height: 22px; border: 0; border-radius: 0; box-shadow: none; background: none; color: inherit; flex: none; }
+  .bottom-nav__main-icon { display: grid; place-items: center; width: 22px; height: 22px; margin: 0; border: 0; border-radius: 0; box-shadow: none; background: none; color: inherit; flex: none; }
+  /* The phone bar's active-tab pill is replaced by the gliding .bottom-nav__pill. */
+  .bottom-nav button::before { display: none; }
 
   /* Collapsed rail: icons only */
   .bottom-nav:not(.bottom-nav--open) button:not(.bottom-nav__toggle) { padding: 0 14px; justify-content: flex-start; }

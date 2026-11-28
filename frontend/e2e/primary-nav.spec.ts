@@ -195,7 +195,7 @@ test.describe("Primary nav on phones and tablet", () => {
           expect(size).toBeGreaterThanOrEqual(11);
         }
 
-        // Prediksi is the same row as the other tabs; it is not lifted out of the bar.
+        // Prediksi's label sits on the same row as the other tabs; only its disc rises above the bar's top edge.
         expect(Math.abs(items[1].y - items[0].y)).toBeLessThanOrEqual(1);
 
         // Active state is shown by label weight (bolder), not colour alone.

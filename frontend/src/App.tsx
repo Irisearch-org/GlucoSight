@@ -132,7 +132,7 @@ function History({ history, nav, go, onOpen }: { history: HistoryRecord[]; nav: 
     <main className="page history-page">
       <section className="history-overview">
         <div><span>Seluruh prediksi</span><strong>{history.length}</strong><small>{oldest ? `Tersimpan sejak ${oldest}` : "Belum ada data"}</small></div>
-        <div className="history-donut" style={{ background: `conic-gradient(#9ce2d3 0 ${normalPct}%, rgba(255,255,255,.18) ${normalPct}%)` }}><span>{normalPct}%<small>Normal</small></span></div>
+        <div className="history-donut" role="img" aria-label={`${normalPct}% prediksi normal`} style={{ background: `conic-gradient(var(--green) 0 ${normalPct}%, var(--line) ${normalPct}%)` }}><span aria-hidden="true">{normalPct}%<small>Normal</small></span></div>
       </section>
       <div className="history-filters">{filters.map((f) => <button className={filter === f.id ? "active" : ""} onClick={() => setFilter(f.id)} key={f.id}>{f.label}</button>)}</div>
       <div className="history-heading"><div><h1>Prediksi tersimpan</h1><span>{visible.length} hasil</span></div></div>

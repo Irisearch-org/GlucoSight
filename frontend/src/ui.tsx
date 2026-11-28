@@ -85,7 +85,7 @@ export function Badge({ children, tone = "gray" }: { children: ReactNode; tone?:
 
 export function AppBar({ title, onBack, action }: { title: string; onBack?: () => void; action?: ReactNode }) {
   return <header className="appbar">
-    {onBack ? <button className="icon-button" onClick={onBack} aria-label="Kembali"><Icon name="arrow"/></button> : <Brand compact/>}
+    {onBack ? <button className="icon-button" onClick={onBack} aria-label="Kembali"><Icon name="arrow"/></button> : title ? null : <Brand compact/>}
     <div className="appbar__title">{title}</div>
     <div className="appbar__action">{action}</div>
   </header>;

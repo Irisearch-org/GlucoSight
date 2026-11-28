@@ -5,8 +5,8 @@
 .lp { background: #fff; color: #0b1f22; }
 .lp-wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
 
-.lp-header { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.92); backdrop-filter: blur(6px); border-bottom: 1px solid #e3eeee; }
-.lp-header__in { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; }
+.lp-header { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.92); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border-bottom: 1px solid #e3eeee; }
+.lp-header__in { display: flex; align-items: center; justify-content: space-between; padding-top: 14px; padding-bottom: 14px; }
 .lp-nav { display: flex; gap: 20px; }
 .lp-nav a { color: #5b7077; text-decoration: none; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
 .lp-header__cta { display: flex; gap: 10px; }
@@ -76,10 +76,13 @@
 .lp-reveal { opacity: 0; transform: translateY(16px); transition: opacity .4s var(--ease-out), transform .4s var(--ease-out); }
 .lp-reveal.is-visible { opacity: 1; transform: none; }
 
+/* Phones: the brand and sign-in share the first row; the two section links become an even tab strip below. */
 @media (max-width: 719px) {
   .lp-header { position: static; }
-  .lp-header__in { flex-wrap: wrap; row-gap: 8px; }
-  .lp-nav { order: 1; flex-basis: 100%; justify-content: center; }
+  .lp-header__in { flex-wrap: wrap; row-gap: 8px; padding-bottom: 0; }
+  .lp-nav { order: 1; flex-basis: calc(100% + 40px); display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 0 -20px; border-top: 1px solid #e3eeee; }
+  .lp-nav a { justify-content: center; min-height: 48px; }
+  .lp-nav a + a { border-left: 1px solid #e3eeee; }
 }
 @media (max-width: 640px) {
   .lp-hero__copy h1 { font-size: 30px; }
@@ -89,8 +92,9 @@
 }
 @media (max-width: 400px) {
   .lp-hero__copy h1 { font-size: 28px; }
-  .lp-header__in { gap: 8px; }
-  .lp-header__cta .lp-btn { padding: 10px 12px; }
+  .lp-header__in { column-gap: 8px; }
+  .lp-header__cta { gap: 2px; }
+  .lp-header__cta .lp-btn { padding: 10px 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .lp-reveal { opacity: 1; transform: none; transition: none; }
