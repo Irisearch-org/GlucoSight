@@ -2,10 +2,9 @@
 
 import csv
 
-import numpy as np
 import pytest
 
-from integration.dishes import DishRow, DishTable, GeminiUnavailable, Match, TABLE_FIELDS
+from integration.dishes import DishRow, DishTable, Match, TABLE_FIELDS
 from integration.stages import meal
 from integration.stages.meal import (
     MARGIN_MIN, SIM_MIN, GeminiKeyError, MealError, VisionUnavailable, identify_photo,
@@ -28,7 +27,7 @@ class StubTable:
     def __init__(self, scripted: dict[str, Match | None], rows=(A, B, C)):
         self.scripted, self.rows = scripted, {r.id: r for r in rows}
 
-    def match(self, name, embedder):
+    def match(self, name):
         return self.scripted[name]
 
     def get(self, row_id):
@@ -52,18 +51,17 @@ def m(top, sim, margin, *others):
 
 def run(scripted, names=None):
     names = names or list(scripted)
-    return identify_photo(b"img", "image/jpeg", FakeNamer(names), StubTable(scripted), object())
+    return identify_photo(b"img", "image/jpeg", FakeNamer(names), StubTable(scripted))
 
 
-def test_rule_constants_are_the_ticket_19_values():
-    assert (SIM_MIN, MARGIN_MIN) == (0.80, 0.05)
+def test_rule_constants_are_the_adr_0006_values():
+    assert (SIM_MIN, MARGIN_MIN) == (0.85, 0.0)
 
 
 @pytest.mark.parametrize("sim,margin,accepted", [
-    (0.80, 0.05, True),        # both bounds inclusive
-    (0.7999, 0.20, False),     # similarity just under
-    (0.95, 0.0499, False),     # margin just under
-    (0.95, 0.05, True),
+    (0.85, 0.0, True),         # both bounds inclusive
+    (0.8499, 0.20, False),     # similarity just under
+    (1.0, 0.0, True),          # a tie at the top is accepted: dev chose margin 0
     (0.60, 0.40, False),
 ])
 def test_accept_abstain_boundaries(sim, margin, accepted):
@@ -91,7 +89,7 @@ def test_duplicate_names_and_duplicate_accepted_rows_collapse():
         StubTable({
             "Nasi": m(A, 0.9, 0.3, B, C), "nasi putih": m(A, 0.85, 0.2, B, C),
             "sup": m(B, 0.6, 0.01, A, C),
-        }), object())
+        }))
     assert [i.vlm_name for i in items] == ["Nasi", "sup"]    # same row accepted twice -> once
 
 
@@ -99,13 +97,13 @@ def test_no_names_gives_no_items():
     assert run({}, names=[]) == []
 
 
-def test_embedder_failure_becomes_vision_unavailable():
-    class Boom(StubTable):
-        def match(self, name, embedder):
-            raise GeminiUnavailable("quota")
+def test_name_with_nothing_comparable_needs_manual_entry():
+    class Blank(StubTable):
+        def match(self, name):
+            raise ValueError("empty dish name")
 
-    with pytest.raises(VisionUnavailable):
-        identify_photo(b"i", "image/jpeg", FakeNamer(["x"]), Boom({}), object())
+    [item] = identify_photo(b"i", "image/jpeg", FakeNamer(["???"]), Blank({}))
+    assert not item.accepted and item.suggestions == ()
 
 
 def test_namer_failure_propagates_as_vision_unavailable():
@@ -116,28 +114,21 @@ def test_namer_failure_propagates_as_vision_unavailable():
             raise VisionUnavailable("down")
 
     with pytest.raises(VisionUnavailable):
-        identify_photo(b"i", "image/jpeg", Down(), StubTable({}), object())
+        identify_photo(b"i", "image/jpeg", Down(), StubTable({}))
 
 
-def test_identify_photo_with_real_table_and_fake_embedder(tmp_path):
+def test_identify_photo_with_real_table_and_real_matcher(tmp_path):
     path = tmp_path / "t.csv"
-    rows = [["R1", "Rendang", "dish", "190", "8", "22", "8", "", "100", "assumed", "t", "R1", "exact", ""],
+    rows = [["R1", "Rendang", "dish", "190", "8", "22", "8", "", "100", "assumed", "t", "R1", "exact", "rendang padang"],
             ["R2", "Sate", "dish", "280", "12", "17", "20", "", "120", "assumed", "t", "R2", "exact", ""],
             ["R3", "Soto", "dish", "60", "1", "3", "4", "", "250", "assumed", "t", "R3", "exact", ""]]
     with open(path, "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(TABLE_FIELDS)
         w.writerows(rows)
-    vec = {"rendang": [1, 0, 0], "sate": [0, 1, 0], "soto": [0, 0, 1],
-           "rendang padang": [0.9, 0.3, 0.1], "bakso": [0.4, 0.4, 0.4]}
-
-    class E:
-        def embed(self, texts, *, query=False):
-            v = np.asarray([vec[t] for t in texts], dtype=np.float32)
-            return v / np.linalg.norm(v, axis=1, keepdims=True)
 
     items = identify_photo(b"i", "image/jpeg", FakeNamer(["Rendang Padang", "bakso"]),
-                           DishTable.load(path), E())
+                           DishTable.load(path))
     assert items[0].accepted and items[0].row.id == "R1"
     assert not items[1].accepted and len(items[1].suggestions) == 3
 

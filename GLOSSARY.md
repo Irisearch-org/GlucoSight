@@ -18,7 +18,7 @@ project's shared artifact.
 The shared retrieval function that maps a food-name string (VLM-named from
 a photo, or typed in manual entry) to its nearest rows in the dish table,
 with a similarity score and its margin over the runner-up.
-Similarity-based, not exact-key.
+Similarity-based, not exact-key. Served: local hashed character 2–4-gram cosine (ADR 0006).
 _Avoid_: classifier, lookup — "classifier" implies a fixed trained label
 set, "lookup" implies an exact key; this is neither.
 

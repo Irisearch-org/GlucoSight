@@ -232,10 +232,6 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--tkpi-pdf", type=Path, required=True)
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
-    ap.add_argument("--embed-key-file", type=Path, default=None,
-                    help="also embed the built table now (cache next to the CSV), "
-                         "using GEMINI_API_KEY from this gitignored file")
-    ap.add_argument("--embedding-model", default="gemini-embedding-001")
     ap.add_argument("--reference", type=Path, default=None,
                     help="CSV of hand-typed TKPI rows to validate the parser against")
     args = ap.parse_args()
@@ -257,12 +253,6 @@ def main() -> int:
           f"{', '.join(result.dropped_implausible)}")
     print(f"  kept as printed because a class or recipe needs them: "
           f"{', '.join(result.kept_implausible) or 'none'}")
-    if args.embed_key_file:
-        from . import DishTable, GeminiEmbedder
-        from integration.stages.meal import load_gemini_key
-        table = DishTable.load(args.out)
-        table.warm(GeminiEmbedder(load_gemini_key(args.embed_key_file), args.embedding_model))
-        print(f"  embeddings cached for build {table.build_hash}")
     return 0
 
 

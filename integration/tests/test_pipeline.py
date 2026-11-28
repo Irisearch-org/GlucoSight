@@ -1,4 +1,4 @@
-"""Pipeline end to end: real forecaster, real PPG ridge, fakes only at Embedder / VisionNamer."""
+"""Pipeline end to end: real matcher, forecaster and PPG ridge; a fake only at VisionNamer."""
 
 import base64
 
@@ -14,7 +14,7 @@ from integration.pipeline import (
     search_dishes,
 )
 from integration.stages.glucose import InvalidCapture, StaleReading
-from integration.stages.meal import MealError
+from integration.stages.meal import SIM_MIN, MealError
 
 from .conftest import NOW, FakeNamer, ppg_capture
 
@@ -126,7 +126,7 @@ def test_photo_accepts_the_confident_item_and_sends_the_ambiguous_one_to_manual_
     assert sure.accepted and sure.row.id == "TST01"
     assert not unsure.accepted and unsure.row is None and unsure.vlm_name == "gado-gado"
     assert {s.id for s in unsure.suggestions} >= {"TST01", "TST02"}
-    assert unsure.similarity < 0.80
+    assert unsure.similarity < SIM_MIN
 
 
 def test_photo_naming_nothing_returns_no_items(deps):

@@ -4,7 +4,7 @@ The backend of the website: a FastAPI app (`integration/api.py`) that serves the
 three-step flow. **Research prototype, not a medical device.**
 
 1. **Current glucose** (`stages/glucose.py`): glucometer entry, CGM reading, or a finger PPG scan scored by the served ridge model.
-2. **Meal** (`stages/meal.py`, `dishes/`): photo (Gemini names the dishes, an embedding matcher maps each name to a dish-table row; items below the confidence rule must be entered manually) or manual item-by-item entry.
+2. **Meal** (`stages/meal.py`, `dishes/`): photo (Gemini names the dishes, the local character n-gram matcher maps each name to a dish-table row; items below the confidence rule must be entered manually) or manual item-by-item entry.
 3. **Forecast** (`stages/forecast.py`): glucose at T+60 and T+120 from two served LightGBM models, each with an error band.
 
 Authoritative documents: [`docs/SPEC_V2_PIPELINE.md`](../docs/SPEC_V2_PIPELINE.md) (what and why),
@@ -77,11 +77,11 @@ KepDirjen HK.02.02/B/576/2025; dish `serving_g` values are assumed defaults and 
 | PPG model (ridge, 7 handcrafted features) | `rppg/models/weights/` (`ppg_served_model.*`) | trained by `rppg/experiments/ppg_served_model` (branch `wayfinder/ppg-served-model`); `rppg/models/weights/` is gitignored |
 | Forecasters, T+60 and T+120 | `forecasting/models/gbdt_cgmacros_T60.txt`, `..._T120.txt` (+ `.json`) | trained by `forecasting/evaluate/gbdt_forecaster.py` (branch `wayfinder/gbdt-forecaster`); `forecasting/models/` is gitignored |
 | Dish table | `data/dish_table/dish_table.csv` | `python -m integration.dishes.build`, see above; `/data/` is gitignored |
-| Gemini key | `cv/experiments/vlm_vs_mobilenet/GEMINI_API_KEY.env` | a file containing `GEMINI_API_KEY=...` (paid tier); `*.env` is gitignored |
+| Gemini key | `cv/experiments/vlm_vs_mobilenet/GEMINI_API_KEY.env` | a file containing `GEMINI_API_KEY=...`, or the `GEMINI_API_KEY` env var; `*.env` is gitignored |
 
 The Gemini key is read by the backend only and is never sent to the browser. Never commit it or print it.
-Models used: `gemini-3.5-flash-lite` (dish naming, prompted in Indonesian) and `gemini-embedding-001`
-(matcher). Error bands in `served.json` are the 90th percentile of absolute held-out error per horizon and
+Model used: `gemini-3.5-flash-lite` (dish naming, prompted in Indonesian), one call per photo. Matching is
+local and needs no API ([ADR 0006](../docs/adr/0006-local-char-ngram-matcher.md)). Error bands in `served.json` are the 90th percentile of absolute held-out error per horizon and
 g0 source from the forecaster trial.
 
 ## HTTP endpoints
@@ -92,15 +92,15 @@ capture) or 503 (model, table or VLM unavailable).
 
 | Method and path | Purpose |
 |---|---|
-| `GET /health` | `status`, `schema_version` ("2.0"), the served config, `dish_table_build` |
+| `GET /health` | `status`, `schema_version` ("2.0"), the served config, `dish_table_build`, `dish_matcher` |
 | `GET /dishes?q=&limit=10` | dish-table autocomplete (prefix and alias, case-insensitive); nutrients per 100 g |
 | `POST /glucose/ppg` | finger-scan capture (`samples`, `fs`, `torch_verified`, `clip_fraction`) → a `G0Reading`; invalid capture → 409 "Ulangi scan" |
 | `POST /meal/photo` | `image_data_url` → items `{vlm_name, accepted, row, suggestions, similarity, margin}` |
 | `POST /predict` | glucose + meal items + profile → `g0`, meal totals, `forecast.t60` / `forecast.t120` with `error_band_mgdl`, `outside_training`, disclaimer |
 | `/auth/*`, `/user/*` | accounts and history, unchanged |
 
-Confidence rule for photo items (one copy, in `stages/meal.py`): accept when top-1 similarity ≥ 0.80 and the
-top-1 − top-2 margin ≥ 0.05; otherwise the item is resolved manually. VLM self-reported confidence is never
+Confidence rule for photo items (one copy, in `stages/meal.py`): accept when top-1 similarity ≥ 0.85 and the
+top-1 − top-2 margin ≥ 0 (operating point in `cv/reports/charngram_matcher/`); otherwise the item is resolved manually. VLM self-reported confidence is never
 used.
 
 ## What is honest about the served models
@@ -116,22 +116,14 @@ App `glucosight-iris` (Python buildpack, JawsDB MySQL Kitefin, Basic dyno). The 
 frontend from `frontend/dist`. Config vars: `GEMINI_API_KEY` (read before the key file),
 `JAWSDB_URL` (set by the add-on; `GLUCOSIGHT_DB_*` still override it), `GLUCOSIGHT_COOKIE_SECURE=1`.
 
-The gitignored artefacts (models, dish table, its embedding cache) and `frontend/dist` reach Heroku through a
-throwaway local commit pushed **only** to the `heroku` remote, never to `origin`.
-
-Build the embedding cache first. Without it the first photo request embeds all 930 table strings, which
-outlasts Heroku's 30 s router timeout (H12) and takes most of a free-tier daily embedding quota:
+The gitignored artefacts (models, dish table) and `frontend/dist` reach Heroku through a throwaway local
+commit pushed **only** to the `heroku` remote, never to `origin`:
 
 ```bash
-python -c "import json; from pathlib import Path; from integration.dishes import DishTable, GeminiEmbedder; \
-from integration.stages.meal import load_gemini_key; s = json.loads(Path('integration/models/served.json').read_text()); \
-DishTable.load(Path(s['dish_table']['path'])).warm(GeminiEmbedder(load_gemini_key(Path(s['vlm']['key_file'])), s['vlm']['embedding_model']))"
-# writes data/dish_table/dish_table.embeddings.npz
-
 cd frontend && npm run build && cd ..
 git worktree add --detach /tmp/gs-deploy HEAD && cp -R frontend/dist /tmp/gs-deploy/frontend/
 mkdir -p /tmp/gs-deploy/data/dish_table /tmp/gs-deploy/forecasting/models /tmp/gs-deploy/rppg/models/weights
-cp data/dish_table/dish_table.{csv,embeddings.npz} /tmp/gs-deploy/data/dish_table/
+cp data/dish_table/dish_table.csv /tmp/gs-deploy/data/dish_table/
 cp forecasting/models/gbdt_cgmacros_T*.{txt,json} /tmp/gs-deploy/forecasting/models/
 cp rppg/models/weights/ppg_served_model.joblib /tmp/gs-deploy/rppg/models/weights/
 cd /tmp/gs-deploy && git add -f frontend/dist data forecasting/models rppg/models/weights \

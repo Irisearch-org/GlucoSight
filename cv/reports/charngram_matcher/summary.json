@@ -1,0 +1,26 @@
+{
+  "matcher": "charwb-2-4-hashed-cosine-v1",
+  "table_build": "a529c97fe953",
+  "table_rows": 710,
+  "rule": "min dev false-match s.t. dev coverage >= 0.60; ties: coverage, threshold",
+  "threshold": 0.85,
+  "margin": 0.0,
+  "dev": {
+    "threshold": 0.85,
+    "margin": 0.0,
+    "coverage": 0.6037,
+    "top1_acc": 0.5366,
+    "acc_when_answered": 0.8889,
+    "false_match_rate": 0.0671,
+    "n": 164
+  },
+  "test": {
+    "threshold": 0.85,
+    "margin": 0.0,
+    "coverage": 0.6151,
+    "top1_acc": 0.5268,
+    "acc_when_answered": 0.8564,
+    "false_match_rate": 0.0883,
+    "n": 317
+  }
+}

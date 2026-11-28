@@ -104,7 +104,7 @@ worthless result. Nothing errors. Know them by heart.
 
 | Layer          | Technology                                                        |
 |----------------|-------------------------------------------------------------------|
-| Meal / CV      | Gemini VLM (`gemini-3.5-flash-lite`) names dishes → embedding matcher (`gemini-embedding-001`) → locally built dish table. MobileNetV2 (PyTorch) is a comparison model, not served |
+| Meal / CV      | Gemini VLM (`gemini-3.5-flash-lite`) names dishes → local character n-gram matcher (ADR 0006) → locally built dish table. MobileNetV2 (PyTorch) is a comparison model, not served |
 | Contact PPG    | NumPy/SciPy, scikit-learn ridge on 7 handcrafted features (served; not a validated glucose estimator, ADR 0005) |
 | NLP            | HuggingFace Transformers, IndoBERT (research only; free-text path retired from serving in v2) |
 | Forecasting    | LightGBM — two served models, T+60 and T+120 |

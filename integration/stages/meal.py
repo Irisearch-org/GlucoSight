@@ -1,6 +1,6 @@
 """Step 2: the meal (docs/SPEC_V2_PIPELINE.md section 2).
 
-Photo path: a vision model names the dishes, the embedding matcher maps each name to a
+Photo path: a vision model names the dishes, the local character n-gram matcher maps each name to a
 dish-table row, and the confidence rule below decides whether the photo may speak for
 that item. Manual path: the user picks rows from the same table. Both end in
 ``resolve_meal``: grams per item, macros summed over items.
@@ -24,17 +24,20 @@ from typing import Literal, Protocol
 import requests
 from PIL import Image, UnidentifiedImageError
 
-from integration.dishes import (
-    GEMINI_BASE_URL, DishRow, DishTable, Embedder, GeminiUnavailable, normalise_text,
-)
+from integration.dishes import DishRow, DishTable, normalise_text
 
-SIM_MIN = 0.80
-MARGIN_MIN = 0.05
+GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/"
+
+# Character n-gram matcher operating point (ADR 0006), chosen on the dish-ID trial dev split
+# against the served 710-row table by the ticket #19 rule (minimise false matches with dev
+# coverage >= 60%): cv/reports/charngram_matcher/. The margin rule is kept; dev chose 0.
+SIM_MIN = 0.85
+MARGIN_MIN = 0.0
 PORTION_SCALE = (0.5, 1.0, 1.5)  # Sedikit / Sedang / Banyak
 MAX_GRAMS = 5000.0
 
 # Trial settings (cv/experiments/dish_id_trial/vlm_run.py): the thresholds above were
-# calibrated on exactly this prompt, image size and decoding.
+# calibrated on names produced by exactly this prompt, image size and decoding.
 VLM_PROMPT = (
     "List every distinct food dish visible in this image, as specifically "
     "as you can (e.g. 'rendang', 'nasi goreng', not just 'rice dish'). "
@@ -56,8 +59,8 @@ class MealError(ValueError):
     """Invalid meal input (HTTP 422). The message is shown to the user, in Bahasa Indonesia."""
 
 
-class VisionUnavailable(GeminiUnavailable):
-    """The vision model or the embedding API failed (HTTP 503).
+class VisionUnavailable(RuntimeError):
+    """The vision model failed: network, quota, or an unreadable response (HTTP 503).
 
     ``str(exc)`` is the Bahasa Indonesia message for the user; ``detail`` is the
     technical cause, for logs only.
@@ -189,8 +192,7 @@ def _encode_image(image: bytes) -> str:
     return base64.b64encode(buf.getvalue()).decode("ascii")
 
 
-def identify_photo(image: bytes, mime: str, namer: VisionNamer, table: DishTable,
-                   embedder: Embedder) -> list[PhotoItem]:
+def identify_photo(image: bytes, mime: str, namer: VisionNamer, table: DishTable) -> list[PhotoItem]:
     """Name the dishes in a photo and decide, per item, whether the photo may be trusted.
 
     An item is accepted when top-1 similarity >= SIM_MIN and the top-1 minus top-2 margin
@@ -201,28 +203,26 @@ def identify_photo(image: bytes, mime: str, namer: VisionNamer, table: DishTable
     items: list[PhotoItem] = []
     seen_names: set[str] = set()
     accepted_ids: set[str] = set()
-    try:
-        for name in namer.name_dishes(image, mime):
-            key = normalise_text(name)
-            if not key or key in seen_names:
-                continue
-            seen_names.add(key)
-            m = table.match(name, embedder)
-            if m is None:
-                items.append(PhotoItem(name, False, None, (), 0.0, 0.0))
-                continue
-            accepted = m.similarity >= SIM_MIN and m.margin >= MARGIN_MIN
-            if accepted and m.row.id in accepted_ids:
-                continue
-            if accepted:
-                accepted_ids.add(m.row.id)
-            items.append(PhotoItem(
-                vlm_name=name, accepted=accepted, row=m.row if accepted else None,
-                suggestions=m.suggestions, similarity=m.similarity, margin=m.margin))
-    except GeminiUnavailable as exc:
-        if isinstance(exc, VisionUnavailable):
-            raise
-        raise VisionUnavailable(MSG_VISION_DOWN, str(exc)) from exc
+    for name in namer.name_dishes(image, mime):
+        key = normalise_text(name)
+        if not key or key in seen_names:
+            continue
+        seen_names.add(key)
+        try:
+            m = table.match(name)
+        except ValueError:  # nothing comparable left after folding (e.g. only symbols)
+            m = None
+        if m is None:
+            items.append(PhotoItem(name, False, None, (), 0.0, 0.0))
+            continue
+        accepted = m.similarity >= SIM_MIN and m.margin >= MARGIN_MIN
+        if accepted and m.row.id in accepted_ids:
+            continue
+        if accepted:
+            accepted_ids.add(m.row.id)
+        items.append(PhotoItem(
+            vlm_name=name, accepted=accepted, row=m.row if accepted else None,
+            suggestions=m.suggestions, similarity=m.similarity, margin=m.margin))
     return items
 
 

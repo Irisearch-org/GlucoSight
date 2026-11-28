@@ -1,8 +1,8 @@
 """Shared fixtures for the v2 integration tests.
 
-Fakes live only at the two real seams (`Embedder`, `VisionNamer`). The dish table is a tiny
-synthetic CSV (invented values, nothing from TKPI); the forecaster and PPG ridge are the real
-served artifacts when present, else the tests that need them are skipped.
+The only fake is at the one network seam (`VisionNamer`); the matcher is the real code. The dish
+table is a tiny synthetic CSV (invented values, nothing from TKPI); the forecaster and PPG ridge
+are the real served artifacts when present, else the tests that need them are skipped.
 """
 
 from __future__ import annotations
@@ -39,25 +39,6 @@ def write_table(path: Path) -> Path:
             "", "test", rid, "approximate", "")))
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
-
-
-class FakeEmbedder:
-    """Deterministic 8-d embedder. Row names are basis vectors e0..e2; query strings below are
-    chosen to land confidently on a row, ambiguously between two rows, or nowhere."""
-
-    model = "fake-embedding"
-
-    _KNOWN = {
-        "nasi putih": np.eye(8)[0],
-        "ayam goreng": np.eye(8)[1],
-        "tempe goreng": np.eye(8)[2],
-        "gado-gado": 0.7 * np.eye(8)[0] + 0.714 * np.eye(8)[1],  # ambiguous: sim < 0.80
-    }
-
-    def embed(self, texts: list[str], *, query: bool = False) -> np.ndarray:
-        rows = [self._KNOWN.get(t, np.eye(8)[7]) for t in texts]
-        a = np.asarray(rows, dtype=np.float32)
-        return a / np.linalg.norm(a, axis=1, keepdims=True)
 
 
 class FakeNamer:
@@ -100,7 +81,7 @@ def real_ppg_model(served) -> PPGModel:
 @pytest.fixture
 def deps(served, table, real_forecaster, real_ppg_model) -> Deps:
     return Deps(
-        served=served, table=table, embedder=FakeEmbedder(),
+        served=served, table=table,
         namer=FakeNamer(["nasi putih", "gado-gado"]),
         forecaster=real_forecaster, ppg_model=real_ppg_model, now=lambda: NOW,
     )

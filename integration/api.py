@@ -35,7 +35,7 @@ from integration.contract import (
     PpgRequest,
     PredictRequestV2,
 )
-from integration.dishes import GeminiUnavailable
+from integration.dishes import MATCHER_VERSION
 from integration.errors import InvalidInput, ModelUnavailable
 from integration.pipeline import Deps
 from integration.stages.glucose import GlucoseError, InvalidCapture, StaleReading
@@ -93,10 +93,9 @@ async def _unavailable(_: Request, exc: ModelUnavailable) -> JSONResponse:
 
 
 @app.exception_handler(VisionUnavailable)
-@app.exception_handler(GeminiUnavailable)
 @app.exception_handler(GeminiKeyError)
 async def _vision_unavailable(_: Request, exc: Exception) -> JSONResponse:
-    log.warning("vision/embedding unavailable: %s", exc)
+    log.warning("vision model unavailable: %s", exc)
     return _detail(503, VISION_UNAVAILABLE)
 
 
@@ -107,11 +106,12 @@ def health(deps: Deps = Depends(get_deps)) -> dict:
         "schema_version": SCHEMA_VERSION,
         "served": deps.served,
         "dish_table_build": deps.table.build_hash if deps.table is not None else None,
+        "dish_matcher": MATCHER_VERSION,
         "components": {
             "ppg_model": deps.ppg_model is not None,
             "forecaster": deps.forecaster is not None,
             "dish_table": deps.table is not None,
-            "photo": deps.namer is not None and deps.embedder is not None,
+            "photo": deps.namer is not None,
         },
     }
 

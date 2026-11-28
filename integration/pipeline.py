@@ -2,9 +2,9 @@
 
     current glucose -> meal -> forecast_meal(request, deps)
 
-`Deps` carries the served components (dish table, embedder, VLM namer, forecaster, PPG model),
-built once at app start from `integration/models/served.json`. Tests inject fakes at the two real
-seams (`Embedder`, `VisionNamer`); the forecaster and PPG model are always the real artifacts.
+`Deps` carries the served components (dish table and its matcher, VLM namer, forecaster, PPG
+model), built once at app start from `integration/models/served.json`. Tests inject a fake at the
+one network seam (`VisionNamer`); the matcher, forecaster and PPG model are always the real code.
 A component whose artifact is missing is None and surfaces as `ModelUnavailable` (HTTP 503) when
 a request needs it, so the app still starts on a fresh clone.
 """
@@ -35,7 +35,7 @@ from integration.contract import (
     PredictRequestV2,
     Profile,
 )
-from integration.dishes import DishRow, DishTable, Embedder, GeminiEmbedder
+from integration.dishes import DishRow, DishTable
 from integration.errors import InvalidInput, ModelUnavailable
 from integration.stages.forecast import Forecaster
 from integration.stages.glucose import G0Reading, PPGModel, current_glucose
@@ -70,7 +70,6 @@ def _utcnow() -> datetime:
 class Deps:
     served: dict[str, Any]
     table: Optional[DishTable] = None
-    embedder: Optional[Embedder] = None
     namer: Optional[VisionNamer] = None
     forecaster: Optional[Forecaster] = None
     ppg_model: Optional[PPGModel] = None
@@ -106,7 +105,6 @@ class Deps:
         except GeminiKeyError as exc:
             log.warning("Gemini key unavailable: %s", exc)
         else:
-            deps.embedder = GeminiEmbedder(key, vlm["embedding_model"])
             deps.namer = GeminiVisionNamer(key, vlm["model"])
         return deps
 
@@ -171,10 +169,9 @@ def decode_image_data_url(data_url: str) -> tuple[bytes, str]:
 
 def photo_items(data_url: str, deps: Deps) -> PhotoResponse:
     table = _need(deps.table, "Tabel makanan")
-    embedder = _need(deps.embedder, "Layanan pencocokan makanan")
     namer = _need(deps.namer, "Layanan pengenalan foto")
     image, mime = decode_image_data_url(data_url)
-    items = identify_photo(image, mime, namer, table, embedder)
+    items = identify_photo(image, mime, namer, table)
     return PhotoResponse(
         items=[
             PhotoItemJSON(

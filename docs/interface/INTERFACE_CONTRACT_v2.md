@@ -9,7 +9,7 @@
 This contract describes what the three stages of the fixed user flow exchange:
 
 1. **Current glucose** (`integration/stages/glucose.py`): glucometer, CGM or finger PPG scan.
-2. **Meal** (`integration/stages/meal.py`, `integration/dishes/`): photo (Gemini names dishes, embedding matcher, dish table; items below the confidence rule are entered manually) or manual item-by-item entry.
+2. **Meal** (`integration/stages/meal.py`, `integration/dishes/`): photo (Gemini names dishes, local character n-gram matcher, dish table; items below the confidence rule are entered manually) or manual item-by-item entry.
 3. **Forecast** (`integration/stages/forecast.py`): glucose at T+60 and T+120 from two served LightGBM models.
 
 `integration/contract.py` keeps the schema only. The stage logic lives in the stage modules.
@@ -64,7 +64,7 @@ CGM is the single latest reading, with no history. A PPG `g0` is the served ridg
 - `dish_table_build` (hash of the locally built table), `vlm_model_version`.
 - **No fallback macros anywhere** (closes **F6**).
 
-Confidence rule for photo items (one copy, in `stages/meal.py`): accept when top-1 embedding similarity ≥ **0.80** and top-1 − top-2 margin ≥ **0.05**; otherwise the item is resolved manually. VLM self-reported confidence is never used.
+Confidence rule for photo items (one copy, in `stages/meal.py`): accept when top-1 matcher similarity ≥ **0.85** and top-1 − top-2 margin ≥ **0** ([ADR 0006](../adr/0006-local-char-ngram-matcher.md)); otherwise the item is resolved manually. VLM self-reported confidence is never used.
 
 ## 4 · `Profile`
 
@@ -206,8 +206,7 @@ Committed. Paths point to gitignored artefacts built locally.
   "forecaster": {"t60": {"path": "forecasting/models/gbdt_cgmacros_T60.txt", "version": "..."},
                  "t120": {"path": "forecasting/models/gbdt_cgmacros_T120.txt", "version": "..."},
                  "error_bands_mgdl": {"t60": {"meter": 0, "cgm": 0, "ppg": 0}, "t120": {}}},
-  "vlm": {"model": "gemini-3.5-flash-lite", "embedding_model": "gemini-embedding-001",
-          "key_file": "cv/experiments/vlm_vs_mobilenet/GEMINI_API_KEY.env"},
+  "vlm": {"model": "gemini-3.5-flash-lite", "key_file": "cv/experiments/vlm_vs_mobilenet/GEMINI_API_KEY.env"},
   "dish_table": {"path": "data/dish_table/dish_table.csv"}
 }
 ```

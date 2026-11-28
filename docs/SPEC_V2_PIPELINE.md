@@ -33,9 +33,9 @@ Audience: implementers now, paper reviewers (December 2026) later. Research prot
 
 `resolve_meal(photo | items) -> Meal(items[row_id, grams, confidence], totals, needs_manual_entry)`
 
-**Photo path:** Gemini `gemini-3.5-flash-lite` (paid tier), prompted in Indonesian for a list of dishes, then the **embedding matcher** (`gemini-embedding-001`), then a dish-table row ([VLM choice](https://github.com/Irisearch-org/GlucoSight/issues/9), [dish-ID trial](https://github.com/Irisearch-org/GlucoSight/issues/18)). MobileNetV2 leaves the serving path.
+**Photo path:** Gemini `gemini-3.5-flash-lite`, prompted in Indonesian for a list of dishes, then the local **character n-gram matcher** ([ADR 0006](adr/0006-local-char-ngram-matcher.md); it replaced the `gemini-embedding-001` matcher, which ran out of free-tier quota), then a dish-table row ([VLM choice](https://github.com/Irisearch-org/GlucoSight/issues/9), [dish-ID trial](https://github.com/Irisearch-org/GlucoSight/issues/18)). MobileNetV2 leaves the serving path.
 
-**Confidence rule, in one place** ([manual-entry rule](https://github.com/Irisearch-org/GlucoSight/issues/19)): accept an item when top-1 similarity is **≥ 0.80** and the top-1 − top-2 margin is **≥ 0.05**; otherwise the item needs manual entry. Held-out test: coverage 63.4%, 89.6% correct when accepted, 6.6% false match (vs 18.3% at the old 0.75 setting). VLM self-reported confidence is never used, since it is uncalibrated.
+**Confidence rule, in one place** (protocol of the [manual-entry rule](https://github.com/Irisearch-org/GlucoSight/issues/19), re-run for the new matcher on the served 710-row table): accept an item when top-1 similarity is **≥ 0.85** and the top-1 − top-2 margin is **≥ 0** (dev chose no margin); otherwise the item needs manual entry. Held-out test: coverage 61.5%, 85.6% correct when accepted, 8.8% false match (`cv/reports/charngram_matcher/`). The Gemini matcher's 63.4% / 89.6% / 6.6% was on the 35-row evaluation table and is not like-for-like. VLM self-reported confidence is never used, since it is uncalibrated.
 
 **Confirm screen (prototype variant B,** branch `prototype/dish-gate`):
 - Accepted items show "Dari foto" with the Sedikit/Sedang/Banyak picker.

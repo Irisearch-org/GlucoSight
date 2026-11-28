@@ -17,7 +17,6 @@
   },
   "vlm": {
     "model": "gemini-3.5-flash-lite",
-    "embedding_model": "gemini-embedding-001",
     "key_file": "cv/experiments/vlm_vs_mobilenet/GEMINI_API_KEY.env"
   },
   "dish_table": {"path": "data/dish_table/dish_table.csv"}
